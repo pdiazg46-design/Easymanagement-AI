@@ -389,9 +389,9 @@ export default function Home() {
         <ZoomableGroup 
           center={[autoCenterX, autoCenterY]} 
           zoom={autoZoom} 
-          minZoom={1} 
-          maxZoom={8} 
-          translateExtent={[[-500, -500], [500, 500]]}
+          minZoom={0.5} 
+          maxZoom={15} 
+          translateExtent={[[-2000, -2000], [2000, 2000]]}
         >
           <Geographies geography="https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json">
             {({ geographies }) =>
