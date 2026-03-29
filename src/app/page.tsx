@@ -1074,18 +1074,18 @@ export default function Home() {
                                   >
                                      <div className="flex justify-between items-start mb-1">
                                         <div className="flex flex-col">
-                                          <span className="text-[10px] text-[#F59E0B] font-bold uppercase tracking-widest mb-1 flex items-center gap-1"><Navigation size={10}/> COMPROMISO: {task.date ? task.date.split('-').reverse().join('/') : 'Por definir'}</span>
-                                          <span className="font-bold text-[#1E3A8A] text-[15px] leading-tight mt-0.5">{task.title}</span>
-                                          <span className="text-[9px] text-slate-400 mt-1 uppercase tracking-widest font-semibold flex items-center gap-1"><Lock size={8}/> Registrado: {new Date(task.id).toLocaleDateString(lang === 'es' ? 'es-CL' : 'en-US')} {new Date(task.id).toLocaleTimeString(lang === 'es' ? 'es-CL' : 'en-US', { hour: '2-digit', minute: '2-digit' })} hrs</span>
+                                           <span className="text-[13px] text-[#F59E0B] font-black uppercase tracking-widest mb-2 flex items-center gap-1.5"><Navigation size={14}/> COMPROMISO: {task.date ? task.date.split('-').reverse().join('/') : 'Por definir'}</span>
+                                           <span className="font-black text-[#1E3A8A] text-xl leading-tight mb-2">{task.title}</span>
+                                           <span className="text-[11px] text-slate-500 uppercase tracking-widest font-bold flex items-center gap-1.5"><Lock size={12}/> Registrado: {new Date(task.id).toLocaleDateString(lang === 'es' ? 'es-CL' : 'en-US')} {new Date(task.id).toLocaleTimeString(lang === 'es' ? 'es-CL' : 'en-US', { hour: '2-digit', minute: '2-digit' })} hrs</span>
                                         </div>
                                         <button 
                                           onClick={(e) => {
                                             e.stopPropagation();
                                             setTodayTasks(prev => prev.filter(t => t.id !== task.id));
                                           }}
-                                          className="w-6 h-6 rounded-full border-2 border-slate-300 bg-white shadow-inner shrink-0 ml-3 hover:border-emerald-500 hover:bg-emerald-50 transition-colors flex items-center justify-center group"
+                                          className="w-10 h-10 rounded-full border-[3px] border-slate-300 bg-white shadow-inner shrink-0 ml-4 hover:border-emerald-500 hover:bg-emerald-50 transition-colors flex items-center justify-center group"
                                         >
-                                           <div className="w-3 h-3 rounded-full bg-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                           <div className="w-5 h-5 rounded-full bg-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                         </button>
                                      </div>
                                   </motion.div>
@@ -1999,20 +1999,24 @@ export default function Home() {
                                    setDraftDate(task.date || "");
                                    setShowActionModal(true);
                                  }}
-                                 className="flex flex-col gap-1.5 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm cursor-pointer hover:border-[#1E3A8A]/30 hover:shadow-md transition-all active:scale-[0.98]"
+                                 className="flex flex-col gap-3 p-5 bg-white rounded-2xl border-2 border-slate-100 shadow-sm cursor-pointer hover:border-[#1E3A8A]/30 hover:shadow-md transition-all active:scale-[0.98]"
                                >
-                                  <div className="flex justify-between items-start mb-1">
-                                     <div className="flex flex-col">
-                                       <span className="text-[10px] text-[#F59E0B] font-bold uppercase tracking-widest mb-1 flex items-center gap-1">
-                                          <Navigation size={10}/> COMPROMISO: {task.date ? task.date.split('-').reverse().join('/') : 'Por definir'}
+                                  <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                                     <div className="flex flex-col items-start bg-amber-50/80 rounded-xl px-4 py-2 border border-amber-100">
+                                       <span className="text-[11px] text-[#F59E0B] font-black uppercase tracking-widest flex items-center gap-1.5 mb-0.5">
+                                          <Navigation size={12}/> COMPROMISO:
                                        </span>
-                                       <span className="font-bold text-[#1E3A8A] text-[15px] leading-tight mt-0.5">{task.title}</span>
+                                       <span className="text-[#D97706] font-black text-lg tracking-tight">
+                                          {task.date ? task.date.split('-').reverse().join('/') : 'Por definir'}
+                                       </span>
                                      </div>
-                                     <span className="text-[10px] text-slate-400 font-bold whitespace-nowrap bg-slate-50 px-2 py-1 rounded-md border border-slate-100">Registrado el {new Date(task.id).toLocaleDateString()}</span>
+                                     <span className="text-[12px] text-slate-500 font-bold whitespace-nowrap bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+                                       Registrado el {new Date(task.id).toLocaleDateString(lang === 'es' ? 'es-CL' : 'en-US')} a las {new Date(task.id).toLocaleTimeString(lang === 'es' ? 'es-CL' : 'en-US', { hour: '2-digit', minute: '2-digit' })} hrs
+                                     </span>
                                   </div>
-                                  {task.content && (
-                                     <p className="text-[11px] text-slate-500 font-medium leading-relaxed line-clamp-2 mt-1 bg-slate-50 p-3 rounded-xl border border-slate-100">"{task.content}"</p>
-                                  )}
+                                  <div className="px-1 mt-1">
+                                     <span className="font-black text-[#1E3A8A] text-[20px] leading-tight">{task.title}</span>
+                                  </div>
                                </motion.div>
                             ))
                          )
