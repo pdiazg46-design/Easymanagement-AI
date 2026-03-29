@@ -1,5 +1,5 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Mic, Keyboard, Edit2, Signal, Wifi, BatteryFull, Mail, Lock, Fingerprint, UploadCloud, Link as LinkIcon, ArrowRight, Eye, EyeOff, Map as MapIcon, List, Maximize2, Minimize2, X, Calendar, Navigation, Loader2, Phone, MessageCircle, UserX, UserCheck, MapPin, ChevronRight, Share2, FileText, Download, CreditCard, ShieldCheck, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from "react-simple-maps";
@@ -43,6 +43,16 @@ export default function Home() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [authError, setAuthError] = useState('');
+  const [isLoginMode, setIsLoginMode] = useState(false);
+  const [isProUser, setIsProUser] = useState(false);
+
+  useEffect(() => {
+    const savedView = localStorage.getItem('easy_currentView');
+    const savedPro = localStorage.getItem('easy_isPro');
+    if (savedView === 'dashboard') setCurrentView('dashboard');
+    else if (savedView === 'onboarding') setCurrentView('onboarding');
+    setIsProUser(savedPro === 'true');
+  }, []);
   
   const [userCountry, setUserCountry] = useState('cl');
   const [clientLogo, setClientLogo] = useState<string | null>(null);
@@ -59,7 +69,7 @@ export default function Home() {
        setAuthError('Debes ingresar una contraseña');
        return;
     }
-    if (password !== confirmPassword) {
+    if (!isLoginMode && password !== confirmPassword) {
        setAuthError('Las contraseñas no coinciden. Intenta de nuevo.');
        return;
     }
@@ -100,7 +110,11 @@ export default function Home() {
       }
       
       setAuthError('');
-      setCurrentView('onboarding');
+      const userIsPro = data.user?.isPro === true;
+      setIsProUser(userIsPro);
+      localStorage.setItem('easy_isPro', userIsPro ? 'true' : 'false');
+      localStorage.setItem('easy_currentView', 'dashboard');
+      setCurrentView('dashboard');
       
     } catch (e) {
       setAuthError('Error de red. Revisa tu conexión.');
@@ -366,27 +380,38 @@ export default function Home() {
                      </button>
                   </div>
 
-                  <div className="relative">
-                     <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={20} />
-                     <input 
-                       type={showConfirmPassword ? "text" : "password"} 
-                       placeholder={lang === 'es' ? 'Repite tu Contraseña' : 'Confirm Password'} 
-                       value={confirmPassword}
-                       onChange={(e) => { setConfirmPassword(e.target.value); setAuthError(''); }}
-                       className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 pl-12 pr-12 text-sm text-slate-800 focus:outline-none focus:border-corporate-purple focus:ring-1 focus:ring-corporate-purple transition-all shadow-sm" 
-                     />
-                     <button 
-                       type="button" 
-                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                       className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-corporate-purple focus:outline-none"
-                     >
-                       {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                     </button>
-                  </div>
+                  <AnimatePresence>
+                    {!isLoginMode && (
+                      <motion.div 
+                        initial={{ opacity: 0, height: 0 }} 
+                        animate={{ opacity: 1, height: 'auto' }} 
+                        exit={{ opacity: 0, height: 0 }}
+                        className="relative"
+                      >
+                         <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={20} />
+                         <input 
+                           type={showConfirmPassword ? "text" : "password"} 
+                           placeholder={lang === 'es' ? 'Repite tu Contraseña' : 'Confirm Password'} 
+                           value={confirmPassword}
+                           onChange={(e) => { setConfirmPassword(e.target.value); setAuthError(''); }}
+                           className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 pl-12 pr-12 text-sm text-slate-800 focus:outline-none focus:border-corporate-purple focus:ring-1 focus:ring-corporate-purple transition-all shadow-sm" 
+                         />
+                         <button 
+                           type="button" 
+                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                           className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-corporate-purple focus:outline-none"
+                         >
+                           {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                         </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 <div className="w-full flex justify-end mt-4 mb-3">
-                  <span className="text-[11px] text-corporate-purple font-medium cursor-pointer">{lang === 'es' ? '¿Deseas iniciar sesión?' : 'Already have an account?'}</span>
+                  <span onClick={() => setIsLoginMode(!isLoginMode)} className="text-[11px] text-corporate-purple font-medium cursor-pointer">
+                    {isLoginMode ? (lang === 'es' ? 'Crear cuenta nueva' : 'Create an account') : (lang === 'es' ? '¿Deseas iniciar sesión?' : 'Already have an account?')}
+                  </span>
                 </div>
 
                 <AnimatePresence>
@@ -407,7 +432,7 @@ export default function Home() {
                   onClick={handleSignup} 
                   className={`w-full bg-corporate-purple text-white font-bold tracking-wide py-4 rounded-full shadow-[0_8px_25px_rgb(124,58,237,0.35)] flex items-center justify-center gap-2 ${authError ? 'mt-0' : 'mt-5'}`}
                 >
-                  {lang === 'es' ? 'COMENZAR' : 'START NOW'}
+                  {isLoginMode ? (lang === 'es' ? 'INICIAR SESIÓN' : 'LOGIN') : (lang === 'es' ? 'COMENZAR' : 'START NOW')}
                 </motion.button>
 
                 <div className="mt-8 flex flex-col items-center pb-6">
@@ -618,18 +643,20 @@ export default function Home() {
                 </div>
 
                 {/* FREEMIUM TRIAL BANNER */}
-                <div 
-                  onClick={() => setShowSubscriptionModal(true)}
-                  className="bg-gradient-to-r from-[#009EE3] to-[#008CC9] text-white px-5 py-2.5 flex justify-between items-center shrink-0 cursor-pointer hover:opacity-90 transition-all shadow-inner mx-5 rounded-2xl mb-4"
-                >
-                   <div className="flex flex-col">
-                       <span className="text-[10px] font-bold text-white/80 uppercase tracking-widest leading-tight">Prueba Activa</span>
-                       <span className="text-xs font-black">Te quedan 7 días</span>
-                   </div>
-                   <div className="flex items-center gap-1.5 text-[11px] font-black bg-white text-[#009EE3] px-3 py-1.5 rounded-full shadow-sm">
-                       Pasar a PRO ✨
-                   </div>
-                </div>
+                {!isProUser && (
+                  <div 
+                    onClick={() => setShowSubscriptionModal(true)}
+                    className="bg-gradient-to-r from-[#009EE3] to-[#008CC9] text-white px-5 py-2.5 flex justify-between items-center shrink-0 cursor-pointer hover:opacity-90 transition-all shadow-inner mx-5 rounded-2xl mb-4"
+                  >
+                     <div className="flex flex-col">
+                         <span className="text-[10px] font-bold text-white/80 uppercase tracking-widest leading-tight">Prueba Activa</span>
+                         <span className="text-xs font-black">Te quedan 7 días</span>
+                     </div>
+                     <div className="flex items-center gap-1.5 text-[11px] font-black bg-white text-[#009EE3] px-3 py-1.5 rounded-full shadow-sm">
+                         Pasar a PRO ✨
+                     </div>
+                  </div>
+                )}
 
                 {/* CONTENIDO PRINCIPAL SCROLLABLE */}
                 <div className="flex-1 overflow-y-auto no-scrollbar px-5 pb-24 flex flex-col gap-6">
