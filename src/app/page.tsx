@@ -496,7 +496,7 @@ export default function Home() {
                                setDraftDate(task.date || "");
                                setShowActionModal(true);
                              }}
-                             className="w-full truncate text-[8px] sm:text-[9px] font-bold tracking-wider bg-[#F59E0B] text-white px-1.5 py-1 rounded cursor-pointer hover:bg-amber-600 transition-colors shadow-sm"
+                             className={`w-full truncate text-[8px] sm:text-[9px] font-bold tracking-wider text-white px-1.5 py-1 rounded cursor-pointer transition-colors shadow-sm ${task.completed ? 'bg-emerald-500/90 hover:bg-emerald-600 border border-emerald-600 border-dashed' : 'bg-[#F59E0B] hover:bg-amber-600'}`}
                              title={task.title}
                         >
                             {task.title || 'Compromiso'}
@@ -1086,22 +1086,24 @@ export default function Home() {
                                       setShowActionModal(true);
                                     }}
                                     initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                                    className="flex flex-col gap-1.5 p-4 bg-[#F8FAFC] rounded-2xl border border-slate-200 shadow-sm cursor-pointer hover:border-[#1E3A8A]/30 hover:shadow-md transition-all active:scale-[0.98]"
+                                    className={`flex flex-col gap-1.5 p-4 rounded-2xl border shadow-sm cursor-pointer hover:border-[#1E3A8A]/30 hover:shadow-md transition-all active:scale-[0.98] ${task.completed ? 'bg-emerald-50/40 border-emerald-200' : 'bg-[#F8FAFC] border-slate-200'}`}
                                   >
                                      <div className="flex justify-between items-start mb-1">
                                         <div className="flex flex-col">
-                                           <span className="text-[13px] text-[#F59E0B] font-black uppercase tracking-widest mb-2 flex items-center gap-1.5"><Navigation size={14}/> COMPROMISO: {task.date ? task.date.split('-').reverse().join('/') : 'Por definir'}</span>
-                                           <span className="font-black text-[#1E3A8A] text-xl leading-tight mb-2">{task.title}</span>
+                                           <span className={`text-[13px] font-black uppercase tracking-widest mb-2 flex items-center gap-1.5 ${task.completed ? 'text-emerald-500' : 'text-[#F59E0B]'}`}><Navigation size={14}/> {task.completed ? 'COMPLETADO' : 'COMPROMISO'}: {task.date ? task.date.split('-').reverse().join('/') : 'Por definir'}</span>
+                                           <span className={`font-black text-xl leading-tight mb-2 ${task.completed ? 'text-emerald-700 line-through decoration-emerald-400 opacity-60' : 'text-[#1E3A8A]'}`}>{task.title}</span>
                                            <span className="text-[11px] text-slate-500 uppercase tracking-widest font-bold flex items-center gap-1.5"><Lock size={12}/> Registrado: {new Date(task.id).toLocaleDateString(lang === 'es' ? 'es-CL' : 'en-US')} {new Date(task.id).toLocaleTimeString(lang === 'es' ? 'es-CL' : 'en-US', { hour: '2-digit', minute: '2-digit' })}</span>
                                         </div>
                                         <button 
                                           onClick={(e) => {
                                             e.stopPropagation();
-                                            setTodayTasks(prev => prev.filter(t => t.id !== task.id));
+                                            setTodayTasks(prev => prev.map(t => t.id === task.id ? { ...t, completed: !t.completed } : t));
                                           }}
-                                          className="w-10 h-10 rounded-full border-[3px] border-slate-300 bg-white shadow-inner shrink-0 ml-4 hover:border-emerald-500 hover:bg-emerald-50 transition-colors flex items-center justify-center group"
+                                          className={`w-10 h-10 rounded-full border-[3px] bg-white shrink-0 ml-4 transition-colors flex items-center justify-center group shadow-inner hover:border-emerald-500 hover:bg-emerald-50 ${task.completed ? 'border-emerald-500' : 'border-slate-300'}`}
                                         >
-                                           <div className="w-5 h-5 rounded-full bg-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                           <div className={`w-5 h-5 rounded-full bg-emerald-500 transition-opacity flex items-center justify-center ${task.completed ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                                              {task.completed && <Check size={12} className="text-white" strokeWidth={4} />}
+                                           </div>
                                         </button>
                                      </div>
                                   </motion.div>
@@ -2021,19 +2023,33 @@ export default function Home() {
                                    setDraftDate(task.date || "");
                                    setShowActionModal(true);
                                  }}
-                                 className="flex flex-col gap-3 p-5 bg-white rounded-2xl border-2 border-slate-100 shadow-sm cursor-pointer hover:border-[#1E3A8A]/30 hover:shadow-md transition-all active:scale-[0.98]"
+                                 className={`flex flex-col gap-3 p-5 bg-white rounded-2xl border-2 shadow-sm cursor-pointer hover:border-[#1E3A8A]/30 hover:shadow-md transition-all active:scale-[0.98] ${task.completed ? 'border-emerald-200 opacity-80 bg-emerald-50/20' : 'border-slate-100'}`}
                                >
-                                  <div className="flex flex-col items-start bg-amber-50/80 rounded-xl px-4 py-2 border border-amber-100 self-start">
-                                    <span className="text-[11px] text-[#F59E0B] font-black uppercase tracking-widest flex items-center gap-1.5 mb-0.5">
-                                       <Navigation size={12}/> COMPROMISO:
-                                    </span>
-                                    <span className="text-[#D97706] font-black text-xl tracking-tight">
-                                       {task.date ? task.date.split('-').reverse().join('/') : 'Por definir'}
-                                    </span>
+                                  <div className="flex justify-between items-start w-full gap-3">
+                                      <div className={`flex flex-col items-start rounded-xl px-4 py-2 border self-start ${task.completed ? 'bg-emerald-50/80 border-emerald-100' : 'bg-amber-50/80 border-amber-100'}`}>
+                                        <span className={`text-[11px] font-black uppercase tracking-widest flex items-center gap-1.5 mb-0.5 ${task.completed ? 'text-emerald-600' : 'text-[#F59E0B]'}`}>
+                                           <Navigation size={12}/> {task.completed ? 'COMPLETADO' : 'COMPROMISO'}:
+                                        </span>
+                                        <span className={`font-black text-xl tracking-tight ${task.completed ? 'text-emerald-700' : 'text-[#D97706]'}`}>
+                                           {task.date ? task.date.split('-').reverse().join('/') : 'Por definir'}
+                                        </span>
+                                      </div>
+                                      
+                                      <button 
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setTodayTasks(prev => prev.map(t => t.id === task.id ? { ...t, completed: !t.completed } : t));
+                                        }}
+                                        className={`w-10 h-10 rounded-full border-[3px] bg-white shrink-0 transition-colors flex items-center justify-center group shadow-inner hover:border-emerald-500 hover:bg-emerald-50 ${task.completed ? 'border-emerald-500' : 'border-slate-300'}`}
+                                      >
+                                         <div className={`w-5 h-5 rounded-full bg-emerald-500 transition-opacity flex items-center justify-center ${task.completed ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                                            {task.completed && <Check size={12} className="text-white" strokeWidth={4} />}
+                                         </div>
+                                      </button>
                                   </div>
                                   
                                   <div className="px-1 mt-1">
-                                     <span className="font-black text-[#1E3A8A] text-[18px] sm:text-[20px] leading-tight block">{task.title}</span>
+                                     <span className={`font-black text-[18px] sm:text-[20px] leading-tight block ${task.completed ? 'text-emerald-800 line-through decoration-emerald-400 opacity-60' : 'text-[#1E3A8A]'}`}>{task.title}</span>
                                   </div>
                                   
                                   <div className="mt-2 w-full pt-3 border-t border-slate-100/60 flex items-center text-left">
