@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from 'react';
-import { Mic, Trash2, Keyboard, Edit2, Signal, Wifi, BatteryFull, Mail, Lock, Fingerprint, UploadCloud, Link as LinkIcon, ArrowRight, Eye, EyeOff, Map as MapIcon, List, Maximize2, Minimize2, X, Calendar, Navigation, Loader2, Phone, MessageCircle, UserX, UserCheck, MapPin, ChevronRight, Share2, FileText, Download, CreditCard, ShieldCheck, Check } from 'lucide-react';
+import { Mic, Trash2, Keyboard, Edit2, Signal, Wifi, BatteryFull, Mail, Lock, Fingerprint, UploadCloud, Link as LinkIcon, ArrowRight, Eye, EyeOff, Map as MapIcon, List, Maximize2, Minimize2, X, Calendar, Navigation, Loader2, Phone, MessageCircle, UserX, UserCheck, MapPin, ChevronLeft, ChevronRight, Share2, FileText, Download, CreditCard, ShieldCheck, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from "react-simple-maps";
 
@@ -191,7 +191,7 @@ export default function Home() {
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   const [showActionModal, setShowActionModal] = useState(false);
   const [showCalendarModal, setShowCalendarModal] = useState(false);
-  
+  const [calendarMonthOffset, setCalendarMonthOffset] = useState(0);
   // Estados para el flujo de Voz IA (Local RAM)
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessingVoice, setIsProcessingVoice] = useState(false);
@@ -463,12 +463,14 @@ export default function Home() {
 
   const renderCalendarGrid = () => {
     const today = new Date();
-    const currentMonth = today.getMonth();
-    const currentYear = today.getFullYear();
+    const viewDate = new Date(today.getFullYear(), today.getMonth() + calendarMonthOffset, 1);
+    
+    const currentMonth = viewDate.getMonth();
+    const currentYear = viewDate.getFullYear();
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
     const firstDay = new Date(currentYear, currentMonth, 1).getDay();
     
-    const monthName = today.toLocaleDateString(lang === 'es' ? 'es-CL' : 'en-US', { month: 'long', year: 'numeric' });
+    const monthName = viewDate.toLocaleDateString(lang === 'es' ? 'es-CL' : 'en-US', { month: 'long', year: 'numeric' });
     
     const cells = [];
     for (let i = 0; i < firstDay; i++) {
@@ -507,8 +509,22 @@ export default function Home() {
     
     return (
         <div className="flex flex-col h-full bg-white rounded-xl border border-slate-200 overflow-hidden shadow-[0_4px_25px_rgb(0,0,0,0.04)]">
-            <div className="bg-slate-50 border-b border-slate-100 py-3 text-center uppercase tracking-widest text-[#1E3A8A] font-black text-sm">
-                {monthName}
+            <div className="bg-slate-50 border-b border-slate-100 py-2.5 px-4 flex items-center justify-between text-[#1E3A8A]">
+                <button 
+                  onClick={() => setCalendarMonthOffset(prev => prev - 1)} 
+                  className="p-1.5 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
+                >
+                   <ChevronLeft size={20} className="text-slate-500" />
+                </button>
+                <div className="text-center uppercase tracking-widest font-black text-sm flex-1">
+                   {monthName}
+                </div>
+                <button 
+                  onClick={() => setCalendarMonthOffset(prev => prev + 1)} 
+                  className="p-1.5 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
+                >
+                   <ChevronRight size={20} className="text-slate-500" />
+                </button>
             </div>
             <div className="grid grid-cols-7 border-b border-slate-100 bg-slate-50">
                 {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map(d => (
