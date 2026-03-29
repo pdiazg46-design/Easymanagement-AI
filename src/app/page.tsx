@@ -649,14 +649,18 @@ export default function Home() {
 
 
                   {/* ALERTA GPS AUTO-DETECCIÓN (SIMULACIÓN IDEAL) */}
-                  {/* ALERTA GPS AUTO-DETECCIÓN VACIADA */}
+                  {/* ALERTA GPS AUTO-DETECCIÓN (Lógica de Proximidad 300m) */}
+                  {/* Este bloque solo se renderizará cuando la API devuelva un cliente < 300m. 
+                      Por ahora, dejamos la UI completamente limpia cuando no hay nadie. */}
+                  {/* 
                   <motion.div 
                      initial={{ opacity: 0, scale: 0.95, y: -20 }}
                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                     className="bg-slate-50 border border-slate-200 rounded-3xl p-4 flex items-center justify-center shadow-sm shrink-0"
+                     className="bg-emerald-50 border border-emerald-200 rounded-3xl p-4 flex items-center shadow-lg shadow-emerald-500/10 cursor-pointer hover:bg-emerald-100 transition-all group shrink-0"
                   >
-                     <p className="text-[11px] text-slate-400 font-medium italic tracking-wide">{lang === 'es' ? 'No hay clientes detectados cerca' : 'No clients detected nearby'}</p>
+                     <p>Cliente detectado a X metros</p>
                   </motion.div>
+                  */}
 
                   {/* CABECERA RESUMEN Y COMPARTIR */}
                   <div className="flex items-center justify-between mb-0 mt-2">
