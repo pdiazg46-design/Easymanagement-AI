@@ -5,11 +5,11 @@ sharp('C:\\Users\\pdiaz\\Desarrollos\\icono_limpio.png')
     width: 380, 
     height: 380, 
     fit: 'contain', 
-    background: { r: 255, g: 255, b: 255, alpha: 0 } 
+    background: { r: 255, g: 255, b: 255, alpha: 1 } 
   })
   .extend({
     top: 66, bottom: 66, left: 66, right: 66,
-    background: { r: 255, g: 255, b: 255, alpha: 0 }
+    background: { r: 255, g: 255, b: 255, alpha: 1 }
   })
   .toFile('icono_elegante.png', (err, info) => {
     if (err) {
