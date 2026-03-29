@@ -229,10 +229,10 @@ export default function Home() {
   // Lógica reutilizable del Mapa Geográfico
   const renderGeoMap = (isFullscreen: boolean) => {
     const activeMarkers = [
-      { name: 'Chile', coordinates: [-71.54, -35.67], value: '$1.2M' },
-      { name: 'Perú', coordinates: [-75.01, -9.18], value: '$0.9M' },
-      { name: 'Colombia', coordinates: [-74.29, 4.57], value: '$0.6M' },
-      { name: 'Ecuador', coordinates: [-78.18, -1.83], value: '$0.3M' }
+      { name: 'Chile', coordinates: [-71.54, -35.67], value: '$0' },
+      { name: 'Perú', coordinates: [-75.01, -9.18], value: '$0' },
+      { name: 'Colombia', coordinates: [-74.29, 4.57], value: '$0' },
+      { name: 'Ecuador', coordinates: [-78.18, -1.83], value: '$0' }
     ];
     
     const minX = Math.min(...activeMarkers.map(m => m.coordinates[0]));
@@ -649,28 +649,13 @@ export default function Home() {
 
 
                   {/* ALERTA GPS AUTO-DETECCIÓN (SIMULACIÓN IDEAL) */}
+                  {/* ALERTA GPS AUTO-DETECCIÓN VACIADA */}
                   <motion.div 
                      initial={{ opacity: 0, scale: 0.95, y: -20 }}
                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                     className="bg-emerald-50 border border-emerald-200 rounded-3xl p-4 flex items-center shadow-lg shadow-emerald-500/10 cursor-pointer hover:bg-emerald-100 transition-all group shrink-0"
-                     onClick={() => {
-                        setSelectedCountry("Chile");
-                        setSelectedClient({ name: "Distribuidor Inteled", country: "Chile" });
-                     }}
+                     className="bg-slate-50 border border-slate-200 rounded-3xl p-4 flex items-center justify-center shadow-sm shrink-0"
                   >
-                     <div className="flex items-center gap-3 flex-1">
-                        <div className="w-[42px] h-[42px] rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 group-hover:bg-emerald-200 transition-colors shadow-inner">
-                           <MapPin size={22} />
-                        </div>
-                        <div>
-                           <p className="text-[9px] uppercase font-black text-emerald-600 tracking-widest mb-0.5 flex items-center gap-1.5 opacity-80">
-                             <Signal size={10} className="animate-pulse"/> En tu ubicación (A 12m)
-                           </p>
-                           <h4 className="text-[14px] font-extrabold text-[#064e3b] leading-tight">Distribuidor Inteled</h4>
-                           <p className="text-[10px] text-emerald-700 font-semibold mb-0 mt-0.5">Toca para abrir cliente y oportunidad.</p>
-                        </div>
-                     </div>
-                     <ChevronRight size={24} className="text-emerald-400 group-hover:text-emerald-600 transition-transform group-hover:translate-x-1 justify-self-end shrink-0" />
+                     <p className="text-[11px] text-slate-400 font-medium italic tracking-wide">{lang === 'es' ? 'No hay clientes detectados cerca' : 'No clients detected nearby'}</p>
                   </motion.div>
 
                   {/* CABECERA RESUMEN Y COMPARTIR */}
@@ -693,12 +678,12 @@ export default function Home() {
                     <div className="flex justify-between items-center">
                       <div className="flex-1 text-left">
                         <p className="text-white/80 text-xs font-medium uppercase tracking-wider mb-1">{t[lang].pipeline}</p>
-                        <h2 className="text-3xl font-extrabold tracking-tight">$3.5M <span className="text-lg font-bold">USD</span></h2>
+                        <h2 className="text-3xl font-extrabold tracking-tight">$0 <span className="text-lg font-bold">USD</span></h2>
                       </div>
                       <div className="w-px h-12 bg-white/20 mx-4"></div>
                       <div className="text-center pr-2">
                         <p className="text-white/80 text-[10px] font-medium uppercase tracking-wider mb-1 leading-tight w-20">{t[lang].activeProj.split(' ')[0]}<br/>{t[lang].activeProj.split(' ')[1]}</p>
-                        <h2 className="text-3xl font-extrabold pb-0 leading-none">12</h2>
+                        <h2 className="text-3xl font-extrabold pb-0 leading-none">0</h2>
                       </div>
                     </div>
                   </motion.div>
@@ -1103,10 +1088,7 @@ export default function Home() {
                        </h3>
                      </div>
                      <div className="space-y-4">
-                        {[
-                          { id: '1', title: lang === 'es' ? 'Equipamiento Planta Sur' : 'South Plant Equipment', amount: '$45.000', status: lang === 'es' ? 'Negociación' : 'Negotiation', date: lang === 'es' ? 'Cierre: Jun 2026' : 'Close: Jun 2026' },
-                          { id: '2', title: lang === 'es' ? 'Renovación Tableros Centrales' : 'Main Boards Renewal', amount: '$75.000', status: lang === 'es' ? 'Propuesta' : 'Proposal', date: lang === 'es' ? 'Cierre: Ago 2026' : 'Close: Aug 2026' }
-                        ].map(opp => (
+                        {[].map(opp => (
                            <div 
                               key={opp.id} 
                               onClick={() => setSelectedOpportunity(opp)}
