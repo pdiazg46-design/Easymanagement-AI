@@ -292,6 +292,70 @@ export default function Home() {
     }
   }, [lang]);
 
+  // MOTOR PROTOTIPO DE NLP (Despliegue Fase 1) - Extrae compromisos y fechas del texto.
+  const processVoiceWithFakeAI = (transcript: string, currentLang: string) => {
+    const lowerText = transcript.toLowerCase();
+    
+    // 1. Extraer el Compromiso (Lo que sigue)
+    let extractedAction = currentLang === 'es' ? "Acción registrada en terreno" : "Field recorded action";
+    
+    const actionKeywords = ["tengo que ", "necesito ", "debo ", "hay que ", "compromiso para ", "me comprometí a "];
+    for (const keyword of actionKeywords) {
+       if (lowerText.includes(keyword)) {
+          const startIdx = lowerText.indexOf(keyword) + keyword.length;
+          let actionStr = transcript.substring(startIdx).trim();
+          
+          // Limpiar hasta palabras temporales (cortar ahí)
+          const wordsToClean = ["el próximo", "para el", "el lunes", "el martes", "el miércoles", "el jueves", "el viernes", "mañana", "la próxima"];
+          let truncateIdx = actionStr.length;
+          for (const w of wordsToClean) {
+              const idx = actionStr.toLowerCase().indexOf(w);
+              if (idx !== -1 && idx < truncateIdx) truncateIdx = idx;
+          }
+          if (truncateIdx > 0 && truncateIdx < actionStr.length) {
+             actionStr = actionStr.substring(0, truncateIdx).trim();
+          }
+          
+          if (actionStr.length > 2) {
+             extractedAction = actionStr.charAt(0).toUpperCase() + actionStr.slice(1);
+          }
+          break;
+       }
+    }
+
+    // 2. Extraer la Fecha ("¿Para cuándo?")
+    let extractedDate = "";
+    const today = new Date();
+    
+    // Matcheos Directos
+    const matchDayThisMonth = lowerText.match(/(\d{1,2})\s+de\s+este\s+mes/);
+    if (matchDayThisMonth) {
+       const day = parseInt(matchDayThisMonth[1], 10);
+       extractedDate = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+    } else {
+        const daysMap: Record<string, number> = { "domingo":0, "lunes":1, "martes":2, "miércoles":3, "miercoles": 3, "jueves":4, "viernes":5, "sábado":6, "sabado": 6 };
+        for (const [dayName, dayNum] of Object.entries(daysMap)) {
+            if (lowerText.includes(`próximo ${dayName}`) || lowerText.includes(`proximo ${dayName}`) || lowerText.includes(`el ${dayName}`)) {
+                let diff = dayNum - today.getDay();
+                if (diff <= 0) diff += 7; 
+                const nextDate = new Date(today);
+                nextDate.setDate(today.getDate() + diff);
+                
+                // Si la persona dijo un número explícito del calendario ej: "lunes 30"
+                const matchNumber = lowerText.match(new RegExp(`${dayName}\\s+(\\d{1,2})`));
+                if (matchNumber) {
+                   nextDate.setDate(parseInt(matchNumber[1], 10)); // Force the exact month day
+                }
+
+                extractedDate = `${nextDate.getFullYear()}-${(nextDate.getMonth() + 1).toString().padStart(2, '0')}-${nextDate.getDate().toString().padStart(2, '0')}`;
+                break;
+            }
+        }
+    }
+    
+    return { action: extractedAction, date: extractedDate };
+  };
+
   const handleMicClick = () => {
     setEditingTask(null);
     
@@ -317,9 +381,25 @@ export default function Home() {
       // Simulamos latencia de procesamiento estructural de la IA
       setTimeout(() => {
         setIsProcessingVoice(false);
-        if (!finalTranscriptRef.current && draftActivity.length === 0) {
-           setDraftActivity(lang === 'es' ? "No se detectó audio (Permiso denegado o micrófono apagado). Escribe manualmente." : "No audio detected. Please type manually.");
-        }
+        
+        setDraftActivity(prevActivity => {
+           const finalAct = prevActivity.trim();
+           if (!finalAct && !finalTranscriptRef.current) {
+              return lang === 'es' ? "No se detectó audio (Permiso denegado o micrófono apagado). Escribe manualmente." : "No audio detected. Please type manually.";
+           }
+           
+           // Procesar Texto con Motor NLP Fake
+           const result = processVoiceWithFakeAI(finalAct, lang);
+           if (result.action !== "Acción registrada en terreno" && result.action !== "Field recorded action") {
+              setDraftAction(result.action);
+           }
+           if (result.date) {
+              setDraftDate(result.date);
+           }
+           
+           return finalAct;
+        });
+
         setShowActionModal(true);
       }, 1500);
     }
