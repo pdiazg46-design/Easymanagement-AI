@@ -428,7 +428,7 @@ export default function Home() {
       } else if (selectedCountry) {
          // Si NO hay cliente específico pero SÍ hay un país, es una bitácora regional genérica
          const now = new Date();
-         const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} hrs`;
+         const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
          
          setNewCountryTimelineItems(prev => [{
             id: Date.now(),
@@ -1092,7 +1092,7 @@ export default function Home() {
                                         <div className="flex flex-col">
                                            <span className="text-[13px] text-[#F59E0B] font-black uppercase tracking-widest mb-2 flex items-center gap-1.5"><Navigation size={14}/> COMPROMISO: {task.date ? task.date.split('-').reverse().join('/') : 'Por definir'}</span>
                                            <span className="font-black text-[#1E3A8A] text-xl leading-tight mb-2">{task.title}</span>
-                                           <span className="text-[11px] text-slate-500 uppercase tracking-widest font-bold flex items-center gap-1.5"><Lock size={12}/> Registrado: {new Date(task.id).toLocaleDateString(lang === 'es' ? 'es-CL' : 'en-US')} {new Date(task.id).toLocaleTimeString(lang === 'es' ? 'es-CL' : 'en-US', { hour: '2-digit', minute: '2-digit' })} hrs</span>
+                                           <span className="text-[11px] text-slate-500 uppercase tracking-widest font-bold flex items-center gap-1.5"><Lock size={12}/> Registrado: {new Date(task.id).toLocaleDateString(lang === 'es' ? 'es-CL' : 'en-US')} {new Date(task.id).toLocaleTimeString(lang === 'es' ? 'es-CL' : 'en-US', { hour: '2-digit', minute: '2-digit' })}</span>
                                         </div>
                                         <button 
                                           onClick={(e) => {
@@ -2038,7 +2038,7 @@ export default function Home() {
                                   
                                   <div className="mt-2 w-full pt-3 border-t border-slate-100/60 flex items-center text-left">
                                      <span className="text-[11px] text-slate-400 font-bold whitespace-normal leading-relaxed">
-                                       Generado el {new Date(task.id).toLocaleDateString(lang === 'es' ? 'es-CL' : 'en-US')} a las {new Date(task.id).toLocaleTimeString(lang === 'es' ? 'es-CL' : 'en-US', { hour: '2-digit', minute: '2-digit' })} hrs
+                                       Generado el {new Date(task.id).toLocaleDateString(lang === 'es' ? 'es-CL' : 'en-US')} a las {new Date(task.id).toLocaleTimeString(lang === 'es' ? 'es-CL' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
                                      </span>
                                   </div>
                                </motion.div>
