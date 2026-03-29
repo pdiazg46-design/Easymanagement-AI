@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Mic, Keyboard, Edit2, Signal, Wifi, BatteryFull, Mail, Lock, Fingerprint, UploadCloud, Link as LinkIcon, ArrowRight, Eye, EyeOff, Map as MapIcon, List, Maximize2, Minimize2, X, Calendar, Navigation, Loader2, Phone, MessageCircle, UserX, UserCheck, MapPin, ChevronRight, Share2, FileText, Download, CreditCard, ShieldCheck, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from "react-simple-maps";
@@ -46,14 +46,7 @@ export default function Home() {
   const [isLoginMode, setIsLoginMode] = useState(false);
   const [isProUser, setIsProUser] = useState(false);
 
-  useEffect(() => {
-    const savedView = localStorage.getItem('easy_currentView');
-    const savedPro = localStorage.getItem('easy_isPro');
-    if (savedView === 'dashboard') setCurrentView('dashboard');
-    else if (savedView === 'onboarding') setCurrentView('onboarding');
-    setIsProUser(savedPro === 'true');
-  }, []);
-  
+
   const [userCountry, setUserCountry] = useState('cl');
   const [clientLogo, setClientLogo] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -167,21 +160,108 @@ export default function Home() {
   const [draftActivity, setDraftActivity] = useState("- Cliente solicita renovar equipamiento industrial de la planta norte.\n- Interesado en revisión de tableros.");
   const [draftAction, setDraftAction] = useState("Enviar propuesta con Kit Hubbell Industrial");
 
+  // PERSISTENCIA DE DATOS DE LA SESIÓN DE PRUEBA
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedView = localStorage.getItem('easy_currentView');
+      const savedPro = localStorage.getItem('easy_isPro');
+      if (savedView === 'dashboard') setCurrentView('dashboard');
+      else if (savedView === 'onboarding') setCurrentView('onboarding');
+      setIsProUser(savedPro === 'true');
+
+      const savedData = localStorage.getItem('easy_demo_data');
+      if (savedData) {
+        try {
+          const data = JSON.parse(savedData);
+          if (data.clientLogo) setClientLogo(data.clientLogo);
+          if (data.avatarUrl) setAvatarUrl(data.avatarUrl);
+          if (data.todayTasks) setTodayTasks(data.todayTasks);
+          if (data.newTimelineItems) setNewTimelineItems(data.newTimelineItems);
+          if (data.newCountryTimelineItems) setNewCountryTimelineItems(data.newCountryTimelineItems);
+        } catch(e){}
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('easy_demo_data', JSON.stringify({
+        clientLogo, avatarUrl, todayTasks, newTimelineItems, newCountryTimelineItems
+      }));
+    }
+  }, [clientLogo, avatarUrl, todayTasks, newTimelineItems, newCountryTimelineItems]);
+
+  // Referencia para la API nativa del navegador
+  const recognitionRef = useRef<any>(null);
+  const finalTranscriptRef = useRef<string>('');
+
+  // Inicializar Speech Recognition
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = lang === 'es' ? 'es-CL' : 'en-US';
+        
+        recognition.onresult = (event: any) => {
+          let currentInterim = '';
+          let currentFinal = '';
+          
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            if (event.results[i].isFinal) {
+              currentFinal += event.results[i][0].transcript + ' ';
+            } else {
+              currentInterim += event.results[i][0].transcript;
+            }
+          }
+          
+          if (currentFinal) {
+             finalTranscriptRef.current += currentFinal;
+          }
+          setDraftActivity((finalTranscriptRef.current + currentInterim).trim());
+        };
+
+        recognition.onerror = (event: any) => {
+          console.error("Mic error:", event.error);
+        };
+        
+        recognitionRef.current = recognition;
+      }
+    }
+  }, [lang]);
+
   const handleMicClick = () => {
     setEditingTask(null);
-    setDraftActivity("- Dictado de voz consolidado. Todo en orden según lo conversado en la visita técnica.");
-    setDraftAction("Hacer control de calidad");
     
     if (!isRecording) {
       setIsRecording(true);
+      finalTranscriptRef.current = '';
+      setDraftActivity("");
+      setDraftAction(lang === 'es' ? "Acción registrada en terreno" : "Field recorded action");
+      
+      // Iniciar escucha real
+      if (recognitionRef.current) {
+         try { recognitionRef.current.start(); } catch(e){}
+      }
     } else {
       setIsRecording(false);
       setIsProcessingVoice(true);
-      // Simulamos latencia de procesamiento on-device (RAM)
+      
+      // Detener escucha real
+      if (recognitionRef.current) {
+         try { recognitionRef.current.stop(); } catch(e){}
+      }
+
+      // Simulamos latencia de procesamiento estructural de la IA
       setTimeout(() => {
         setIsProcessingVoice(false);
+        if (!finalTranscriptRef.current && draftActivity.length === 0) {
+           setDraftActivity(lang === 'es' ? "No se detectó audio (Permiso denegado o micrófono apagado). Escribe manualmente." : "No audio detected. Please type manually.");
+        }
         setShowActionModal(true);
-      }, 1800);
+      }, 1500);
     }
   };
 
@@ -193,9 +273,9 @@ export default function Home() {
       // IA Cross-referencing: Si se generó un nuevo compromiso para "hoy", se inyecta dinámicamente
       setTodayTasks(prev => [{
         id: Date.now(),
-        title: 'Enviar propuesta técnica segmentada',
+        title: draftAction,
         time: 'Pendiente',
-        type: 'Nueva Acción'
+        type: 'Reunión'
       }, ...prev]);
 
       if (selectedClient) {
