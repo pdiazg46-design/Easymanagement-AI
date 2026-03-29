@@ -190,6 +190,7 @@ export default function Home() {
   const [regionalViewMode, setRegionalViewMode] = useState<'list' | 'map'>('list');
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   const [showActionModal, setShowActionModal] = useState(false);
+  const [showCalendarModal, setShowCalendarModal] = useState(false);
   
   // Estados para el flujo de Voz IA (Local RAM)
   const [isRecording, setIsRecording] = useState(false);
@@ -355,7 +356,10 @@ export default function Home() {
       }
 
     } else {
-      // Logic para actualizar la tarea existente iría aquí en el backend
+      // Update logic in RAM
+      setTodayTasks(prev => prev.map(t => t.id === editingTask.id ? { ...t, title: draftAction, content: draftActivity } : t));
+      setNewTimelineItems(prev => prev.map(t => t.id === editingTask.id ? { ...t, title: draftAction, content: draftActivity } : t));
+      setNewCountryTimelineItems(prev => prev.map(t => t.id === editingTask.id ? { ...t, title: draftAction, content: draftActivity } : t));
       setEditingTask(null);
     }
 
@@ -893,7 +897,7 @@ export default function Home() {
                         <div className="bg-white rounded-3xl p-6 shadow-[0_4px_25px_rgb(0,0,0,0.04)] border border-slate-100">
                           <div className="flex justify-between items-center mb-5">
                             <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide">{lang === 'es' ? 'Tareas de Hoy (05 May)' : 'Today\'s Tasks (May 05)'}</h3>
-                            <button className="text-xs font-semibold px-3 py-1.5 bg-slate-50 text-[#1E3A8A] rounded-full border border-slate-200 shadow-sm transition-colors hover:bg-slate-100">{lang === 'es' ? 'VER CALENDARIO' : 'VIEW CALENDAR'}</button>
+                            <button onClick={() => setShowCalendarModal(true)} className="text-xs font-semibold px-3 py-1.5 bg-slate-50 text-[#1E3A8A] rounded-full border border-slate-200 shadow-sm transition-colors hover:bg-slate-100">{lang === 'es' ? 'VER CALENDARIO' : 'VIEW CALENDAR'}</button>
                           </div>
                           
                           {todayTasks.length === 0 ? (
@@ -905,6 +909,8 @@ export default function Home() {
                                     key={task.id} 
                                     onClick={() => {
                                       setEditingTask(task);
+                                      setDraftAction(task.title);
+                                      setDraftActivity(task.content || "");
                                       setShowActionModal(true);
                                     }}
                                     initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
@@ -1744,6 +1750,68 @@ export default function Home() {
                            <Lock size={16} />
                            Generar Enlace Seguro (PDF)
                         </button>
+                     )}
+                  </div>
+               </motion.div>
+            </motion.div>
+          )}
+
+          {/* Calendario Modal */}
+          {showCalendarModal && (
+            <motion.div 
+               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+               className="fixed inset-0 z-[100] flex items-end justify-center bg-[#1E3A8A]/30 backdrop-blur-sm sm:items-center p-0 sm:p-4"
+               onClick={() => setShowCalendarModal(false)}
+            >
+               <motion.div 
+                  initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+                  transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                  className="bg-[#F8FAFC] w-full h-[90%] sm:h-auto sm:max-h-[90%] sm:max-w-md rounded-t-[32px] sm:rounded-3xl shadow-2xl flex flex-col relative overflow-hidden"
+                  onClick={e => e.stopPropagation()}
+               >
+                  <div className="bg-white px-6 pt-6 pb-5 border-b border-slate-100 shrink-0 sticky top-0 z-20">
+                     <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-5 shrink-0" />
+                     <div className="flex justify-between items-center mb-2">
+                        <div>
+                           <h2 className="text-2xl font-black text-[#1E3A8A] leading-tight tracking-tight">
+                              Calendario y Bitácora
+                           </h2>
+                           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Historial del Usuario</p>
+                        </div>
+                        <button onClick={() => setShowCalendarModal(false)} className="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 shadow-sm">
+                           <X size={16} />
+                        </button>
+                     </div>
+                  </div>
+
+                  <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3 pb-24">
+                     {todayTasks.length === 0 ? (
+                        <div className="text-center py-10 text-slate-400 text-sm font-medium">No hay registros de actividad.</div>
+                     ) : (
+                        todayTasks.map((task) => (
+                           <motion.div 
+                             key={task.id} 
+                             onClick={() => {
+                               setShowCalendarModal(false);
+                               setEditingTask(task);
+                               setDraftAction(task.title);
+                               setDraftActivity(task.content || "");
+                               setShowActionModal(true);
+                             }}
+                             className="flex flex-col gap-1.5 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm cursor-pointer hover:border-[#1E3A8A]/30 transition-all"
+                           >
+                              <div className="flex justify-between items-start mb-1">
+                                 <div className="flex flex-col">
+                                   <span className="text-[10px] text-[#F59E0B] font-bold uppercase tracking-widest mb-1 flex items-center gap-1"><Navigation size={10}/> {task.type || 'REUNIÓN'}</span>
+                                   <span className="font-bold text-[#1E3A8A] text-sm leading-tight">{task.title}</span>
+                                 </div>
+                                 <span className="text-[10px] text-slate-400 font-bold whitespace-nowrap bg-slate-50 px-2 py-1 rounded-md">{new Date(task.id).toLocaleDateString()}</span>
+                              </div>
+                              {task.content && (
+                                 <p className="text-xs text-slate-500 leading-relaxed line-clamp-2 mt-1 bg-slate-50 p-2 rounded-lg">{task.content}</p>
+                              )}
+                           </motion.div>
+                        ))
                      )}
                   </div>
                </motion.div>
