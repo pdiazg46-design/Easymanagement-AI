@@ -19,6 +19,7 @@ model User {
   country          String   @default("Chile")
   clientUrl        String?
   logoUrl          String?
+  avatarUrl        String?
   isPro            Boolean  @default(false)
   lemonSqueezyId   String?  // ID de la suscripción para el Webhook
   createdAt        DateTime @default(now())

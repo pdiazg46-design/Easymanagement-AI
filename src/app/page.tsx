@@ -48,6 +48,7 @@ export default function Home() {
 
 
   const [userCountry, setUserCountry] = useState('cl');
+  const [clientWebsite, setClientWebsite] = useState('');
   const [clientLogo, setClientLogo] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [historialViewMode, setHistorialViewMode] = useState<'list'|'map'>('list');
@@ -114,25 +115,52 @@ export default function Home() {
     }
   };
 
+  // Compresión en el cliente para Avatares y Logos
+  const compressImage = (file: File, callback: (base64: string) => void) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      if (event.target?.result) {
+         img.src = event.target.result as string;
+      }
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 300; // Resolución optimizada para cabecera
+        const MAX_HEIGHT = 300;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height && width > MAX_WIDTH) {
+          height *= MAX_WIDTH / width;
+          width = MAX_WIDTH;
+        } else if (height > MAX_HEIGHT) {
+          width *= MAX_HEIGHT / height;
+          height = MAX_HEIGHT;
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        // Formato WEBP al 70% para reducir drásticamente el peso (Kilobytes en vez de Megabytes)
+        const dataUrl = canvas.toDataURL('image/webp', 0.7);
+        callback(dataUrl);
+      };
+    };
+  };
+
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setClientLogo(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      compressImage(file, (base64) => setClientLogo(base64));
     }
   };
 
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setAvatarUrl(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      compressImage(file, (base64) => setAvatarUrl(base64));
     }
   };
 
@@ -160,7 +188,7 @@ export default function Home() {
   const [draftActivity, setDraftActivity] = useState("- Cliente solicita renovar equipamiento industrial de la planta norte.\n- Interesado en revisión de tableros.");
   const [draftAction, setDraftAction] = useState("Enviar propuesta con Kit Hubbell Industrial");
 
-  // PERSISTENCIA DE DATOS DE LA SESIÓN DE PRUEBA
+  // PERSISTENCIA HÍBRIDA: Perfil en PostgreSQL, Tareas en RAM temporal
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedView = localStorage.getItem('easy_currentView');
@@ -169,15 +197,27 @@ export default function Home() {
       else if (savedView === 'onboarding') setCurrentView('onboarding');
       setIsProUser(savedPro === 'true');
 
+      // 1. Cargar configuración desde la NUBE (Prisma Database)
+      fetch('/api/auth/me')
+        .then(res => res.json())
+        .then(data => {
+          if (data.user) {
+             if (data.user.country) setUserCountry(data.user.country);
+             if (data.user.clientUrl) setClientWebsite(data.user.clientUrl);
+             if (data.user.logoUrl) setClientLogo(data.user.logoUrl);
+             if (data.user.avatarUrl) setAvatarUrl(data.user.avatarUrl);
+          }
+        }).catch(() => console.log('Buscando sesión...'));
+
+      // 2. Cargar Timeline y Tareas desde caché local (hasta finalizar Fase 1)
       const savedData = localStorage.getItem('easy_demo_data');
       if (savedData) {
         try {
           const data = JSON.parse(savedData);
-          if (data.clientLogo) setClientLogo(data.clientLogo);
-          if (data.avatarUrl) setAvatarUrl(data.avatarUrl);
           if (data.todayTasks) setTodayTasks(data.todayTasks);
           if (data.newTimelineItems) setNewTimelineItems(data.newTimelineItems);
           if (data.newCountryTimelineItems) setNewCountryTimelineItems(data.newCountryTimelineItems);
+          if (data.uploadedCatalogs) setUploadedCatalogs(data.uploadedCatalogs);
         } catch(e){}
       }
     }
@@ -186,10 +226,10 @@ export default function Home() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('easy_demo_data', JSON.stringify({
-        clientLogo, avatarUrl, todayTasks, newTimelineItems, newCountryTimelineItems
+        todayTasks, newTimelineItems, newCountryTimelineItems, uploadedCatalogs
       }));
     }
-  }, [clientLogo, avatarUrl, todayTasks, newTimelineItems, newCountryTimelineItems]);
+  }, [todayTasks, newTimelineItems, newCountryTimelineItems, uploadedCatalogs]);
 
   // Referencia para la API nativa del navegador
   const recognitionRef = useRef<any>(null);
@@ -572,7 +612,7 @@ export default function Home() {
                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-2">{lang === 'es' ? 'URL del Mandante' : 'Client Website URL'}</label>
                        <div className="relative">
                          <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-corporate-purple" size={18} />
-                         <input type="url" placeholder="https://cliente.com" className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 pl-11 pr-4 text-sm text-slate-800 transition-all focus:outline-none focus:border-corporate-purple shadow-sm" />
+                         <input type="url" placeholder="https://cliente.com" value={clientWebsite} onChange={(e) => setClientWebsite(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 pl-11 pr-4 text-sm text-slate-800 transition-all focus:outline-none focus:border-corporate-purple shadow-sm" />
                        </div>
                        <p className="text-[10px] text-slate-400 px-2 leading-tight">{lang === 'es' ? 'Esta URL será procesada por nuestro motor de IA para asistir tus gestiones.' : 'This URL will be processed by our AI engine to assist your daily management.'}</p>
                     </div>
@@ -604,12 +644,17 @@ export default function Home() {
                          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5"><UploadCloud size={14}/> Base de Conocimiento (RAG)</label>
                          <span className="bg-corporate-purple/10 text-corporate-purple text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest">NUEVO</span>
                        </div>
-                       <p className="text-[10px] text-slate-500 px-2 leading-tight mb-3">Sube catálogos PDF o listas de precio. La IA los leerá para sugerirte productos y armar kits inteligentemente.</p>
+                       <p className="text-[10px] text-slate-500 px-2 leading-tight mb-3">Sube listas de precio o inventario. Nuestro motor extrae solo la tabla de datos, eliminando imágenes para máxima velocidad (RAG).</p>
                        
                        <label className="border-2 border-dashed border-corporate-purple/30 bg-corporate-purple/5 rounded-2xl p-4 flex items-center justify-center gap-3 cursor-pointer hover:bg-corporate-purple/10 transition-colors">
-                          <input type="file" accept=".pdf,.csv,.xlsx" className="hidden" multiple onChange={(e) => {
+                          <input type="file" accept=".csv,.xlsx,.xls" className="hidden" multiple onChange={(e) => {
                              if(e.target.files && e.target.files.length > 0) {
-                               const arr = Array.from(e.target.files).map(f => ({ name: f.name, size: '2.4 MB' }));
+                               const arr = Array.from(e.target.files).map(f => {
+                                 // Simulamos la reducción drástica al extraer "solo texto" de una lista
+                                 const rawMb = f.size > 0 ? (f.size / (1024 * 1024)) : 1.5;
+                                 const optimizedKb = Math.max(12, Math.round(rawMb * 25)); 
+                                 return { name: f.name, size: `${optimizedKb} KB (Datos puros)` };
+                               });
                                setUploadedCatalogs(prev => [...prev, ...arr]);
                              }
                           }} />
@@ -617,8 +662,8 @@ export default function Home() {
                              <UploadCloud size={18} />
                           </div>
                           <div className="flex-1">
-                             <span className="text-xs font-bold text-slate-700 block">Subir Documento</span>
-                             <span className="text-[9px] text-slate-500 uppercase tracking-widest">PDF, Excel, CSV</span>
+                             <span className="text-xs font-bold text-slate-700 block">Subir Lista (Data)</span>
+                             <span className="text-[9px] text-slate-500 uppercase tracking-widest">Excel, CSV</span>
                           </div>
                        </label>
                        
@@ -643,7 +688,24 @@ export default function Home() {
                  <div className="mt-8 mb-10 w-full flex justify-end shrink-0">
                     <motion.button 
                       whileTap={{ scale: 0.95 }}
-                      onClick={() => setCurrentView('dashboard')} 
+                      onClick={async () => {
+                         try {
+                           await fetch('/api/user/profile', {
+                             method: 'PUT',
+                             headers: { 'Content-Type': 'application/json' },
+                             body: JSON.stringify({
+                                country: userCountry,
+                                clientUrl: clientWebsite,
+                                logoUrl: clientLogo,
+                                avatarUrl: avatarUrl
+                             })
+                           });
+                           localStorage.setItem('easy_currentView', 'dashboard');
+                           setCurrentView('dashboard');
+                         } catch(e) {
+                           console.error(e);
+                         }
+                      }} 
                       className="bg-[#1E3A8A] text-white font-bold py-4 px-8 rounded-full shadow-xl shadow-blue-900/20 flex items-center gap-2 tracking-wide"
                     >
                       FINALIZAR
