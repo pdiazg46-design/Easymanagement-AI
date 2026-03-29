@@ -24,10 +24,11 @@ export async function POST(req: Request) {
       data: {
         email,
         password: hashedPassword,
+        isPro: email === 'pdiazg46@gmail.com', // SUPER ADMIN OVERRIDE
       },
     });
 
-    return NextResponse.json({ message: "Usuario creado exitosamente", user: { id: newUser.id, email: newUser.email } }, { status: 201 });
+    return NextResponse.json({ message: "Usuario creado exitosamente", user: { id: newUser.id, email: newUser.email, isPro: newUser.isPro } }, { status: 201 });
 
   } catch (error) {
     console.error("Error al registrar:", error);

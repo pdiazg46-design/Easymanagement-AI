@@ -25,6 +25,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Contraseña incorrecta" }, { status: 401 });
     }
 
+    // [SUPER ADMIN OVERRIDE] Ensure Patricio Diaz is always PRO
+    if (user.email === 'pdiazg46@gmail.com' && !user.isPro) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { isPro: true }
+      });
+      user.isPro = true;
+    }
+
     const token = await new SignJWT({ id: user.id, email: user.email, isPro: user.isPro })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
