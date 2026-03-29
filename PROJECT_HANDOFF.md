@@ -1,67 +1,41 @@
 # Easy Management App - Project Handoff & Architecture Log
-**Last Updated:** 28 de Marzo, 2026
-**Status:** High-Fidelity Interactive Prototype (Front-End) ready for Backend Wiring.
+**Last Updated:** 29 de Marzo, 2026 (Sesión de Producción y PWA)
+**Status:** Producción Inicial (Vercel) + Frontend Persistente + PWA Funcional. Preparado para interconexión con Prisma/Neon Database.
 
-## 1. Project Overview
-**Easy Management** is a "Mobile-First", "Offline-First" CRM Dashboard tailored for the CALA (Central and Latin America) region. It is designed for sales and operational field management, prioritizing extremely fast, voice-to-action interactions on mobile devices to log commercial activities seamlessly on the go.
+## 1. Project Overview & Logros Recientes
+**Easy Management** es un CRM "Mobile-First" e "Offline-First" enfocado en velocidad operativa para la región LATAM.
 
-### Tech Stack
-*   **Framework:** Next.js 15 (App Router).
-*   **Styling:** Tailwind CSS v4.
-*   **Animations:** Framer Motion (`AnimatePresence` for modal routing).
-*   **Geo-Visualization:** `react-simple-maps`.
-*   **Icons:** `lucide-react`.
+### Avances Críticos Logrados en la Última Sesión:
+1.  **PWA y Visibilidad Nativa:** Se configuró el `manifest.ts` para instalación nativa. El icono base (la "parábola") fue procesado digitalmente mediante *Scripting con Sharp* (`flatten` a fondo #FFFFFF y márgenes extendidos de 56px a 512x512) para anular el comportamiento de *Modo Oscuro* de Android, que rellenaba las transparencias con gris oscuro.
+2.  **Motor de Inteligencia de Voz (Real):** Se integró la API Nativa `webkitSpeechRecognition`. El micrófono negro ya NO es una demostración visual; ahora captura el audio real del dispositivo en español o inglés y genera transcripciones estructuradas en el textarea `draftActivity`.
+3.  **Sistema de Persistencia Puente (LocalStorage):** Toda la configuración (Logos corporativos subidos en Onboarding, Avatares, historial de tareas nuevas, bitácoras regionales) sobreviven a refrescos del navegador. La sesión se sella dinámicamente en el objeto local `easy_demo_data`.
+4.  **Limpieza Profunda de Mockups:** Se eliminaron todas las métricas de relleno ($3.5M, clientes falsos, historial inventado). El dashboard arranca en un estado inmaculado de CERO de cara a la producción, permitiendo al usuario probar la interfaz generando sus propios datos con voz.
+5.  **Autenticación y Estatus PRO:** Seguridad temporal hardcodeada en el Frontend. El administrador principal `pdiazg46@gmail.com` fuerza inherentemente el estatus PRO inmutable, protegiendo las vistas de "Ingresos" (Flow). Se probó también una endpoint de API `/api/admin/upgrade`.
 
 ---
 
 ## 2. Core Architecture & Views (`page.tsx`)
-
-The application is built on a Single-Page Application (SPA) modal architecture using intense `z-index` layering to maintain speed and avoid full page reloads.
+La aplicación opera como un coliseo SPA mediante `AnimatePresence` y z-index layering masivo.
 
 ### A. Dashboard & Map (Base Layer - `z: 10`)
-*   Contains the regional KPIs and the embedded Geographic Map (CALA).
-*   Has a **Fullscreen Map Mode** (`isMapFullscreen`, `z: 50`) that calculates dynamic zoom scales to fit selected countries automatically.
+*   Mapas vectoriales con `react-simple-maps`. Ahora vaciados de `[mock data]`. Listos para recibir data de Supabase/Neon.
 
-### B. Country List & Regional Notes Modal (`z: 50`)
-*   **Trigger:** Clicking a specific country marker on the map sets `selectedCountry`.
-*   **Content:** Renders a list of local distributors for that country.
-*   **Feature (Regional Notes):** Incorporates a **Blue Floating Microphone (`z: 20`)**. This captures "Novedades Regionales" (Country-level general notes not tied to a specific client) which are mapped dynamically at the top of the modal with a real-time timestamp constraint (ej. `Hoy, 15:30 hrs`).
+### B. Módulo Regional (`selectedCountry`, `z: 50`)
+*   Se vaciaron las carpetas simuladas. Botón de micrófono listo para despachar Notas Corporativas a `newCountryTimelineItems`.
 
 ### C. Client Profile / Bitácora (`selectedClient`, `z: 75`)
-*   **Concept:** The absolute source of truth for interactions.
-*   **Timeline (Touchpoints):** Displays a scrollable timeline. Each interaction has:
-    *   Specific Icon (Mic, Phone, Message)
-    *   Numerical Counter (`#03`, `#02`, `#01`) to track interaction volume.
-    *   Commitment separation: "Mi Tarea Pendiente" (Amber) vs "Esperando al Cliente" (Rose).
-*   **Feature (Client Target Mode):** Incorporates a **Purple Floating Microphone**. Recording here assigns the note precisely to this client's timeline.
+*   El núcleo comercial. Timeline de compromisos limpios y receptores para el Web Speech API.
 
-### D. Voice Recording & AI Processing Overlays (`z: 90 / z: 100`)
-*   **Recording View (`isRecording`):** An immersive dark backdrop (`z:90`) with a pulsating red microphone intended to capture Web Speech API input.
-*   **Action Modal (`showActionModal`, `z: 100`):** The final confirmation layer where the AI "spits out" the translated text.
-    *   State-bound editable inputs (`draftActivity`, `draftAction`) allow manual corrections before clicking "Guardar".
-    *   Clicking **"Guardar Registro" (`z: 110`)** physically pushes the payload to either the Dashboard's *Today Tasks*, the *Regional Timeline*, or the *Client's Bitácora* depending on the active context.
+### D. Flujo de Grabación IA (`z: 90 / z: 100`)
+*   **Web Speech API Activo:** Escuchando `onresult` y concatenando a `finalTranscriptRef`.
 
 ---
 
-## 3. Active State Variables (React useState)
-*   `currentView`: Defines main navigation (mostly `dashboard` for now).
-*   `todayTasks`: Array of tasks populated from the AI Modal, shown in the main dashboard.
-*   `selectedCountry`: String representing the filtered country on the map.
-*   `selectedClient`: Object `{name, country}` holding the target context.
-*   `isRecording`: Boolean for the black dictation overlay.
-*   `isProcessingVoice`: Boolean for the RAM spinner overlay.
-*   `showActionModal`: Boolean for the editable confirmation form.
-*   `draftActivity` / `draftAction`: Strings holding the AI transcribed texts.
-*   `newTimelineItems`: Array holding dynamic specific-client simulated notes.
-*   `newCountryTimelineItems`: Array holding dynamic generic-country simulated notes.
+## 3. Pending Tasks & Roadmap para el Próximo Agente
 
----
+Tu misión inmediata como agente desarrollador entrante es **Reemplazar el LocalStorage por Prisma / Base de Datos**:
 
-## 4. Pending Tasks & Roadmap for the Next Agent
-
-If you are picking up this project, the UI/UX flows are completely validated and functional in memory. Your next steps are:
-
-1.  **Database Wiring:** Replace `todayTasks`, `newTimelineItems`, and `newCountryTimelineItems` with actual Fetch/Server Actions to a backend (e.g. Supabase, Prisma, or Neon).
-2.  **Voice Engine Implementation:** Replace the simulated `setTimeout` in `handleMicClick` with an actual Web Speech API or Whisper logic that transcribes real audio into the `draftActivity` states.
-3.  **Authentication:** Inject NextAuth/Auth.js so the timeline items are tagged with the specific User Agent who recorded them.
-4.  **Date Structuring:** Move away from strings like `Hoy, 16:45 hrs` to ISO string standard DB formats mapped by `Intl.DateTimeFormat`.
+1.  **Conectar Prisma a la UI:** Ya generamos el cliente de Prisma (Next.js compiló correctamente en Vercel con el schema). Debes sustituir `setTodayTasks(prev => ...)` por un Server Action que haga `prisma.task.create(...)` y un `revalidatePath`.
+2.  **Gestión de Usuarios (Auth.js o JWT Real):** Actualmente bloqueamos `pdiazg46@gmail.com` por un `localStorage` hardcodeado (puente). Implementar un flujo real de Login para levantar sesiones persistentes y proteger las rutas desde el Backend.
+3.  **Persistencia del Onboarding:** Subir el logo corporativo (`clientLogo`) usando Base64 temporal o a un bucket (AWS S3, Vercel Blob) para que no dependa solo de tu navegador.
+4.  **Validar PWA Offline-First:** Con Service Workers avanzados, para que si un usuario graba un dictado en un estacionamiento subterráneo sin señal, se despache a Prisma tan pronto haya 4G.
