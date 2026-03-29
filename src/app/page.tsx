@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Mic, Trash2, Keyboard, Edit2, Signal, Wifi, BatteryFull, Mail, Lock, Fingerprint, UploadCloud, Link as LinkIcon, ArrowRight, Eye, EyeOff, Map as MapIcon, List, Maximize2, Minimize2, X, Calendar, Navigation, Loader2, Phone, MessageCircle, UserX, UserCheck, MapPin, ChevronLeft, ChevronRight, Share2, FileText, Download, CreditCard, ShieldCheck, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from "react-simple-maps";
+import { getActivities, createActivity, toggleActivityCompletion } from './actions';
 
 export default function Home() {
   const [lang, setLang] = useState<'es'|'en'>('es');
@@ -210,6 +211,23 @@ export default function Home() {
   const [draftDate, setDraftDate] = useState("");
   const [calendarViewMode, setCalendarViewMode] = useState<'grid' | 'list'>('grid');
 
+  // Cargar datos reales desde la base de datos Neon (Vía Server Actions)
+  useEffect(() => {
+     if (currentView === 'dashboard') {
+        getActivities().then(activities => {
+           const mapped = activities.map((a: any) => ({
+              id: a.id,
+              title: a.extractedAction || "Compromiso",
+              content: a.rawAudioText || "",
+              date: a.commitmentDate ? new Date(a.commitmentDate).toISOString().split('T')[0] : "",
+              completed: a.completed,
+              createdAt: a.createdAt
+           }));
+           setTodayTasks(mapped);
+        }).catch(err => console.error("Error cargando actividades:", err));
+     }
+  }, [currentView]);
+
   // PERSISTENCIA HÍBRIDA: Perfil en PostgreSQL, Tareas en RAM temporal
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -405,44 +423,46 @@ export default function Home() {
     }
   };
 
-  const handleSaveLocal = () => {
+  const handleSaveLocal = async () => {
     setShowActionModal(false);
     setShowToast(true);
     
     if (!editingTask) {
-      setTodayTasks(prev => [{
-        id: Date.now(),
-        title: draftAction,
-        content: draftActivity,
-        date: draftDate,
-        time: 'Pendiente',
-        type: 'Reunión'
-      }, ...prev]);
+      try {
+          const newAct = await createActivity({
+             extractedAction: draftAction,
+             rawAudioText: draftActivity,
+             commitmentDateStr: draftDate || undefined
+          });
 
-      if (selectedClient) {
-         setNewTimelineItems(prev => [{
-            id: 4 + prev.length,
-            title: draftAction,
-            content: draftActivity
-         }, ...prev]);
-      } else if (selectedCountry) {
-         // Si NO hay cliente específico pero SÍ hay un país, es una bitácora regional genérica
-         const now = new Date();
-         const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-         
-         setNewCountryTimelineItems(prev => [{
-            id: Date.now(),
-            date: `Hoy, ${timeString}`,
-            title: draftAction,
-            content: draftActivity
-         }, ...prev]);
+          const formatted = {
+            id: newAct.id,
+            title: newAct.extractedAction || draftAction,
+            content: newAct.rawAudioText || draftActivity,
+            date: newAct.commitmentDate ? new Date(newAct.commitmentDate).toISOString().split('T')[0] : draftDate,
+            completed: newAct.completed,
+            createdAt: newAct.createdAt
+          };
+
+          setTodayTasks(prev => [formatted, ...prev]);
+
+          if (selectedClient) {
+             setNewTimelineItems(prev => [formatted, ...prev]);
+          } else if (selectedCountry) {
+             const now = new Date();
+             const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+             
+             setNewCountryTimelineItems(prev => [{
+                ...formatted,
+                date: `Hoy, ${timeString}`
+             }, ...prev]);
+          }
+      } catch (err) {
+          console.error("No se pudo guardar la actividad en la base de datos", err);
       }
-
     } else {
-      // Update logic in RAM
+      // Update logic (En Fase 2 lo moveremos a server action update)
       setTodayTasks(prev => prev.map(t => t.id === editingTask.id ? { ...t, title: draftAction, content: draftActivity, date: draftDate } : t));
-      setNewTimelineItems(prev => prev.map(t => t.id === editingTask.id ? { ...t, title: draftAction, content: draftActivity, date: draftDate } : t));
-      setNewCountryTimelineItems(prev => prev.map(t => t.id === editingTask.id ? { ...t, title: draftAction, content: draftActivity, date: draftDate } : t));
       setEditingTask(null);
     }
 
@@ -1095,9 +1115,13 @@ export default function Home() {
                                            <span className="text-[11px] text-slate-500 uppercase tracking-widest font-bold flex items-center gap-1.5"><Lock size={12}/> Registrado: {new Date(task.id).toLocaleDateString(lang === 'es' ? 'es-CL' : 'en-US')} {new Date(task.id).toLocaleTimeString(lang === 'es' ? 'es-CL' : 'en-US', { hour: '2-digit', minute: '2-digit' })}</span>
                                         </div>
                                         <button 
-                                          onClick={(e) => {
+                                          onClick={async (e) => {
                                             e.stopPropagation();
-                                            setTodayTasks(prev => prev.map(t => t.id === task.id ? { ...t, completed: !t.completed } : t));
+                                            const newCompleted = !task.completed;
+                                            setTodayTasks(prev => prev.map(t => t.id === task.id ? { ...t, completed: newCompleted } : t));
+                                            if (typeof task.id === 'string') {
+                                                await toggleActivityCompletion(task.id, newCompleted);
+                                            }
                                           }}
                                           className={`w-10 h-10 rounded-full border-[3px] bg-white shrink-0 ml-4 transition-colors flex items-center justify-center group shadow-inner hover:border-emerald-500 hover:bg-emerald-50 ${task.completed ? 'border-emerald-500' : 'border-slate-300'}`}
                                         >
@@ -2036,9 +2060,13 @@ export default function Home() {
                                       </div>
                                       
                                       <button 
-                                        onClick={(e) => {
+                                        onClick={async (e) => {
                                           e.stopPropagation();
-                                          setTodayTasks(prev => prev.map(t => t.id === task.id ? { ...t, completed: !t.completed } : t));
+                                          const newCompleted = !task.completed;
+                                          setTodayTasks(prev => prev.map(t => t.id === task.id ? { ...t, completed: newCompleted } : t));
+                                          if (typeof task.id === 'string') {
+                                              await toggleActivityCompletion(task.id, newCompleted);
+                                          }
                                         }}
                                         className={`w-10 h-10 rounded-full border-[3px] bg-white shrink-0 transition-colors flex items-center justify-center group shadow-inner hover:border-emerald-500 hover:bg-emerald-50 ${task.completed ? 'border-emerald-500' : 'border-slate-300'}`}
                                       >
