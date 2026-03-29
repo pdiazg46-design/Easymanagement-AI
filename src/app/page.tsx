@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Mic, Trash2, Keyboard, Edit2, Signal, Wifi, BatteryFull, Mail, Lock, Fingerprint, UploadCloud, Link as LinkIcon, ArrowRight, Eye, EyeOff, Map as MapIcon, List, Maximize2, Minimize2, X, Calendar, Navigation, Loader2, Phone, MessageCircle, UserX, UserCheck, MapPin, ChevronLeft, ChevronRight, Share2, FileText, Download, CreditCard, ShieldCheck, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from "react-simple-maps";
-import { getActivities, createActivity, toggleActivityCompletion } from './actions';
+import { getActivities, createActivity, toggleActivityCompletion, getOpportunities, createOpportunity, updateOpportunityStatus } from './actions';
 
 export default function Home() {
   const [lang, setLang] = useState<'es'|'en'>('es');
@@ -206,10 +206,19 @@ export default function Home() {
   const [uploadedCatalogs, setUploadedCatalogs] = useState<{name: string, size: string}[]>([]);
   
   // Estados para simular Inputs del Formulario Action Modal
-  const [draftActivity, setDraftActivity] = useState("");
   const [draftAction, setDraftAction] = useState("");
   const [draftDate, setDraftDate] = useState("");
   const [calendarViewMode, setCalendarViewMode] = useState<'grid' | 'list'>('grid');
+
+  const [opportunities, setOpportunities] = useState<any[]>([]);
+  const [showOppForm, setShowOppForm] = useState(false);
+  const [draftOppTitle, setDraftOppTitle] = useState("");
+  const [draftOppAmount, setDraftOppAmount] = useState("");
+
+  const refreshOpportunities = async () => {
+      const opps = await getOpportunities();
+      setOpportunities(opps);
+  };
 
   // Cargar datos reales desde la base de datos Neon (Vía Server Actions)
   useEffect(() => {
@@ -225,8 +234,13 @@ export default function Home() {
            }));
            setTodayTasks(mapped);
         }).catch(err => console.error("Error cargando actividades:", err));
+
+        refreshOpportunities();
      }
   }, [currentView]);
+
+  const totalPipeline = opportunities.reduce((acc, curr) => curr.status !== 'PERDIDO' ? acc + curr.amountUsd : acc, 0);
+  const activeProjects = opportunities.filter(o => o.status === 'PROSPECTO' || o.status === 'COTIZADO').length;
 
   // PERSISTENCIA HÍBRIDA: Perfil en PostgreSQL, Tareas en RAM temporal
   useEffect(() => {
@@ -1023,12 +1037,12 @@ export default function Home() {
                     <div className="flex justify-between items-center">
                       <div className="flex-1 text-left">
                         <p className="text-white/80 text-xs font-medium uppercase tracking-wider mb-1">{t[lang].pipeline}</p>
-                        <h2 className="text-3xl font-extrabold tracking-tight">$0 <span className="text-lg font-bold">USD</span></h2>
+                        <h2 className="text-3xl font-extrabold tracking-tight">${totalPipeline.toLocaleString('en-US')} <span className="text-lg font-bold">USD</span></h2>
                       </div>
                       <div className="w-px h-12 bg-white/20 mx-4"></div>
                       <div className="text-center pr-2">
                         <p className="text-white/80 text-[10px] font-medium uppercase tracking-wider mb-1 leading-tight w-20">{t[lang].activeProj.split(' ')[0]}<br/>{t[lang].activeProj.split(' ')[1]}</p>
-                        <h2 className="text-3xl font-extrabold pb-0 leading-none">0</h2>
+                        <h2 className="text-3xl font-extrabold pb-0 leading-none">{activeProjects}</h2>
                       </div>
                     </div>
                   </motion.div>
@@ -1292,31 +1306,103 @@ export default function Home() {
                         </div>
                      )}
 
-                     {/* Distribuidores */}
+                     {/* Oportunidades Regionales */}
                      <div>
-                       <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 pl-1">{lang === 'es' ? 'Distribuidores Locales' : 'Local Distributors'}</h3>
+                       <div className="flex justify-between items-center mb-4 pr-1">
+                          <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest pl-1">{lang === 'es' ? 'Oportunidades (' : 'Opportunities ('}{selectedCountry}{')'}</h3>
+                          <button 
+                            onClick={() => setShowOppForm(!showOppForm)}
+                            className="bg-corporate-purple text-white text-[10px] px-3 py-1.5 rounded-full font-bold shadow-sm"
+                          >
+                             {showOppForm ? 'Cancelar' : '+ Agregar'}
+                          </button>
+                       </div>
+                       
+                       <AnimatePresence>
+                          {showOppForm && (
+                             <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden mb-4">
+                                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col gap-3">
+                                   <input 
+                                     type="text" 
+                                     placeholder={lang === 'es' ? 'Ej. Licitación Gobierno' : 'E.g. Government Bid'}
+                                     className="w-full bg-white border border-slate-200 text-sm px-4 py-2.5 rounded-xl font-medium outline-none text-[#1E3A8A]"
+                                     value={draftOppTitle}
+                                     onChange={e => setDraftOppTitle(e.target.value)}
+                                   />
+                                   <div className="relative">
+                                     <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">$</span>
+                                     <input 
+                                       type="number" 
+                                       placeholder={lang === 'es' ? 'Monto en USD' : 'Amount in USD'}
+                                       className="w-full bg-white border border-slate-200 text-sm px-8 py-2.5 rounded-xl font-medium outline-none text-[#1E3A8A]"
+                                       value={draftOppAmount}
+                                       onChange={e => setDraftOppAmount(e.target.value)}
+                                     />
+                                   </div>
+                                   <button 
+                                     className="w-full bg-[#1E3A8A] text-white py-2.5 rounded-xl font-bold uppercase tracking-wider text-[11px] flex items-center justify-center gap-2 mt-1"
+                                     onClick={async () => {
+                                        if(!draftOppTitle || !draftOppAmount) return;
+                                        await createOpportunity({
+                                            title: draftOppTitle,
+                                            amountUsd: parseFloat(draftOppAmount),
+                                            country: selectedCountry
+                                        });
+                                        setDraftOppTitle("");
+                                        setDraftOppAmount("");
+                                        setShowOppForm(false);
+                                        refreshOpportunities();
+                                     }}
+                                   >
+                                      Guardar Oportunidad
+                                   </button>
+                                </div>
+                             </motion.div>
+                          )}
+                       </AnimatePresence>
+
                        <div className="space-y-3">
-                         <p className="text-[11px] text-slate-400 font-medium italic tracking-wide px-1">{lang === 'es' ? 'No hay distribuidores registrados.' : 'No distributors registered.'}</p>
-                         {[].map((i: any) => (
-                           <div 
-                             key={i} 
-                             onClick={() => setSelectedClient({ name: lang === 'es' ? `Distribuidor Local ${i} S.A.` : `Local Distributor ${i} S.A.`, country: selectedCountry })}
-                             className="p-4 rounded-[20px] bg-slate-50 border border-slate-100 flex justify-between items-center active:bg-slate-100 cursor-pointer hover:border-corporate-purple/30 hover:shadow-sm transition-all shadow-[0_2px_10px_rgb(0,0,0,0.02)]"
-                           >
-                             <div>
-                               <h4 className="font-bold text-[#1E3A8A] text-[15px] mb-1">{lang === 'es' ? `Distribuidor Local ${i} S.A.` : `Local Distributor ${i} S.A.`}</h4>
-                               <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1"><MapIcon size={10} /> {lang === 'es' ? 'Sede Central' : 'Headquarters'}</span>
+                         {opportunities.filter(o => o.client?.country === selectedCountry).length === 0 ? (
+                           <p className="text-[11px] text-slate-400 font-medium italic tracking-wide px-1">
+                             {lang === 'es' ? 'No hay oportunidades registradas.' : 'No opportunities registered.'}
+                           </p>
+                         ) : (
+                           opportunities.filter(o => o.client?.country === selectedCountry).map((opp: any) => (
+                             <div key={opp.id} className="bg-white p-4 rounded-[20px] border border-slate-100 shadow-[0_2px_10px_rgb(0,0,0,0.03)] text-left flex flex-col gap-3 group">
+                                <div className="flex justify-between items-start">
+                                  <div className="flex-1">
+                                     <h4 className="font-extrabold text-[#1E3A8A] text-[13px]">{opp.title}</h4>
+                                     <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mt-1">Canal: {opp.client?.name}</p>
+                                  </div>
+                                  <div className="text-right">
+                                     <p className="font-extrabold text-corporate-purple text-sm">${opp.amountUsd.toLocaleString('en-US')}</p>
+                                     <p className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">USD</p>
+                                  </div>
+                                </div>
+                                <div className="flex justify-between items-center gap-2 bg-slate-50 p-1.5 rounded-full border border-slate-200 text-[10px] font-bold">
+                                   {['PROSPECTO', 'COTIZADO', 'GANADO', 'PERDIDO'].map(status => (
+                                     <button 
+                                       key={status}
+                                       onClick={async () => {
+                                          await updateOpportunityStatus(opp.id, status);
+                                          refreshOpportunities();
+                                       }}
+                                       className={`flex-1 py-1.5 rounded-full transition-all ${opp.status === status ? 
+                                          (status === 'GANADO' ? 'bg-emerald-500 text-white' : 
+                                           status === 'PERDIDO' ? 'bg-rose-500 text-white' : 
+                                           'bg-[#1E3A8A] text-white') 
+                                           : 'text-slate-400 hover:text-slate-600'}`}
+                                     >
+                                        {status.substring(0,3)}
+                                     </button>
+                                   ))}
+                                </div>
                              </div>
-                             <div className="text-right flex flex-col items-end">
-                               <div className="font-extrabold text-[#7C3AED] text-[15px]">$ {(i * 35).toFixed(0)}K</div>
-                               <span className="text-[9px] uppercase font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-sm mt-1">{lang === 'es' ? 'Seguimiento' : 'Tracking'}</span>
-                             </div>
-                           </div>
-                         ))}
+                           ))
+                         )}
                        </div>
                      </div>
                   </div>
-
                   {/* Botón flotante para Registro General de País (Regional) */}
                   <div className="absolute bottom-6 right-6 z-20">
                     <motion.button 

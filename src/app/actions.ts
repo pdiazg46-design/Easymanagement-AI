@@ -94,3 +94,60 @@ export async function deleteActivity(id: string) {
   revalidatePath("/");
   return true;
 }
+
+// ============================================
+// MODULO PIPELINE: OPORTUNIDADES
+// ============================================
+
+export async function getOpportunities() {
+  const { tenant } = await getOrCreateMockSession();
+  
+  return await prisma.opportunity.findMany({
+    where: { tenantId: tenant.id },
+    include: { client: true },
+    orderBy: { createdAt: 'desc' }
+  });
+}
+
+export async function createOpportunity(data: { title: string, amountUsd: number, country: string }) {
+  const { tenant } = await getOrCreateMockSession();
+  
+  // Buscar o crear un Cliente Genérico para ese país, logrando una experiencia "Zero-Touch"
+  let client = await prisma.client.findFirst({
+    where: { tenantId: tenant.id, country: data.country }
+  });
+  
+  if (!client) {
+     client = await prisma.client.create({
+       data: {
+         name: `Canal ${data.country}`,
+         country: data.country,
+         tenantId: tenant.id
+       }
+     });
+  }
+  
+  const opp = await prisma.opportunity.create({
+    data: {
+       title: data.title,
+       amountUsd: data.amountUsd,
+       status: 'PROSPECTO',
+       clientId: client.id,
+       tenantId: tenant.id
+    },
+    include: { client: true }
+  });
+  
+  revalidatePath("/");
+  return opp;
+}
+
+export async function updateOpportunityStatus(id: string, status: any) {
+  const { tenant } = await getOrCreateMockSession();
+  const opp = await prisma.opportunity.update({
+    where: { id, tenantId: tenant.id },
+    data: { status }
+  });
+  revalidatePath("/");
+  return opp;
+}
