@@ -1,15 +1,15 @@
 const sharp = require('sharp');
 
 sharp('C:\\Users\\pdiaz\\Desarrollos\\icono_limpio.png')
+  .flatten({ background: '#ffffff' })
   .resize({ 
     width: 380, 
     height: 380, 
-    fit: 'contain', 
-    background: { r: 255, g: 255, b: 255, alpha: 1 } 
+    fit: 'contain'
   })
   .extend({
     top: 66, bottom: 66, left: 66, right: 66,
-    background: { r: 255, g: 255, b: 255, alpha: 1 }
+    background: '#ffffff'
   })
   .toFile('icono_elegante.png', (err, info) => {
     if (err) {
