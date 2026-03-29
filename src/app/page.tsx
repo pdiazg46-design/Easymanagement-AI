@@ -265,21 +265,19 @@ export default function Home() {
         recognition.lang = lang === 'es' ? 'es-CL' : 'en-US';
         
         recognition.onresult = (event: any) => {
-          let currentInterim = '';
-          let currentFinal = '';
+          let finalTranscript = '';
+          let interimTranscript = '';
           
-          for (let i = event.resultIndex; i < event.results.length; i++) {
+          // Iterar desde 0 asegura que no haya duplicaciones por bugs de la API nativa en Android/Chrome
+          for (let i = 0; i < event.results.length; i++) {
             if (event.results[i].isFinal) {
-              currentFinal += event.results[i][0].transcript + ' ';
+              finalTranscript += event.results[i][0].transcript + ' ';
             } else {
-              currentInterim += event.results[i][0].transcript;
+              interimTranscript += event.results[i][0].transcript;
             }
           }
           
-          if (currentFinal) {
-             finalTranscriptRef.current += currentFinal;
-          }
-          setDraftActivity((finalTranscriptRef.current + currentInterim).trim());
+          setDraftActivity((finalTranscript + interimTranscript).trim());
         };
 
         recognition.onerror = (event: any) => {
