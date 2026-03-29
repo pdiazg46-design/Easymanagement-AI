@@ -5,7 +5,8 @@ sharp('C:\\Users\\pdiaz\\Desarrollos\\icono_limpio.png')
   .resize({ 
     width: 380, 
     height: 380, 
-    fit: 'contain'
+    fit: 'contain',
+    background: '#ffffff'
   })
   .extend({
     top: 66, bottom: 66, left: 66, right: 66,
