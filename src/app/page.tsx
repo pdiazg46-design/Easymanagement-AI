@@ -370,6 +370,17 @@ export default function Home() {
     setTimeout(() => setShowToast(false), 3000);
   };
 
+  const handleDeleteTask = () => {
+     if (!editingTask) return;
+     if (window.confirm(lang === 'es' ? '¿Estás seguro de que deseas eliminar este registro permanentemente?' : 'Are you sure you want to delete this record permanently?')) {
+        setTodayTasks(prev => prev.filter(t => t.id !== editingTask.id));
+        setNewTimelineItems(prev => prev.filter(t => t.id !== editingTask.id));
+        setNewCountryTimelineItems(prev => prev.filter(t => t.id !== editingTask.id));
+        setEditingTask(null);
+        setShowActionModal(false);
+     }
+  };
+
   const renderCalendarGrid = () => {
     const today = new Date();
     const currentMonth = today.getMonth();
@@ -1477,12 +1488,15 @@ export default function Home() {
                {/* Contenido Formulario Deslizante */}
                <div className="p-6 space-y-6">
                  
-                 {/* Tarjeta: Detalle de Actividad */}
+                 {/* Tarjeta: Detalle de Actividad (Pasado/Presente) */}
                  <div className="bg-white rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-6 relative overflow-hidden group hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow">
                     <div className="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-[#7C3AED] to-[#5B21B6]"></div>
                     <div className="flex items-center gap-2 mb-4 pl-3">
                       <Mic size={20} className="text-corporate-purple" />
-                      <h3 className="font-bold text-slate-800 text-[15px] tracking-wide uppercase">{lang === 'es' ? 'Detalle de Actividad' : 'Activity Detail'}</h3>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-slate-400 font-bold tracking-widest uppercase">Paso 1: Lo que ocurrió hoy</span>
+                        <h3 className="font-bold text-slate-800 text-[15px] tracking-wide uppercase">{lang === 'es' ? 'Bitácora de la Acción' : 'Action Details'}</h3>
+                      </div>
                     </div>
                     
                     {/* Fake text to simulate or show edited content */}
@@ -1509,12 +1523,15 @@ export default function Home() {
                     </div>
                  </div>
 
-                 {/* Tarjeta: Próximo Compromiso */}
+                 {/* Tarjeta: Próximo Compromiso (Futuro) */}
                  <div className="bg-white rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-6 relative overflow-hidden group hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow">
                     <div className="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-[#F59E0B] to-[#D97706]"></div>
                     <div className="flex items-center gap-2 mb-5 pl-3">
                       <Navigation size={20} className="text-[#F59E0B] fill-[#F59E0B]/20" />
-                      <h3 className="font-bold text-slate-800 text-[15px] tracking-wide uppercase">{lang === 'es' ? 'Próximo Compromiso' : 'Next Task'}</h3>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-[#F59E0B] font-bold tracking-widest uppercase">Paso 2: Lo que sigue</span>
+                        <h3 className="font-bold text-slate-800 text-[15px] tracking-wide uppercase">{lang === 'es' ? 'Plan y Compromiso' : 'Next Committment'}</h3>
+                      </div>
                     </div>
                     
                     <div className="space-y-5">
@@ -1544,11 +1561,17 @@ export default function Home() {
                  {/* Tarjeta Simulación RAG removida temporalmente en Fase 1 */}
 
                  {/* Botón de Confirmación (Integrado al flujo) */}
-                 <div className="pt-2 pb-6">
+                 <div className="pt-2 pb-6 flex flex-col gap-3">
                     <button onClick={handleSaveLocal} className="w-full bg-gradient-to-r from-[#1E3A8A] to-[#1e40af] text-white rounded-[20px] py-4 font-bold tracking-widest uppercase shadow-[0_8px_30px_rgb(30,58,138,0.4)] flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all pointer-events-auto border-2 border-[#1E3A8A]/50">
                       <UploadCloud size={20} />
                       {lang === 'es' ? 'Guardar Registro' : 'Save Record'}
                     </button>
+                    {editingTask && (
+                      <button onClick={handleDeleteTask} className="w-full bg-white text-red-600 rounded-[20px] py-3.5 font-bold tracking-widest uppercase shadow-sm flex items-center justify-center gap-2 hover:bg-red-50 transition-all pointer-events-auto border-2 border-red-100 text-[11px]">
+                        <Trash2 size={16} />
+                        {lang === 'es' ? 'Eliminar Registro' : 'Delete Record'}
+                      </button>
+                    )}
                  </div>
 
                </div>
