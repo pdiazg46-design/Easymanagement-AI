@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'EASY MANAGEMENT APP',
+  title: 'EASY MANAGEMENT AI',
   description: 'Herramienta estratégica de ventas y control',
 }
 
