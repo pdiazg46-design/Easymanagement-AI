@@ -788,12 +788,12 @@ export default function Home() {
 
                         <div className="bg-white rounded-3xl p-6 shadow-[0_4px_25px_rgb(0,0,0,0.04)] border border-slate-100">
                           <div className="flex justify-between items-center mb-5">
-                            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide">Tareas de Hoy (05 May)</h3>
-                            <button className="text-xs font-semibold px-3 py-1.5 bg-slate-50 text-[#1E3A8A] rounded-full border border-slate-200 shadow-sm transition-colors hover:bg-slate-100">VER CALENDARIO</button>
+                            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide">{lang === 'es' ? 'Tareas de Hoy (05 May)' : 'Today\'s Tasks (May 05)'}</h3>
+                            <button className="text-xs font-semibold px-3 py-1.5 bg-slate-50 text-[#1E3A8A] rounded-full border border-slate-200 shadow-sm transition-colors hover:bg-slate-100">{lang === 'es' ? 'VER CALENDARIO' : 'VIEW CALENDAR'}</button>
                           </div>
                           
                           {todayTasks.length === 0 ? (
-                            <p className="text-sm text-slate-400 italic text-center py-2">No hay compromisos pendientes para hoy.</p>
+                            <p className="text-sm text-slate-400 italic text-center py-2">{lang === 'es' ? 'No hay compromisos pendientes para hoy.' : 'No pending tasks for today.'}</p>
                           ) : (
                             <div className="space-y-3">
                                {todayTasks.map((task) => (
