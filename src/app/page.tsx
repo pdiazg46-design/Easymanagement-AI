@@ -1432,7 +1432,13 @@ export default function Home() {
                        ) : (
                           <p className="text-[10px] text-green-600 font-bold uppercase tracking-widest flex items-center gap-1"><Signal size={12}/> {lang === 'es' ? 'Voz procesada' : 'Voice processed'}</p>
                        )}
-                       <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">{lang === 'es' ? 'Hoy, 16:45 hrs' : 'Today, 16:45 hrs'}</p>
+                       <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
+                           {editingTask ? 
+                              new Date(editingTask.id).toLocaleString(lang === 'es' ? 'es-CL' : 'en-US', { dateStyle: 'short', timeStyle: 'short' }) 
+                              : 
+                              (lang === 'es' ? `Hoy, ${new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })} hrs` : `Today, ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} hrs`)
+                           }
+                       </p>
                     </div>
                  </div>
 
