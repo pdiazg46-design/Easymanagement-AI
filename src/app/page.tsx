@@ -949,7 +949,7 @@ export default function Home() {
                 )}
 
                 {/* CONTENIDO PRINCIPAL SCROLLABLE */}
-                <div className="flex-1 overflow-y-auto no-scrollbar px-5 pb-24 flex flex-col gap-6">
+                <div className="flex-1 overflow-y-auto no-scrollbar px-5 pb-40 flex flex-col gap-6">
                   
 
 
@@ -1151,7 +1151,7 @@ export default function Home() {
                 </div>
 
                 {/* FOOTER CREADOR DE ACTIVIDAD */}
-                <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-white via-white to-transparent pt-12 pb-6 px-4 flex flex-col items-center pointer-events-none z-20">
+                <div className="absolute bottom-4 sm:bottom-0 left-0 w-full bg-gradient-to-t from-white/95 via-white/80 to-transparent pt-20 pb-8 sm:pb-6 px-4 flex flex-col items-center pointer-events-none z-20">
                    <div className="pointer-events-auto flex items-end justify-center relative mb-2">
                       <motion.button 
                         onClick={handleMicClick}
