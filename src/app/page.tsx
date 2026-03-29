@@ -204,8 +204,8 @@ export default function Home() {
   const [uploadedCatalogs, setUploadedCatalogs] = useState<{name: string, size: string}[]>([]);
   
   // Estados para simular Inputs del Formulario Action Modal
-  const [draftActivity, setDraftActivity] = useState("- Cliente solicita renovar equipamiento industrial de la planta norte.\n- Interesado en revisión de tableros.");
-  const [draftAction, setDraftAction] = useState("Enviar propuesta con Kit Hubbell Industrial");
+  const [draftActivity, setDraftActivity] = useState("");
+  const [draftAction, setDraftAction] = useState("");
 
   // PERSISTENCIA HÍBRIDA: Perfil en PostgreSQL, Tareas en RAM temporal
   useEffect(() => {
@@ -1466,39 +1466,13 @@ export default function Home() {
                           <Calendar size={12} /> {lang === 'es' ? '¿Para cuándo?' : 'When?'}
                         </label>
                         <div className="relative">
-                          <input type="date" defaultValue="2026-05-05" className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-slate-700 font-bold focus:outline-none focus:ring-2 focus:ring-[#F59E0B]/50 text-sm shadow-inner appearance-none" />
+                          <input type="date" className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-slate-700 font-bold focus:outline-none focus:ring-2 focus:ring-[#F59E0B]/50 text-sm shadow-inner appearance-none" />
                         </div>
                       </div>
                     </div>
                  </div>
 
-                 {/* Tarjeta Simulación: Motor IA RAG sugerencias cross-selling */}
-                 <div className="bg-gradient-to-br from-[#1E3A8A] to-[#1e40af] rounded-[24px] shadow-lg border border-blue-800 p-6 relative overflow-hidden group">
-                    <div className="absolute -right-6 -bottom-6 opacity-10">
-                       <Signal size={100} />
-                    </div>
-                    <div className="flex justify-between items-center mb-4">
-                       <span className="bg-blue-900/50 text-blue-200 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest border border-blue-400/20">🤖 {lang === 'es' ? 'Motor de Inteligencia' : 'Intelligence Engine'}</span>
-                    </div>
-                    <h3 className="font-extrabold text-white text-[15px] leading-tight mb-2 pr-4">{lang === 'es' ? 'La IA ha identificado posibles cruces con el Catálogo de Hubbell:' : 'AI has identified cross-selling opportunities from Hubbell Catalog:'}</h3>
-                    
-                    <div className="mt-4 space-y-3">
-                       <div className="bg-white/10 p-3 rounded-xl border border-white/10 backdrop-blur-sm cursor-pointer hover:bg-white/20 transition-all flex justify-between items-center">
-                          <div>
-                             <h4 className="text-white text-sm font-bold">Kit Iluminación + Tablero NEMA</h4>
-                             <p className="text-blue-200 text-[10px] mt-0.5">85% Tasa de éxito en plantas M.R.</p>
-                          </div>
-                          <button className="bg-white text-[#1E3A8A] text-[10px] font-bold px-3 py-1.5 rounded-full shadow">+ Agregar</button>
-                       </div>
-                       <div className="bg-white/10 p-3 rounded-xl border border-white/10 backdrop-blur-sm cursor-pointer hover:bg-white/20 transition-all flex justify-between items-center">
-                          <div>
-                             <h4 className="text-white text-sm font-bold">Conectores Industriales Pin & Sleeve</h4>
-                             <p className="text-blue-200 text-[10px] mt-0.5">Complemento ideal para tableros.</p>
-                          </div>
-                          <button className="bg-white text-[#1E3A8A] text-[10px] font-bold px-3 py-1.5 rounded-full shadow">+ Agregar</button>
-                       </div>
-                    </div>
-                 </div>
+                 {/* Tarjeta Simulación RAG removida temporalmente en Fase 1 */}
 
                  {/* Botón de Confirmación (Integrado al flujo) */}
                  <div className="pt-2 pb-6">
@@ -1696,9 +1670,9 @@ export default function Home() {
                            <MapIcon size={120} />
                         </div>
                         <p className="text-white/80 text-[10px] uppercase tracking-widest font-bold mb-1">Total Pipeline Latam</p>
-                        <h3 className="text-4xl font-extrabold tracking-tight mb-4">$3.5<span className="text-xl">M USD</span></h3>
+                        <h3 className="text-4xl font-extrabold tracking-tight mb-4">$0<span className="text-xl"> USD</span></h3>
                         <div className="flex items-center gap-2 bg-white/20 px-3 py-1.5 rounded-full w-max text-xs font-semibold backdrop-blur-sm">
-                          <Navigation size={12} className="text-emerald-300"/> 12 Proyectos Activos
+                          <Navigation size={12} className="text-slate-300"/> 0 Proyectos Activos
                         </div>
                      </div>
 
@@ -1706,14 +1680,8 @@ export default function Home() {
                      <div className="bg-white rounded-[24px] border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] p-5">
                         <h4 className="text-[11px] uppercase tracking-widest font-bold text-slate-400 mb-4 flex items-center gap-2"><MapIcon size={14}/> Mapa de Calor (Heatmap)</h4>
                         <div className="w-full aspect-[4/3] bg-slate-50 relative rounded-[16px] overflow-hidden shadow-inner border border-[#1E3A8A]/5">
-                           {renderGeoMap(false)}
-                           <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm p-3 rounded-xl shadow-lg border border-slate-200/50">
-                              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-2 text-center">Concentración</p>
-                              <div className="flex flex-col gap-1.5">
-                                 <div className="flex items-center gap-2 text-[10px] font-bold"><div className="w-2 h-2 rounded-full bg-[#7C3AED]"></div>Alta (CH, P)</div>
-                                 <div className="flex items-center gap-2 text-[10px] font-bold"><div className="w-2 h-2 rounded-full bg-[#1E3A8A]/60"></div>Media (CO)</div>
-                                 <div className="flex items-center gap-2 text-[10px] font-bold"><div className="w-2 h-2 rounded-full bg-slate-300"></div>Baja (EC)</div>
-                              </div>
+                           <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/50 backdrop-blur-[1px] z-10">
+                              <span className="text-xs font-bold text-slate-400">Sin distribuciones espaciales registradas</span>
                            </div>
                         </div>
                      </div>
@@ -1722,139 +1690,17 @@ export default function Home() {
                      <div className="bg-white rounded-[24px] border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] p-6">
                         <h4 className="text-[11px] uppercase tracking-widest font-bold text-slate-400 mb-5 flex items-center gap-2"><List size={14}/> Cuadratura por Entidades</h4>
                         <div className="space-y-6">
-                           {/* CHILE */}
-                           <div>
-                              <div className="flex justify-between items-end mb-3">
-                                 <div className="flex items-center gap-2">
-                                    <img src="https://flagcdn.com/w40/cl.png" alt="Chile" className="w-4 shadow-sm rounded-sm" />
-                                    <h5 className="text-sm font-bold text-[#1E3A8A]">Chile</h5>
-                                 </div>
-                                 <span className="text-sm font-extrabold text-slate-800">$1.5M</span>
-                              </div>
-                              <div className="pl-3 ml-2 border-l-2 border-slate-100 flex flex-col gap-4">
-                                  
-                                  {/* Distribuidor Layer */}
-                                  <div>
-                                     <div className="flex justify-between items-center mb-1">
-                                        <div className="flex items-center gap-1.5 text-[11px]">
-                                          <UserCheck size={12} className="text-slate-400" />
-                                          <span className="text-slate-700 font-bold">Distribuidor: Inteled</span>
-                                        </div>
-                                        <span className="text-[11px] font-bold text-slate-600">$1.0M</span>
-                                     </div>
-                                     <div className="pl-3 ml-1.5 border-l border-slate-200">
-                                        {/* Cliente Final Layer */}
-                                        <div className="flex justify-between items-center mb-1 mt-1.5">
-                                           <span className="text-[10px] text-slate-500 font-bold flex items-center gap-1.5"><div className="w-1 h-1 bg-slate-400 rounded-full"></div> Cliente: Minera Escondida</span>
-                                        </div>
-                                        <div className="pl-3 ml-1 border-l border-slate-100 space-y-1.5 mt-1">
-                                            {/* Proyecto Layer */}
-                                            <div className="flex justify-between items-center">
-                                               <span className="text-[10px] text-slate-400 font-medium tracking-tight">• Proyecto Sur (Datacenter)</span>
-                                               <span className="text-[10px] text-emerald-600 font-black">$0.6M</span>
-                                            </div>
-                                            <div className="flex justify-between items-center">
-                                               <span className="text-[10px] text-slate-400 font-medium tracking-tight">• Anexo Cobre</span>
-                                               <span className="text-[10px] text-emerald-600 font-black">$0.4M</span>
-                                            </div>
-                                        </div>
-                                     </div>
-                                  </div>
-
-                                  {/* Direct Sales Layer */}
-                                  <div>
-                                     <div className="flex justify-between items-center mb-1">
-                                        <div className="flex items-center gap-1.5 text-[11px]">
-                                          <Signal size={12} className="text-corporate-purple" />
-                                          <span className="text-slate-700 font-bold tracking-tight">Venta Directa</span>
-                                        </div>
-                                        <span className="text-[11px] font-bold text-slate-600">$0.5M</span>
-                                     </div>
-                                     <div className="pl-3 ml-1.5 border-l border-slate-200">
-                                        {/* Cliente Final Layer */}
-                                        <div className="flex justify-between items-center mb-1 mt-1.5">
-                                           <span className="text-[10px] text-slate-500 font-bold flex items-center gap-1.5"><div className="w-1 h-1 bg-slate-400 rounded-full"></div> Cliente: Codelco</span>
-                                        </div>
-                                        <div className="pl-3 ml-1 border-l border-slate-100 space-y-1.5 mt-1">
-                                            {/* Proyecto Layer */}
-                                            <div className="flex justify-between items-center">
-                                               <span className="text-[10px] text-slate-400 font-medium tracking-tight">• Expansión Norte</span>
-                                               <span className="text-[10px] text-emerald-600 font-black">$0.5M</span>
-                                            </div>
-                                        </div>
-                                     </div>
-                                  </div>
-
-                              </div>
+                           <div className="py-10 flex flex-col items-center justify-center text-center">
+                               <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 border border-slate-100 shadow-sm">
+                                  <List size={24} className="text-slate-300" />
+                               </div>
+                               <h5 className="text-sm font-bold text-slate-700 mb-1">Cero Reportes Generados</h5>
+                               <p className="text-xs text-slate-500 font-medium">Aún no has registrado proyectos ni presupuestos en tu gestión de pipeline.</p>
                            </div>
-
-                           {/* PERÚ */}
-                           <div className="pt-2">
-                              <div className="flex justify-between items-end mb-3">
-                                 <div className="flex items-center gap-2">
-                                    <img src="https://flagcdn.com/w40/pe.png" alt="Perú" className="w-4 shadow-sm rounded-sm" />
-                                    <h5 className="text-sm font-bold text-[#1E3A8A]">Perú</h5>
-                                 </div>
-                                 <span className="text-sm font-extrabold text-slate-800">$1.0M</span>
-                              </div>
-                              <div className="pl-3 ml-2 border-l-2 border-slate-100 flex flex-col gap-4">
-                                  <div>
-                                     <div className="flex justify-between items-center mb-1">
-                                        <div className="flex items-center gap-1.5 text-[11px]">
-                                          <UserCheck size={12} className="text-slate-400" />
-                                          <span className="text-slate-700 font-bold">Distribuidor: Promart</span>
-                                        </div>
-                                        <span className="text-[11px] font-bold text-slate-600">$1.0M</span>
-                                     </div>
-                                     <div className="pl-3 ml-1.5 border-l border-slate-200">
-                                        <div className="flex justify-between items-center mb-1 mt-1.5">
-                                           <span className="text-[10px] text-slate-500 font-bold flex items-center gap-1.5"><div className="w-1 h-1 bg-slate-400 rounded-full"></div> Cliente: Grupo Romero</span>
-                                        </div>
-                                        <div className="pl-3 ml-1 border-l border-slate-100 space-y-1.5 mt-1">
-                                            <div className="flex justify-between items-center">
-                                               <span className="text-[10px] text-slate-400 font-medium tracking-tight">• Masterplan Obras</span>
-                                               <span className="text-[10px] text-emerald-600 font-black">$1.0M</span>
-                                            </div>
-                                        </div>
-                                     </div>
-                                  </div>
-                              </div>
-                           </div>
-
-                           {/* COLOMBIA & ECUADOR COMPRESSED FOR SPACE */}
-                           <div className="pt-2 flex flex-col gap-6">
-                              {/* COLOMBIA */}
-                              <div>
-                                 <div className="flex justify-between items-end mb-2">
-                                    <div className="flex items-center gap-2">
-                                       <img src="https://flagcdn.com/w40/co.png" alt="Colombia" className="w-4 shadow-sm rounded-sm" />
-                                       <h5 className="text-sm font-bold text-[#1E3A8A]">Colombia</h5>
-                                    </div>
-                                    <span className="text-sm font-extrabold text-slate-800">$0.6M</span>
-                                 </div>
-                                 <div className="pl-3 ml-2 border-l-2 border-slate-100">
-                                    <span className="text-[10px] text-slate-500 font-semibold">↳ D. Melexa (Avianca - Datacenter)</span> <span className="text-[10px] text-emerald-600 font-bold float-right">$0.6M</span>
-                                 </div>
-                              </div>
-
-                              {/* ECUADOR */}
-                              <div>
-                                 <div className="flex justify-between items-end mb-2">
-                                    <div className="flex items-center gap-2">
-                                       <img src="https://flagcdn.com/w40/ec.png" alt="Ecuador" className="w-4 shadow-sm rounded-sm" />
-                                       <h5 className="text-sm font-bold text-[#1E3A8A]">Ecuador</h5>
-                                    </div>
-                                    <span className="text-sm font-extrabold text-slate-800">$0.4M</span>
-                                 </div>
-                                 <div className="pl-3 ml-2 border-l-2 border-slate-100">
-                                    <span className="text-[10px] text-slate-500 font-semibold">↳ D. Diproel (Infra. Pública)</span> <span className="text-[10px] text-emerald-600 font-bold float-right">$0.4M</span>
-                                 </div>
-                              </div>
-                           </div>
-
+                           
                            <div className="pt-5 mt-4 border-t border-slate-200 flex justify-between items-center">
                               <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Total Calculado</span>
-                              <span className="text-lg font-black text-corporate-purple">$3.5M USD</span>
+                              <span className="text-lg font-black text-slate-400">$0 USD</span>
                            </div>
                         </div>
                      </div>
