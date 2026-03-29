@@ -996,7 +996,7 @@ export default function Home() {
                                         <div className="flex flex-col">
                                           <span className="text-[10px] text-[#F59E0B] font-bold uppercase tracking-widest mb-1 flex items-center gap-1"><Navigation size={10}/> COMPROMISO: {task.date ? task.date.split('-').reverse().join('/') : 'Por definir'}</span>
                                           <span className="font-bold text-[#1E3A8A] text-[15px] leading-tight mt-0.5">{task.title}</span>
-                                          <span className="text-[9px] text-slate-400 mt-1 uppercase tracking-widest font-semibold flex items-center gap-1"><Lock size={8}/> Registrado: {new Date(task.id).toLocaleString(lang === 'es' ? 'es-CL' : 'en-US', { dateStyle: 'short', timeStyle: 'short' })} hrs</span>
+                                          <span className="text-[9px] text-slate-400 mt-1 uppercase tracking-widest font-semibold flex items-center gap-1"><Lock size={8}/> Registrado: {new Date(task.id).toLocaleDateString(lang === 'es' ? 'es-CL' : 'en-US')} {new Date(task.id).toLocaleTimeString(lang === 'es' ? 'es-CL' : 'en-US', { hour: '2-digit', minute: '2-digit' })} hrs</span>
                                         </div>
                                         <button 
                                           onClick={(e) => {
@@ -1515,7 +1515,7 @@ export default function Home() {
                        )}
                        <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
                            {editingTask ? 
-                              new Date(editingTask.id).toLocaleString(lang === 'es' ? 'es-CL' : 'en-US', { dateStyle: 'short', timeStyle: 'short' }) 
+                              `${new Date(editingTask.id).toLocaleDateString(lang === 'es' ? 'es-CL' : 'en-US')} ${new Date(editingTask.id).toLocaleTimeString(lang === 'es' ? 'es-CL' : 'en-US', { hour: '2-digit', minute: '2-digit' })} hrs`
                               : 
                               (lang === 'es' ? `Hoy, ${new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })} hrs` : `Today, ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} hrs`)
                            }
