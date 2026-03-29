@@ -309,22 +309,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-200">
-      <div className="w-[400px] h-[860px] bg-white rounded-[3rem] shadow-2xl overflow-hidden relative border-[8px] border-slate-800 flex flex-col font-sans">
-        
-        {/* Android Status Bar */}
-        <div className="flex justify-between items-center px-6 py-3 text-xs font-semibold text-slate-800 tracking-wider shrink-0 z-50 bg-transparent">
-          <span>08:37</span>
-          <div className="flex items-center space-x-2">
-            <Signal size={12} strokeWidth={3} />
-            <Wifi size={12} strokeWidth={3} />
-            <div className="flex items-center space-x-1">
-              <span>78%</span>
-              <BatteryFull size={14} />
-            </div>
-          </div>
-        </div>
-
+    <div className="min-h-[100dvh] w-full max-w-md mx-auto bg-white flex flex-col font-sans relative shadow-2xl overflow-hidden">
         {/* CONTENEDOR DE VISTAS */}
         <div className="flex-1 relative overflow-hidden flex flex-col">
           <AnimatePresence mode="wait">
@@ -635,11 +620,11 @@ export default function Home() {
                 </div>
 
                 {/* Título Central */}
-                <div className="text-center pb-4 shrink-0 bg-white relative">
-                  <button onClick={() => setLang(lang === 'es' ? 'en' : 'es')} className="absolute left-4 top-0 bg-slate-100 text-[#1E3A8A] px-2 py-1 rounded-full text-[10px] font-bold shadow-sm border border-slate-200 uppercase flex items-center gap-1">
+                <div className="pb-4 shrink-0 bg-white flex flex-col items-center justify-center px-4 gap-2 pt-2">
+                  <h1 className="text-[#1E3A8A] font-extrabold text-[18px] sm:text-xl tracking-wide text-center">EASY MANAGEMENT AI</h1>
+                  <button onClick={() => setLang(lang === 'es' ? 'en' : 'es')} className="bg-slate-50 text-[#1E3A8A] px-3 py-1 rounded-full text-[10px] font-bold shadow-sm border border-slate-200 uppercase flex items-center gap-1 transition-colors hover:bg-slate-100">
                      🌐 {lang === 'es' ? 'ES' : 'EN'}
                   </button>
-                  <h1 className="text-[#1E3A8A] font-bold text-xl tracking-wide">EASY MANAGEMENT AI</h1>
                 </div>
 
                 {/* FREEMIUM TRIAL BANNER */}
@@ -1825,7 +1810,6 @@ export default function Home() {
           )}
 
         </AnimatePresence>
-
       </div>
     </div>
   );
