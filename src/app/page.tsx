@@ -164,6 +164,25 @@ export default function Home() {
     }
   };
 
+  // Helpers para Banderas ISO
+  const getFlagCode = (c: string) => {
+    if (!c) return 'cl';
+    const t = c.toLowerCase().trim();
+    if (t === 'chile') return 'cl';
+    if (t === 'perú' || t === 'peru') return 'pe';
+    if (t === 'colombia') return 'co';
+    if (t === 'ecuador') return 'ec';
+    if (t === 'méxico' || t === 'mexico') return 'mx';
+    if (t === 'argentina') return 'ar';
+    return t; 
+  };
+
+  const getCountryName = (c: string) => {
+    if (!c) return 'CHILE';
+    const o: Record<string, string> = { cl: 'CHILE', pe: 'PERÚ', co: 'COLOMBIA', ec: 'ECUADOR', mx: 'MÉXICO', ar: 'ARGENTINA' };
+    return o[c.toLowerCase().trim()] || c.toUpperCase();
+  };
+
   // Dashboard states
   const [activeTab, setActiveTab] = useState('oportunidades');
   const [showPipelineModal, setShowPipelineModal] = useState(false);
@@ -202,7 +221,7 @@ export default function Home() {
         .then(res => res.json())
         .then(data => {
           if (data.user) {
-             if (data.user.country) setUserCountry(data.user.country);
+             if (data.user.country) setUserCountry(getFlagCode(data.user.country));
              if (data.user.clientUrl) setClientWebsite(data.user.clientUrl);
              if (data.user.logoUrl) setClientLogo(data.user.logoUrl);
              if (data.user.avatarUrl) setAvatarUrl(data.user.avatarUrl);
@@ -739,8 +758,8 @@ export default function Home() {
                   {/* Centro: Residencia y Avatar del Usuario */}
                   <div className="flex items-center justify-center gap-2 w-1/3">
                      <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-full px-2.5 py-1 shadow-sm">
-                        <img src={`https://flagcdn.com/w20/${userCountry}.png`} alt="Bandera" className="w-4 h-auto rounded-sm shadow-[0_0_2px_rgba(0,0,0,0.2)]" />
-                        <span className="text-[10px] font-bold text-slate-600 uppercase">{userCountry}</span>
+                        <img src={`https://flagcdn.com/w20/${getFlagCode(userCountry)}.png`} alt="Bandera" className="w-4 h-auto rounded-sm shadow-[0_0_2px_rgba(0,0,0,0.2)]" />
+                        <span className="text-[10px] font-bold text-slate-600 uppercase">{getCountryName(userCountry)}</span>
                      </div>
                      <div 
                         onClick={() => setCurrentView('onboarding')}
