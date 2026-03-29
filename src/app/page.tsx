@@ -367,24 +367,18 @@ export default function Home() {
 
   // Lógica reutilizable del Mapa Geográfico
   const renderGeoMap = (isFullscreen: boolean) => {
-    const activeMarkers = [
-      { name: 'Chile', coordinates: [-71.54, -35.67], value: '$0' },
-      { name: 'Perú', coordinates: [-75.01, -9.18], value: '$0' },
-      { name: 'Colombia', coordinates: [-74.29, 4.57], value: '$0' },
-      { name: 'Ecuador', coordinates: [-78.18, -1.83], value: '$0' }
-    ];
+    const activeMarkers: any[] = [];
     
-    const minX = Math.min(...activeMarkers.map(m => m.coordinates[0]));
-    const maxX = Math.max(...activeMarkers.map(m => m.coordinates[0]));
-    const minY = Math.min(...activeMarkers.map(m => m.coordinates[1]));
-    const maxY = Math.max(...activeMarkers.map(m => m.coordinates[1]));
+    const minX = activeMarkers.length ? Math.min(...activeMarkers.map(m => m.coordinates[0])) : -90;
+    const maxX = activeMarkers.length ? Math.max(...activeMarkers.map(m => m.coordinates[0])) : -50;
+    const minY = activeMarkers.length ? Math.min(...activeMarkers.map(m => m.coordinates[1])) : -55;
+    const maxY = activeMarkers.length ? Math.max(...activeMarkers.map(m => m.coordinates[1])) : 15;
     
     const autoCenterX = (minX + maxX) / 2;
     const autoCenterY = (minY + maxY) / 2;
     
     const maxSpread = Math.max(maxX - minX, maxY - minY);
-    // Ajustamos el zoom dinámico: la vista fullscreen tiene formato retrato, requiere menos zoom para que no se corte arriba/abajo
-    const autoZoom = maxSpread > 0 ? Math.min(isFullscreen ? 4 : 6, (isFullscreen ? 45 : 60) / maxSpread) : 2;
+    const autoZoom = activeMarkers.length > 0 && maxSpread > 0 ? Math.min(isFullscreen ? 4 : 6, (isFullscreen ? 45 : 60) / maxSpread) : 1.3;
 
     return (
       <ComposableMap
@@ -402,14 +396,7 @@ export default function Home() {
           <Geographies geography="https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json">
             {({ geographies }) =>
               geographies.map((geo) => {
-                const countryData = [
-                  { name: 'Chile', color: '#22C55E' },
-                  { name: 'Peru', color: '#84CC16' },
-                  { name: 'Colombia', color: '#F59E0B' },
-                  { name: 'Ecuador', color: '#EF4444' }
-                ].find(c => c.name === geo.properties.name);
-                
-                const fill = countryData ? countryData.color : "#E2E8F0"; 
+                const fill = "#E2E8F0";
                 
                 return (
                   <Geography
@@ -1638,11 +1625,11 @@ export default function Home() {
                      {/* Logos de co-branding */}
                      <div className="flex justify-between items-center mb-4">
                         {clientLogo ? (
-                           <img src={clientLogo} alt="Mandante" className="h-5 object-contain" />
+                           <img src={clientLogo} alt="Mandante" className="h-10 object-contain" />
                         ) : (
-                           <div className="h-5 flex items-center border border-slate-200 px-2 rounded text-[8px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50">Sin Logo</div>
+                           <div className="h-10 flex items-center border border-slate-200 px-3 rounded text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50">Sin Logo</div>
                         )}
-                        <img src="/logo_at_sit_full.png" alt="AT-SIT" className="h-3.5 opacity-60 object-contain" />
+                        <img src="/logo_at_sit_full.png" alt="AT-SIT" className="h-6 opacity-90 object-contain" />
                      </div>
 
                      <div className="flex justify-between items-start">
