@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// -----------------------------------------------------------------
+// ENTIDADES PRINCIPALES DEL SISTEMA (EASY MANAGEMENT AI)
+// -----------------------------------------------------------------
+
+model User {
+  id               String   @id @default(cuid())
+  email            String   @unique
+  password         String   // En producción usamos hash (bcrypt)
+  name             String?
+  country          String   @default("Chile")
+  clientUrl        String?
+  logoUrl          String?
+  isPro            Boolean  @default(false)
+  lemonSqueezyId   String?  // ID de la suscripción para el Webhook
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  clients          Client[] // Distribuidores o clientes en el país
+}
+
+model Client {
+  id          String   @id @default(cuid())
+  name        String   // Ejemplo: Distribuidor Principal 1
+  country     String   // Mercado del distribuidor
+  revenue     Float    @default(0) // Pipeline amount local
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  projects    Opportunity[]
+}
+
+model Opportunity {
+  id          String   @id @default(cuid())
+  title       String   // Equipamiento Planta Sur
+  amount      Float    @default(0)
+  status      String   // Negociación, Propuesta
+  closingDate DateTime?
+  clientId    String
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  activities  Activity[]
+}
+
+model Activity {
+  id          String   @id @default(cuid())
+  title       String   // Presentación Nueva Plana Directiva
+  content     String   // Notas de voz convertidas a texto
+  type        String   // Registro Ágil, Visita Presencial, Whatsapp
+  taskText    String?  // Mi Tarea Pendiente
+  taskDate    DateTime?
+  
+  opportunityId String
+  opportunity   Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+}
