@@ -34,14 +34,14 @@ export default function Home() {
         week: 'Current Week', month: 'Current Month', lastMonth: 'Last Month', year: 'Current Year', lastYear: 'Last Year', allTime: 'All Time'
      }
   };
-  const [currentView, setCurrentView] = useState<'login' | 'onboarding' | 'dashboard'>('dashboard');
+  const [currentView, setCurrentView] = useState<'login' | 'onboarding' | 'dashboard'>('login');
   
   // Login & Config states
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [email, setEmail] = useState('pdiazg46@gmail.com');
-  const [password, setPassword] = useState('admin123');
-  const [confirmPassword, setConfirmPassword] = useState('admin123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [authError, setAuthError] = useState('');
   
   const [userCountry, setUserCountry] = useState('cl');
