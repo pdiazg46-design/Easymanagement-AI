@@ -727,38 +727,7 @@ export default function Home() {
                           
                           {regionalViewMode === 'list' ? (
                             <div className="space-y-4">
-                              {[ 
-                                  { name: 'Chile', iso: 'cl', code: 'CHL', value: '$1.5M', pct: 85, color: '#7C3AED' },
-                                  { name: 'Perú', iso: 'pe', code: 'PER', value: '$1.0M', pct: 65, color: '#7C3AED' },
-                                  { name: 'Colombia', iso: 'co', code: 'COL', value: '$0.6M', pct: 45, color: '#7C3AED' },
-                                  { name: 'Ecuador', iso: 'ec', code: 'ECU', value: '$0.4M', pct: 20, color: '#94A3B8' },
-                                ].map((country) => (
-                                <motion.div 
-                                  whileTap={{ scale: 0.98 }}
-                                  onClick={() => setSelectedCountry(country.name)}
-                                  key={country.name} 
-                                  className="flex items-center gap-3 cursor-pointer group"
-                                >
-                                   <div className="w-7 h-5 shadow-[0_1px_3px_rgba(0,0,0,0.15)] rounded-[3px] overflow-hidden shrink-0 bg-slate-100 flex items-center justify-center">
-                                      <img src={`https://flagcdn.com/w40/${country.iso}.png`} alt={country.name} className="w-full h-full object-cover" />
-                                   </div>
-                                   <div className="flex-1">
-                                     <div className="flex justify-between items-center mb-1">
-                                       <span className="text-sm font-semibold text-slate-700 group-hover:text-corporate-purple transition-colors">{country.name} <span className="text-slate-400 font-normal text-xs">({country.code})</span></span>
-                                       <span className="text-sm font-bold text-slate-800">{country.value}</span>
-                                     </div>
-                                     <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                                        <motion.div 
-                                          initial={{ width: 0 }}
-                                          animate={{ width: `${country.pct}%` }}
-                                          transition={{ duration: 1, delay: 0.2 }}
-                                          className="h-full rounded-full"
-                                          style={{ backgroundColor: country.color }}
-                                        />
-                                     </div>
-                                   </div>
-                                </motion.div>
-                              ))}
+                              <p className="text-[11px] text-slate-400 font-medium italic tracking-wide text-center py-4">{lang === 'es' ? 'No hay países con métricas activas' : 'No countries with active metrics'}</p>
                             </div>
                           ) : (
                              <div className="w-full aspect-square bg-slate-50 border border-slate-100 rounded-2xl relative overflow-hidden flex items-center justify-center shadow-inner cursor-pointer group">
@@ -853,15 +822,7 @@ export default function Home() {
 
                           {historialViewMode === 'list' ? (
                             <div className="space-y-3">
-                               {[1,2,3].map(i => (
-                                  <div key={i} className="flex flex-col justify-center border-b border-slate-100 pb-3 last:border-0 last:pb-0">
-                                     <div className="flex justify-between items-start mb-1">
-                                        <span className="font-bold text-sm text-slate-700">{lang === 'es' ? 'Distribuidor Principal' : 'Main Distributor'} {i}</span>
-                                        <span className="font-black text-sm text-emerald-600\">+$250.000</span>
-                                     </div>
-                                     <span className="text-[11px] font-semibold text-slate-400">{lang === 'es' ? 'Cerrado en Mar 2026 - Chile' : 'Closed Mar 2026 - Chile'}</span>
-                                  </div>
-                               ))}
+                               <p className="text-[11px] text-slate-400 font-medium italic tracking-wide text-center py-4">{lang === 'es' ? 'No hay historial disponible' : 'No history available'}</p>
                             </div>
                           ) : (
                              <div className="w-full aspect-square bg-slate-50 border border-slate-100 rounded-2xl relative overflow-hidden flex items-center justify-center shadow-inner cursor-pointer group">
@@ -928,10 +889,11 @@ export default function Home() {
                   <p className="text-sm text-slate-500 mb-8">Proyección estimada de ingresos Q2 y Q3.</p>
 
                   <div className="w-full flex-1 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-center relative overflow-hidden p-4">
-                     <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+                     {/* <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
                        <path d="M 0 80 Q 25 20, 50 60 T 100 10" fill="none" stroke="#7C3AED" strokeWidth="3" strokeLinecap="round" />
                        <path d="M 0 80 Q 25 20, 50 60 T 100 10 L 100 100 L 0 100 Z" fill="rgba(124,58,237,0.1)" />
-                     </svg>
+                     </svg> */}
+                     <span className="text-[11px] text-slate-400 font-medium italic tracking-wide text-center py-4">{lang === 'es' ? 'No hay flujo disponible' : 'No flow available'}</span>
                      <div className="absolute w-full h-full flex justify-between items-end pb-2 px-6 top-0 left-0 pointer-events-none text-[10px] text-slate-400 font-medium">
                         <span>MAY</span><span>JUN</span><span>JUL</span><span>AGO</span>
                      </div>
@@ -983,7 +945,8 @@ export default function Home() {
                      <div>
                        <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 pl-1">{lang === 'es' ? 'Distribuidores Locales' : 'Local Distributors'}</h3>
                        <div className="space-y-3">
-                         {[1, 2, 3, 4, 5].map((i) => (
+                         <p className="text-[11px] text-slate-400 font-medium italic tracking-wide px-1">{lang === 'es' ? 'No hay distribuidores registrados.' : 'No distributors registered.'}</p>
+                         {[].map((i: any) => (
                            <div 
                              key={i} 
                              onClick={() => setSelectedClient({ name: lang === 'es' ? `Distribuidor Local ${i} S.A.` : `Local Distributor ${i} S.A.`, country: selectedCountry })}
