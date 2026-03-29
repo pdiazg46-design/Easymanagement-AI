@@ -2,6 +2,11 @@
 **Last Updated:** 29 de Marzo, 2026 (Sesión de Producción y PWA)
 **Status:** Producción Inicial (Vercel) + Frontend Persistente + PWA Funcional. Preparado para interconexión con Prisma/Neon Database.
 
+> [!WARNING]
+> **ALERTA CRÍTICA DE DESARROLLO (Vercel Deployments):**
+> El usuario NO está testeando la aplicación de manera local (`localhost:3000`). Todas las pruebas de UI, PWA y Base de Datos las está realizando **directamente en Producción a través de Vercel** (`easymanagement-ai.vercel.app`). 
+> **Regla de Oro:** Todo cambio de código (frontend, backend, Prisma o assets) que hagas localmente MUST ser empujado al repositorio vía Git (`git add .`, `git commit`, `git push`) para que Vercel lo recompile y el usuario pueda validar el resultado. Si no haces `git push`, el usuario no verá absolutamente nada de lo que programas.
+
 ## 1. Project Overview & Logros Recientes
 **Easy Management** es un CRM "Mobile-First" e "Offline-First" enfocado en velocidad operativa para la región LATAM.
 
