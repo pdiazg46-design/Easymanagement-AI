@@ -1988,7 +1988,13 @@ export default function Home() {
                          todayTasks.length === 0 ? (
                             <div className="text-center py-10 text-slate-400 text-sm font-medium">No hay registros de actividad.</div>
                          ) : (
-                            todayTasks.map((task) => (
+                            [...todayTasks]
+                            .sort((a,b) => {
+                                const da = a.date ? new Date(a.date).getTime() : Infinity;
+                                const db = b.date ? new Date(b.date).getTime() : Infinity;
+                                return da - db;
+                            })
+                            .map((task) => (
                                <motion.div 
                                  key={task.id} 
                                  onClick={() => {
@@ -2001,21 +2007,23 @@ export default function Home() {
                                  }}
                                  className="flex flex-col gap-3 p-5 bg-white rounded-2xl border-2 border-slate-100 shadow-sm cursor-pointer hover:border-[#1E3A8A]/30 hover:shadow-md transition-all active:scale-[0.98]"
                                >
-                                  <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
-                                     <div className="flex flex-col items-start bg-amber-50/80 rounded-xl px-4 py-2 border border-amber-100">
-                                       <span className="text-[11px] text-[#F59E0B] font-black uppercase tracking-widest flex items-center gap-1.5 mb-0.5">
-                                          <Navigation size={12}/> COMPROMISO:
-                                       </span>
-                                       <span className="text-[#D97706] font-black text-lg tracking-tight">
-                                          {task.date ? task.date.split('-').reverse().join('/') : 'Por definir'}
-                                       </span>
-                                     </div>
-                                     <span className="text-[12px] text-slate-500 font-bold whitespace-nowrap bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
-                                       Registrado el {new Date(task.id).toLocaleDateString(lang === 'es' ? 'es-CL' : 'en-US')} a las {new Date(task.id).toLocaleTimeString(lang === 'es' ? 'es-CL' : 'en-US', { hour: '2-digit', minute: '2-digit' })} hrs
-                                     </span>
+                                  <div className="flex flex-col items-start bg-amber-50/80 rounded-xl px-4 py-2 border border-amber-100 self-start">
+                                    <span className="text-[11px] text-[#F59E0B] font-black uppercase tracking-widest flex items-center gap-1.5 mb-0.5">
+                                       <Navigation size={12}/> COMPROMISO:
+                                    </span>
+                                    <span className="text-[#D97706] font-black text-xl tracking-tight">
+                                       {task.date ? task.date.split('-').reverse().join('/') : 'Por definir'}
+                                    </span>
                                   </div>
+                                  
                                   <div className="px-1 mt-1">
-                                     <span className="font-black text-[#1E3A8A] text-[20px] leading-tight">{task.title}</span>
+                                     <span className="font-black text-[#1E3A8A] text-[18px] sm:text-[20px] leading-tight block">{task.title}</span>
+                                  </div>
+                                  
+                                  <div className="mt-2 w-full pt-3 border-t border-slate-100/60 flex items-center text-left">
+                                     <span className="text-[11px] text-slate-400 font-bold whitespace-normal leading-relaxed">
+                                       Generado el {new Date(task.id).toLocaleDateString(lang === 'es' ? 'es-CL' : 'en-US')} a las {new Date(task.id).toLocaleTimeString(lang === 'es' ? 'es-CL' : 'en-US', { hour: '2-digit', minute: '2-digit' })} hrs
+                                     </span>
                                   </div>
                                </motion.div>
                             ))
