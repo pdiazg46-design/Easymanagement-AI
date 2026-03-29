@@ -207,6 +207,8 @@ export default function Home() {
   // Estados para simular Inputs del Formulario Action Modal
   const [draftActivity, setDraftActivity] = useState("");
   const [draftAction, setDraftAction] = useState("");
+  const [draftDate, setDraftDate] = useState("");
+  const [calendarViewMode, setCalendarViewMode] = useState<'grid' | 'list'>('grid');
 
   // PERSISTENCIA HÍBRIDA: Perfil en PostgreSQL, Tareas en RAM temporal
   useEffect(() => {
@@ -328,10 +330,11 @@ export default function Home() {
     setShowToast(true);
     
     if (!editingTask) {
-      // IA Cross-referencing: Si se generó un nuevo compromiso para "hoy", se inyecta dinámicamente
       setTodayTasks(prev => [{
         id: Date.now(),
         title: draftAction,
+        content: draftActivity,
+        date: draftDate,
         time: 'Pendiente',
         type: 'Reunión'
       }, ...prev]);
@@ -357,14 +360,75 @@ export default function Home() {
 
     } else {
       // Update logic in RAM
-      setTodayTasks(prev => prev.map(t => t.id === editingTask.id ? { ...t, title: draftAction, content: draftActivity } : t));
-      setNewTimelineItems(prev => prev.map(t => t.id === editingTask.id ? { ...t, title: draftAction, content: draftActivity } : t));
-      setNewCountryTimelineItems(prev => prev.map(t => t.id === editingTask.id ? { ...t, title: draftAction, content: draftActivity } : t));
+      setTodayTasks(prev => prev.map(t => t.id === editingTask.id ? { ...t, title: draftAction, content: draftActivity, date: draftDate } : t));
+      setNewTimelineItems(prev => prev.map(t => t.id === editingTask.id ? { ...t, title: draftAction, content: draftActivity, date: draftDate } : t));
+      setNewCountryTimelineItems(prev => prev.map(t => t.id === editingTask.id ? { ...t, title: draftAction, content: draftActivity, date: draftDate } : t));
       setEditingTask(null);
     }
 
     // Ocultar toast de confirmación luego de 3 segundos
     setTimeout(() => setShowToast(false), 3000);
+  };
+
+  const renderCalendarGrid = () => {
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+    
+    const monthName = today.toLocaleDateString(lang === 'es' ? 'es-CL' : 'en-US', { month: 'long', year: 'numeric' });
+    
+    const cells = [];
+    for (let i = 0; i < firstDay; i++) {
+        cells.push(<div key={`empty-${i}`} className="h-16 sm:h-20 border border-slate-100 bg-slate-50/50"></div>);
+    }
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dStr = `${currentYear}-${(currentMonth+1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+        const dayTasks = todayTasks.filter(t => t.date === dStr);
+        const isToday = day === today.getDate();
+        
+        cells.push(
+            <div key={`day-${day}`} className={`h-16 sm:h-20 border border-slate-100 p-1 relative flex flex-col ${isToday ? 'bg-blue-50/50' : 'bg-white'}`}>
+                <span className={`text-[10px] font-bold mx-auto mb-1 flex items-center justify-center ${isToday ? 'text-white w-5 h-5 bg-[#1E3A8A] rounded-full shadow-sm' : 'text-slate-500'}`}>{day}</span>
+                <div className="flex-1 overflow-y-auto flex gap-1 flex-col content-start hide-scrollbar">
+                    {dayTasks.map(task => (
+                        <div key={task.id} 
+                             onClick={(e) => {
+                               e.stopPropagation();
+                               setShowCalendarModal(false);
+                               setEditingTask(task);
+                               setDraftAction(task.title || "");
+                               setDraftActivity(task.content || "");
+                               setDraftDate(task.date || "");
+                               setShowActionModal(true);
+                             }}
+                             className="w-full truncate text-[8px] sm:text-[9px] font-bold tracking-wider bg-[#F59E0B] text-white px-1.5 py-1 rounded cursor-pointer hover:bg-amber-600 transition-colors shadow-sm"
+                             title={task.title}
+                        >
+                            {task.title || 'Compromiso'}
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+    
+    return (
+        <div className="flex flex-col h-full bg-white rounded-xl border border-slate-200 overflow-hidden shadow-[0_4px_25px_rgb(0,0,0,0.04)]">
+            <div className="bg-slate-50 border-b border-slate-100 py-3 text-center uppercase tracking-widest text-[#1E3A8A] font-black text-sm">
+                {monthName}
+            </div>
+            <div className="grid grid-cols-7 border-b border-slate-100 bg-slate-50">
+                {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map(d => (
+                    <div key={d} className="py-2 text-center text-[10px] sm:text-xs font-bold text-slate-400">{d}</div>
+                ))}
+            </div>
+            <div className="grid grid-cols-7 overflow-y-auto bg-slate-100 gap-[1px]">
+                {cells}
+            </div>
+        </div>
+    );
   };
 
   // Lógica reutilizable del Mapa Geográfico
@@ -896,7 +960,7 @@ export default function Home() {
 
                         <div className="bg-white rounded-3xl p-6 shadow-[0_4px_25px_rgb(0,0,0,0.04)] border border-slate-100">
                           <div className="flex justify-between items-center mb-5">
-                            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide">{lang === 'es' ? 'Tareas de Hoy (05 May)' : 'Today\'s Tasks (May 05)'}</h3>
+                            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide">{lang === 'es' ? `Tareas de Hoy (${new Date().toLocaleDateString('es-CL', {day: '2-digit', month: 'short'}).replace('.', '')})` : `Today's Tasks (${new Date().toLocaleDateString('en-US', {month: 'short', day: '2-digit'})})`}</h3>
                             <button onClick={() => setShowCalendarModal(true)} className="text-xs font-semibold px-3 py-1.5 bg-slate-50 text-[#1E3A8A] rounded-full border border-slate-200 shadow-sm transition-colors hover:bg-slate-100">{lang === 'es' ? 'VER CALENDARIO' : 'VIEW CALENDAR'}</button>
                           </div>
                           
@@ -909,8 +973,9 @@ export default function Home() {
                                     key={task.id} 
                                     onClick={() => {
                                       setEditingTask(task);
-                                      setDraftAction(task.title);
+                                      setDraftAction(task.title || "");
                                       setDraftActivity(task.content || "");
+                                      setDraftDate(task.date || "");
                                       setShowActionModal(true);
                                     }}
                                     initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
@@ -918,8 +983,9 @@ export default function Home() {
                                   >
                                      <div className="flex justify-between items-start mb-1">
                                         <div className="flex flex-col">
-                                          <span className="text-[10px] text-[#F59E0B] font-bold uppercase tracking-widest mb-1 flex items-center gap-1"><Navigation size={10}/> {task.type}</span>
-                                          <span className="font-bold text-[#1E3A8A] text-sm leading-tight">{task.title}</span>
+                                          <span className="text-[10px] text-[#F59E0B] font-bold uppercase tracking-widest mb-1 flex items-center gap-1"><Navigation size={10}/> COMPROMISO: {task.date ? task.date.split('-').reverse().join('/') : 'Por definir'}</span>
+                                          <span className="font-bold text-[#1E3A8A] text-[15px] leading-tight mt-0.5">{task.title}</span>
+                                          <span className="text-[9px] text-slate-400 mt-1 uppercase tracking-widest font-semibold flex items-center gap-1"><Lock size={8}/> Registrado: {new Date(task.id).toLocaleString(lang === 'es' ? 'es-CL' : 'en-US', { dateStyle: 'short', timeStyle: 'short' })} hrs</span>
                                         </div>
                                         <button 
                                           onClick={(e) => {
@@ -1397,11 +1463,12 @@ export default function Home() {
                    </p>
                  </div>
                  <button 
-                   onClick={() => {
+                   onClick={(e) => {
+                     e.stopPropagation();
                      setShowActionModal(false);
                      setTimeout(() => setEditingTask(null), 300);
                    }} 
-                   className="p-3 bg-slate-100 rounded-full hover:bg-slate-200 text-slate-600 transition-colors"
+                   className="p-3 bg-slate-100 rounded-full hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer active:scale-95"
                  >
                    <X size={24} />
                  </button>
@@ -1463,7 +1530,12 @@ export default function Home() {
                           <Calendar size={12} /> {lang === 'es' ? '¿Para cuándo?' : 'When?'}
                         </label>
                         <div className="relative">
-                          <input type="date" className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-slate-700 font-bold focus:outline-none focus:ring-2 focus:ring-[#F59E0B]/50 text-sm shadow-inner appearance-none" />
+                          <input 
+                              type="date" 
+                              value={draftDate}
+                              onChange={(e) => setDraftDate(e.target.value)}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-slate-700 font-bold focus:outline-none focus:ring-2 focus:ring-[#F59E0B]/50 text-sm shadow-inner appearance-none placeholder:text-slate-400 uppercase tracking-widest" 
+                          />
                         </div>
                       </div>
                     </div>
@@ -1775,49 +1847,72 @@ export default function Home() {
                   className="bg-[#F8FAFC] w-full h-[90%] sm:h-auto sm:max-h-[90%] sm:max-w-md rounded-t-[32px] sm:rounded-3xl shadow-2xl flex flex-col relative overflow-hidden"
                   onClick={e => e.stopPropagation()}
                >
-                  <div className="bg-white px-6 pt-6 pb-5 border-b border-slate-100 shrink-0 sticky top-0 z-20">
-                     <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-5 shrink-0" />
-                     <div className="flex justify-between items-center mb-2">
+                  <div className="bg-white px-6 pt-5 pb-4 border-b border-slate-100 shrink-0 sticky top-0 z-20">
+                     <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-4 shrink-0" />
+                     <div className="flex justify-between items-start">
                         <div>
-                           <h2 className="text-2xl font-black text-[#1E3A8A] leading-tight tracking-tight">
-                              Calendario y Bitácora
+                           <h2 className="text-[22px] font-black text-[#1E3A8A] leading-tight tracking-tight">
+                              Mi Planificador
                            </h2>
-                           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Historial del Usuario</p>
+                           <div className="flex bg-slate-100 rounded-lg p-1 mt-2 w-max">
+                               <button 
+                                  onClick={() => setCalendarViewMode('grid')}
+                                  className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-md transition-all ${calendarViewMode === 'grid' ? 'bg-white text-corporate-purple shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                               >
+                                  Ver Calendario
+                               </button>
+                               <button 
+                                  onClick={() => setCalendarViewMode('list')}
+                                  className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-md transition-all ${calendarViewMode === 'list' ? 'bg-white text-corporate-purple shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                               >
+                                  Ver Lista
+                               </button>
+                           </div>
                         </div>
-                        <button onClick={() => setShowCalendarModal(false)} className="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 shadow-sm">
+                        <button onClick={() => setShowCalendarModal(false)} className="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 shadow-sm transition-colors cursor-pointer active:scale-95">
                            <X size={16} />
                         </button>
                      </div>
                   </div>
 
-                  <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3 pb-24">
-                     {todayTasks.length === 0 ? (
-                        <div className="text-center py-10 text-slate-400 text-sm font-medium">No hay registros de actividad.</div>
+                  <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-3 pb-24 bg-[#F8FAFC]">
+                     {/* RENDERIZADO CONDICIONAL DE VISTA */}
+                     {calendarViewMode === 'grid' ? (
+                        <div className="h-full min-h-[400px]">
+                           {renderCalendarGrid()}
+                        </div>
                      ) : (
-                        todayTasks.map((task) => (
-                           <motion.div 
-                             key={task.id} 
-                             onClick={() => {
-                               setShowCalendarModal(false);
-                               setEditingTask(task);
-                               setDraftAction(task.title);
-                               setDraftActivity(task.content || "");
-                               setShowActionModal(true);
-                             }}
-                             className="flex flex-col gap-1.5 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm cursor-pointer hover:border-[#1E3A8A]/30 transition-all"
-                           >
-                              <div className="flex justify-between items-start mb-1">
-                                 <div className="flex flex-col">
-                                   <span className="text-[10px] text-[#F59E0B] font-bold uppercase tracking-widest mb-1 flex items-center gap-1"><Navigation size={10}/> {task.type || 'REUNIÓN'}</span>
-                                   <span className="font-bold text-[#1E3A8A] text-sm leading-tight">{task.title}</span>
-                                 </div>
-                                 <span className="text-[10px] text-slate-400 font-bold whitespace-nowrap bg-slate-50 px-2 py-1 rounded-md">{new Date(task.id).toLocaleDateString()}</span>
-                              </div>
-                              {task.content && (
-                                 <p className="text-xs text-slate-500 leading-relaxed line-clamp-2 mt-1 bg-slate-50 p-2 rounded-lg">{task.content}</p>
-                              )}
-                           </motion.div>
-                        ))
+                         todayTasks.length === 0 ? (
+                            <div className="text-center py-10 text-slate-400 text-sm font-medium">No hay registros de actividad.</div>
+                         ) : (
+                            todayTasks.map((task) => (
+                               <motion.div 
+                                 key={task.id} 
+                                 onClick={() => {
+                                   setShowCalendarModal(false);
+                                   setEditingTask(task);
+                                   setDraftAction(task.title || "");
+                                   setDraftActivity(task.content || "");
+                                   setDraftDate(task.date || "");
+                                   setShowActionModal(true);
+                                 }}
+                                 className="flex flex-col gap-1.5 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm cursor-pointer hover:border-[#1E3A8A]/30 hover:shadow-md transition-all active:scale-[0.98]"
+                               >
+                                  <div className="flex justify-between items-start mb-1">
+                                     <div className="flex flex-col">
+                                       <span className="text-[10px] text-[#F59E0B] font-bold uppercase tracking-widest mb-1 flex items-center gap-1">
+                                          <Navigation size={10}/> COMPROMISO: {task.date ? task.date.split('-').reverse().join('/') : 'Por definir'}
+                                       </span>
+                                       <span className="font-bold text-[#1E3A8A] text-[15px] leading-tight mt-0.5">{task.title}</span>
+                                     </div>
+                                     <span className="text-[10px] text-slate-400 font-bold whitespace-nowrap bg-slate-50 px-2 py-1 rounded-md border border-slate-100">Registrado el {new Date(task.id).toLocaleDateString()}</span>
+                                  </div>
+                                  {task.content && (
+                                     <p className="text-[11px] text-slate-500 font-medium leading-relaxed line-clamp-2 mt-1 bg-slate-50 p-3 rounded-xl border border-slate-100">"{task.content}"</p>
+                                  )}
+                               </motion.div>
+                            ))
+                         )
                      )}
                   </div>
                </motion.div>
