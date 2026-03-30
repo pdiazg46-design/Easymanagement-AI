@@ -1285,7 +1285,7 @@ export default function Home() {
                 </div>
 
                 {/* FOOTER CREADOR DE ACTIVIDAD */}
-                <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-white/95 via-white/80 to-transparent pt-20 pb-6 sm:pb-8 px-4 flex flex-col items-center pointer-events-none z-20">
+                <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-white/95 via-white/80 to-transparent pt-20 pb-[70px] sm:pb-8 px-4 flex flex-col items-center pointer-events-none z-20">
                    <div className="pointer-events-auto flex items-end justify-center relative mb-2">
                       <motion.button 
                         onClick={handleMicClick}
