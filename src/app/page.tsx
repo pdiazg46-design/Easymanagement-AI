@@ -314,6 +314,7 @@ export default function Home() {
       const totalValueUsd = opps.reduce((acc, curr) => acc + curr.amountUsd, 0);
       return {
          ...c,
+         opps,
          totalValueUsd,
          totalProjects: opps.length,
          value: totalValueUsd > 0 ? `$${(totalValueUsd/1000).toFixed(0)}K` : '0',
@@ -2084,23 +2085,38 @@ export default function Home() {
                                    <p className="text-xs text-slate-500 font-medium">Aún no has registrado proyectos ni presupuestos en tu gestión de pipeline.</p>
                                </div>
                            ) : (
-                               <div className="space-y-3">
+                               <div className="space-y-4">
                                   {activeCountriesMetrics.map(c => (
-                                     <div key={c.name} className="flex justify-between items-center bg-[#F8FAFC] p-3 rounded-xl border border-slate-100">
-                                        <div className="flex items-center gap-3">
-                                           <div className="w-8 h-8 rounded-full bg-white border border-slate-200 shadow-sm flex items-center justify-center text-[10px] font-bold text-[#1E3A8A]">
-                                              {c.name.substring(0,2).toUpperCase()}
+                                     <div key={c.name} className="bg-[#F8FAFC] rounded-xl border border-slate-100 overflow-hidden shadow-sm">
+                                        <div className="flex justify-between items-center bg-white p-3 border-b border-slate-100/60 z-10 relative">
+                                           <div className="flex items-center gap-3">
+                                              <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-200 shadow-[0_2px_4px_rgb(0,0,0,0.02)] flex items-center justify-center text-[10px] font-black text-[#1E3A8A]">
+                                                 {c.name.substring(0,2).toUpperCase()}
+                                              </div>
+                                              <div>
+                                                 <div className="text-[13px] font-bold text-slate-800 leading-tight">{c.name}</div>
+                                                 <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{c.totalProjects} {lang === 'es' ? 'proyectos' : 'projects'}</div>
+                                              </div>
                                            </div>
-                                           <div>
-                                              <div className="text-[13px] font-bold text-slate-700 leading-tight">{c.name}</div>
-                                              <div className="text-[10px] font-semibold text-slate-400">{c.totalProjects} {lang === 'es' ? 'proyectos activos' : 'active projects'}</div>
-                                           </div>
+                                           <div className="text-sm font-black text-emerald-600">${c.totalValueUsd.toLocaleString('en-US')}</div>
                                         </div>
-                                        <div className="text-sm font-black text-emerald-600">${c.totalValueUsd.toLocaleString('en-US')}</div>
+                                        {/* Cascada de Proyectos */}
+                                        <div className="bg-slate-50/50 p-2.5 flex flex-col gap-2">
+                                           {c.opps.map((opp: any) => (
+                                              <div key={opp.id} className="flex justify-between items-center bg-white border border-slate-100/80 px-3 py-2.5 rounded-lg shadow-[0_1px_2px_rgb(0,0,0,0.02)] pl-4 relative">
+                                                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-corporate-purple/30 rounded-l-lg"></div>
+                                                 <div className="text-xs font-bold text-slate-600 truncate pr-3 select-all">
+                                                    {opp.title}
+                                                 </div>
+                                                 <div className="text-[11px] font-bold text-emerald-600/90 shrink-0">
+                                                    ${opp.amountUsd.toLocaleString('en-US')}
+                                                 </div>
+                                              </div>
+                                           ))}
+                                        </div>
                                      </div>
                                   ))}
-                               </div>
-                           )}
+                               </div>                           )}
                            
                            <div className="pt-5 mt-4 border-t border-slate-200 flex justify-between items-center">
                               <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Total Calculado</span>
@@ -2132,21 +2148,34 @@ export default function Home() {
                            <button 
                               disabled={reportPassword.length < 3}
                               onClick={() => {
+                                 const secureToken = btoa(reportPassword).substring(0,12);
+                                 const secureLink = 'https://easymanagement.app/secure-report/' + secureToken;
+                                 
                                  if (navigator.share) {
                                      navigator.share({
                                          title: 'Informe Ejecutivo MACRO - Confidencial',
                                          text: 'Enlace cifrado del Informe de Gestión. Requiere contraseña para visualización en pantalla.',
-                                         url: 'https://easymanagement.app/secure-report/' + btoa(reportPassword).substring(0,8)
+                                         url: secureLink
                                      }).then(() => {
                                          setShowReportPasswordForm(false);
                                          setReportPassword('');
-                                     }).catch(console.error);
+                                     }).catch((error) => {
+                                         console.log("Share API error", error);
+                                         navigator.clipboard.writeText(secureLink).then(() => {
+                                            alert('Enlace copiado al portapapeles:\n' + secureLink);
+                                         });
+                                         setShowReportPasswordForm(false);
+                                     });
                                  } else {
-                                     alert('Link seguro generado: https://easymanagement.app/secure-report/xyz');
-                                     setShowReportPasswordForm(false);
+                                     navigator.clipboard.writeText(secureLink).then(() => {
+                                         alert('Enlace seguro copiado al portapapeles:\n' + secureLink);
+                                         setShowReportPasswordForm(false);
+                                     }).catch(() => {
+                                         alert('Tu navegador no soporta copiado. Enlace: ' + secureLink);
+                                     });
                                  }
-                              }}
-                              className="w-full bg-emerald-600 text-white py-3.5 rounded-xl font-bold tracking-widest uppercase text-[11px] flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 disabled:opacity-50 disabled:shadow-none hover:bg-emerald-700 transition-all"
+                               }}
+                               className="w-full bg-emerald-600 text-white py-3.5 rounded-xl font-bold tracking-widest uppercase text-[11px] flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 disabled:opacity-50 disabled:shadow-none hover:bg-emerald-700 transition-all"
                            >
                               <Share2 size={16} />
                               Generar y Compartir Enlace
