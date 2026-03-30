@@ -828,9 +828,9 @@ export default function Home() {
                       initial={{ opacity: 0, height: 0, y: -5 }} 
                       animate={{ opacity: 1, height: 'auto', y: 0 }} 
                       exit={{ opacity: 0, height: 0 }}
-                      className="text-red-500 text-xs font-semibold w-full text-center mb-4 bg-red-50 py-2 rounded-lg border border-red-100"
+                      className={`text-xs font-semibold w-full text-center mb-4 py-2 rounded-lg border ${authError.includes('Validando') || authError.includes('Validating') ? 'text-blue-500 bg-blue-50 border-blue-100' : 'text-red-500 bg-red-50 border-red-100'}`}
                     >
-                       ⚠️ {authError}
+                       {authError.includes('Validando') || authError.includes('Validating') ? '⏳' : '⚠️'} {authError}
                     </motion.p>
                   )}
                 </AnimatePresence>
