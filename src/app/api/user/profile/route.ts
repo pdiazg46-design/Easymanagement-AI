@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '../../../../lib/prisma';
 import { jwtVerify } from 'jose';
 
+export const dynamic = 'force-dynamic';
+
 export async function PUT(req: Request) {
   try {
     const authHeader = req.headers.get('cookie');

@@ -233,7 +233,7 @@ export default function Home() {
   useEffect(() => {
      if (currentView === 'dashboard') {
         // 1. Cargar el Perfil del Usuario para hidratar Avatar y Logo Mandante desde Postgres
-        fetch('/api/auth/me')
+        fetch('/api/auth/me', { cache: 'no-store' })
           .then(res => res.json())
           .then(data => {
             if (data.user) {
