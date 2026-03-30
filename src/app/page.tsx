@@ -257,6 +257,19 @@ export default function Home() {
       { name: 'Argentina', coordinates: [-63.6167, -38.4161] },
       { name: 'Brasil', coordinates: [-51.9253, -14.2350] },
       { name: 'Ecuador', coordinates: [-78.1834, -1.8312] },
+      { name: 'Bolivia', coordinates: [-63.5887, -16.2902] },
+      { name: 'Paraguay', coordinates: [-58.4438, -23.4425] },
+      { name: 'Uruguay', coordinates: [-55.7658, -32.5228] },
+      { name: 'Venezuela', coordinates: [-66.5897, 6.4238] },
+      { name: 'Panamá', coordinates: [-80.7821, 8.5380] },
+      { name: 'Costa Rica', coordinates: [-83.7534, 9.7489] },
+      { name: 'Guatemala', coordinates: [-90.2308, 15.7835] },
+      { name: 'Honduras', coordinates: [-86.2419, 15.2000] },
+      { name: 'El Salvador', coordinates: [-88.8965, 13.7942] },
+      { name: 'Nicaragua', coordinates: [-85.2072, 12.8654] },
+      { name: 'República Dominicana', coordinates: [-70.1627, 18.7357] },
+      { name: 'Cuba', coordinates: [-79.8282, 21.5218] },
+      { name: 'Puerto Rico', coordinates: [-66.5901, 18.2208] },
    ];
 
    const activeCountriesMetrics = baseCountries.map(c => {

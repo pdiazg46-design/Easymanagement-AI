@@ -1,6 +1,6 @@
 # Easy Management App - Project Handoff & Architecture Log
-**Last Updated:** 29 de Marzo, 2026 (Sesión de Producción y PWA)
-**Status:** Producción Inicial (Vercel) + Frontend Persistente + PWA Funcional. Preparado para interconexión con Prisma/Neon Database.
+**Last Updated:** 29 de Marzo, 2026 (Consolidación Motor de Ventas y Neon DB)
+**Status:** Producción (Vercel) + Frontend Activo + PostgreSql Database (Neon) Conectada.
 
 > [!WARNING]
 > **ALERTA CRÍTICA DE DESARROLLO (Vercel Deployments):**
@@ -8,14 +8,16 @@
 > **Regla de Oro:** Todo cambio de código (frontend, backend, Prisma o assets) que hagas localmente MUST ser empujado al repositorio vía Git (`git add .`, `git commit`, `git push`) para que Vercel lo recompile y el usuario pueda validar el resultado. Si no haces `git push`, el usuario no verá absolutamente nada de lo que programas.
 
 ## 1. Project Overview & Logros Recientes
-**Easy Management** es un CRM "Mobile-First" e "Offline-First" enfocado en velocidad operativa para la región LATAM.
+**Easy Management AI** es un CRM "Mobile-First" e "Offline-First" enfocado en velocidad operativa para la región LATAM, impulsado por Voice-To-Action.
 
 ### Avances Críticos Logrados en la Última Sesión:
-1.  **PWA y Visibilidad Nativa:** Se configuró el `manifest.ts` para instalación nativa. El icono base (la "parábola") fue procesado digitalmente mediante *Scripting con Sharp* (`flatten` a fondo #FFFFFF y márgenes extendidos de 56px a 512x512) para anular el comportamiento de *Modo Oscuro* de Android, que rellenaba las transparencias con gris oscuro.
-2.  **Motor de Inteligencia de Voz (Real):** Se integró la API Nativa `webkitSpeechRecognition`. El micrófono negro ya NO es una demostración visual; ahora captura el audio real del dispositivo en español o inglés y genera transcripciones estructuradas en el textarea `draftActivity`.
-3.  **Sistema de Persistencia Puente (LocalStorage):** Toda la configuración (Logos corporativos subidos en Onboarding, Avatares, historial de tareas nuevas, bitácoras regionales) sobreviven a refrescos del navegador. La sesión se sella dinámicamente en el objeto local `easy_demo_data`.
-4.  **Limpieza Profunda de Mockups:** Se eliminaron todas las métricas de relleno ($3.5M, clientes falsos, historial inventado). El dashboard arranca en un estado inmaculado de CERO de cara a la producción, permitiendo al usuario probar la interfaz generando sus propios datos con voz.
-5.  **Autenticación y Estatus PRO:** Seguridad temporal hardcodeada en el Frontend. El administrador principal `pdiazg46@gmail.com` fuerza inherentemente el estatus PRO inmutable, protegiendo las vistas de "Ingresos" (Flow). Se probó también una endpoint de API `/api/admin/upgrade`.
+1.  **Migración Completa a Database Real (Neon + Prisma):** Se reemplazó el uso masivo de puentes en `LocalStorage`. Los modelos `ActivityLog`, `Opportunity`, `Client` y `User` ahora interactúan permanentemente. Se implementaron Server Actions (`actions.ts`) robustos.
+2.  **Jerarquía de Ventas Pura:** Se consolidó el modelo jerárquico real: País -> Cliente -> Oportunidad. Las oportunidades obligan un enlace con cliente para una trazabilidad perfecta.
+3.  **Mapa Interactivo Reactivo:** El backend alimenta al mapa geo-espacial (`react-simple-maps`) calculando al vuelo qué países tienen métricas y ocultando los países "vacíos". Se aplicó la escala de calor para destacar países clave.
+4.  **Estabilizaciones Móviles UI y Datos:**
+    -  Se solucionó el bug clásico de Chrome en Android dentro la `SpeechRecognition API` que generaba texto en "Efecto Eco/Bucle" usando validaciones por `event.resultIndex`.
+    -  Se ajustaron fallos de renderizado de fecha cruzados en la bitácora ("INVALID DATE").
+    -  Se impidió la doble línea al estirar la "Tarjeta de Pipeline Regional" aplicando clases de flex y tipografías dependientes del `sm`.
 
 ---
 
@@ -23,24 +25,26 @@
 La aplicación opera como un coliseo SPA mediante `AnimatePresence` y z-index layering masivo.
 
 ### A. Dashboard & Map (Base Layer - `z: 10`)
-*   Mapas vectoriales con `react-simple-maps`. Ahora vaciados de `[mock data]`. Listos para recibir data de Supabase/Neon.
+*   Mapas vectoriales con `react-simple-maps`. Ahora calculados desde iteraciones directas en `activeCountriesMetrics` con métricas vivas de Postgres.
 
-### B. Módulo Regional (`selectedCountry`, `z: 50`)
-*   Se vaciaron las carpetas simuladas. Botón de micrófono listo para despachar Notas Corporativas a `newCountryTimelineItems`.
+### B. Módulo Regional & Informe Ejecutivo (`z: 50`)
+*   Se vaciaron las plantillas de cero. El botón de **Informe Ejecutivo** ahora auto-agrega y calcula directamente las entidades de forma transparente según el total de Oportunidades activas (Excluye 'PERDIDO').
 
 ### C. Client Profile / Bitácora (`selectedClient`, `z: 75`)
-*   El núcleo comercial. Timeline de compromisos limpios y receptores para el Web Speech API.
+*   El núcleo comercial vinculado ahora a Supabase/Neon, cargando oportunidades directamente relacionadas al Tenant.
 
 ### D. Flujo de Grabación IA (`z: 90 / z: 100`)
-*   **Web Speech API Activo:** Escuchando `onresult` y concatenando a `finalTranscriptRef`.
+*   **Web Speech API Estable:** Manejo de transcripción final vs. interim sin superposición (crucial en PWA de Android).
+*   Parseo "NPL-Fake" funcionando velozmente. (Extrae fechas para Calendario y las inyecta en estado).
 
 ---
 
-## 3. Pending Tasks & Roadmap para el Próximo Agente
+## 3. Pending Tasks & Roadmap para Mañana
 
-Tu misión inmediata como agente desarrollador entrante es **Reemplazar el LocalStorage por Prisma / Base de Datos**:
+Tu misión inmediata como agente desarrollador entrante (Fase de QA de Mañana):
 
-1.  **Conectar Prisma a la UI:** Ya generamos el cliente de Prisma (Next.js compiló correctamente en Vercel con el schema). Debes sustituir `setTodayTasks(prev => ...)` por un Server Action que haga `prisma.task.create(...)` y un `revalidatePath`.
-2.  **Gestión de Usuarios (Auth.js o JWT Real):** Actualmente bloqueamos `pdiazg46@gmail.com` por un `localStorage` hardcodeado (puente). Implementar un flujo real de Login para levantar sesiones persistentes y proteger las rutas desde el Backend.
-3.  **Persistencia del Onboarding:** Subir el logo corporativo (`clientLogo`) usando Base64 temporal o a un bucket (AWS S3, Vercel Blob) para que no dependa solo de tu navegador.
-4.  **Validar PWA Offline-First:** Con Service Workers avanzados, para que si un usuario graba un dictado en un estacionamiento subterráneo sin señal, se despache a Prisma tan pronto haya 4G.
+1.  **Revisión Total (QA Diurno):** Revisar cómo se experimenta todo el bloque en conjunto: Registrar usuario -> Crear Oportunidades (con input numérico con separador de miles) -> Registrar una Actividad de Voz -> Navegar al informe Ejecutivo -> Todo debe coincidir a la perfección y verse armónico en teléfono.
+2.  **Activos Faltantes Visuales:** Requeriremos que el Logo AT-SIT (institucional) sea gestionado para lucir impecable en la esquina y reemplazar el placeholder donde dice "Falta Logo" por un mecanismo persistente oficial para este Tenant de producción.
+3.  **Auditoría de Lint:** Lograr "Cero Advertencias de Lint" eliminando variables e iconos no utilizados en `page.tsx` para optimizar el peso masivo del frontend de ~2200 líneas.
+4.  **Ajustes Menores de UI:** Atender solicitudes pendientes del cliente tras sus pruebas (Espacios, paletas, reportes PDF si es requerido).
+
