@@ -363,17 +363,7 @@ export default function Home() {
 
       // La configuración ahora se carga en el useEffect que depende de currentView === 'dashboard'
 
-      // 2. Cargar Timeline y Tareas desde caché local (hasta finalizar Fase 1)
-      const savedData = localStorage.getItem('easy_demo_data');
-      if (savedData) {
-        try {
-          const data = JSON.parse(savedData);
-          if (data.todayTasks) setTodayTasks(data.todayTasks);
-          if (data.newTimelineItems) setNewTimelineItems(data.newTimelineItems);
-          if (data.newCountryTimelineItems) setNewCountryTimelineItems(data.newCountryTimelineItems);
-          if (data.uploadedCatalogs) setUploadedCatalogs(data.uploadedCatalogs);
-        } catch(e){}
-      }
+      // 2. [DEPRECATED] Cargar Timeline desde caché. Se removió para evitar sobrescritura de la Nube (Race Condition). El Cloud ahora es Single-Source-of-Truth.
     }
   }, []);
 
@@ -1086,16 +1076,6 @@ export default function Home() {
                           )}
                         </div>
                      </div>
-                     <button
-                        onClick={async () => {
-                           await fetch('/api/auth/logout', { method: 'POST' });
-                           localStorage.setItem('easy_currentView', 'login');
-                           window.location.reload();
-                        }}
-                        className="w-8 h-8 bg-red-50 border border-red-100 rounded-full flex items-center justify-center shadow-sm cursor-pointer hover:bg-red-100 transition-colors text-red-500 shrink-0"
-                     >
-                        <LogOut size={13} />
-                     </button>
                   </div>
 
                   <div className="w-1/3 flex justify-end items-center">
