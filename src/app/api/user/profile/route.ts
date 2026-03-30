@@ -24,19 +24,20 @@ export async function PUT(req: Request) {
     const body = await req.json();
     const { country, clientUrl, logoUrl, avatarUrl } = body;
 
+    const dataToUpdate: any = {};
+    if (country) dataToUpdate.country = country;
+    if (clientUrl) dataToUpdate.clientUrl = clientUrl;
+    if (logoUrl) dataToUpdate.logoUrl = logoUrl;
+    if (avatarUrl) dataToUpdate.avatarUrl = avatarUrl;
+
     const updatedUser = await prisma.user.update({
       where: { id: payload.id as string },
-      data: {
-         ...(country && { country }),
-         ...(clientUrl !== undefined && { clientUrl }),
-         ...(logoUrl !== undefined && { logoUrl }),
-         ...(avatarUrl !== undefined && { avatarUrl })
-      }
+      data: dataToUpdate
     });
 
     // Aseguramos que el Logo del Mandante quede guardado de forma permanente a nivel Global en el Tenant
     let firstTenant = await prisma.tenant.findFirst();
-    if (firstTenant && logoUrl !== undefined) {
+    if (firstTenant && logoUrl) {
        await prisma.tenant.update({
           where: { id: firstTenant.id },
           data: { logoUrl }
