@@ -23,6 +23,7 @@ export async function POST(req: Request) {
     const newUser = await prisma.user.create({
       data: {
         email,
+        name: email.split('@')[0], // Extract username as default name
         password: hashedPassword,
         isPro: email === 'pdiazg46@gmail.com', // SUPER ADMIN OVERRIDE
       },
@@ -30,8 +31,8 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ message: "Usuario creado exitosamente", user: { id: newUser.id, email: newUser.email, isPro: newUser.isPro } }, { status: 201 });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error al registrar:", error);
-    return NextResponse.json({ error: "Ocurrió un error en el servidor" }, { status: 500 });
+    return NextResponse.json({ error: "Ocurrió un error en el servidor", details: error.message }, { status: 500 });
   }
 }
