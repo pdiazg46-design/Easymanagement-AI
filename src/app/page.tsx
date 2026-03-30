@@ -1117,15 +1117,15 @@ export default function Home() {
                     onClick={() => setShowPipelineModal(true)}
                     className="bg-corporate-purple rounded-3xl p-5 shadow-[0_8px_30px_rgb(124,58,237,0.3)] text-white w-full cursor-pointer overflow-hidden relative shrink-0"
                   >
-                    <div className="flex justify-between items-center">
-                      <div className="flex-1 text-left">
-                        <p className="text-white/80 text-[10px] sm:text-xs font-medium uppercase tracking-wider mb-1">{t[lang].pipeline}</p>
-                        <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight flex items-baseline gap-1.5 whitespace-nowrap">${totalPipeline.toLocaleString('en-US')} <span className="text-sm sm:text-lg font-bold">USD</span></h2>
+                    <div className="flex items-center w-full">
+                      <div className="w-[75%] pr-3 text-left overflow-hidden">
+                        <p className="text-white/80 text-[10px] sm:text-xs font-medium uppercase tracking-wider mb-1 truncate">{t[lang].pipeline}</p>
+                        <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight flex items-baseline gap-1.5 truncate">${totalPipeline.toLocaleString('en-US')} <span className="text-sm font-bold opacity-80">USD</span></h2>
                       </div>
-                      <div className="w-px h-12 bg-white/20 mx-4"></div>
-                      <div className="text-center pr-2">
-                        <p className="text-white/80 text-[10px] font-medium uppercase tracking-wider mb-1 leading-tight w-20">{t[lang].activeProj.split(' ')[0]}<br/>{t[lang].activeProj.split(' ')[1]}</p>
-                        <h2 className="text-3xl font-extrabold pb-0 leading-none">{activeProjects}</h2>
+                      <div className="w-px h-12 bg-white/20 shrink-0"></div>
+                      <div className="w-[25%] text-center pl-2 flex flex-col justify-center items-center shrink-0">
+                        <p className="text-white/80 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mb-1 leading-tight">{t[lang].activeProj.split(' ')[0]}<br/>{t[lang].activeProj.split(' ')[1]}</p>
+                        <h2 className="text-2xl sm:text-3xl font-extrabold pb-0 leading-none">{activeProjects}</h2>
                       </div>
                     </div>
                   </motion.div>
