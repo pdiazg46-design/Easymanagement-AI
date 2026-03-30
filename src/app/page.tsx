@@ -394,21 +394,40 @@ export default function Home() {
         recognition.lang = lang === 'es' ? 'es-CL' : 'en-US';
         
         recognition.onresult = (event: any) => {
-          let finalTranscript = '';
-          let interimTranscript = '';
+          let finalStr = '';
+          let interimStr = '';
           
-          // Solucionamos el bug de "Efecto Eco" en Android Chrome asegurándonos
-          // de reconstruir el string desde 0 sin usar `+=` en una variable temporal.
+          const mergeText = (currentFinal: string, newChunk: string) => {
+             if (!currentFinal) return newChunk + ' ';
+             const currentLower = currentFinal.trim().toLowerCase();
+             const chunkLower = newChunk.trim().toLowerCase();
+             
+             if (chunkLower.startsWith(currentLower)) return newChunk + ' '; // Full Replacement (Android Behavior)
+             
+             const fWords = currentFinal.trim().split(' ');
+             const cWords = newChunk.trim().split(' ');
+             for (let overlap = Math.min(fWords.length, cWords.length); overlap > 0; overlap--) {
+                const endF = fWords.slice(-overlap).join(' ').toLowerCase();
+                const startC = cWords.slice(0, overlap).join(' ').toLowerCase();
+                if (endF === startC) {
+                   const remaining = cWords.slice(overlap);
+                   return remaining.length > 0 ? currentFinal.trim() + ' ' + remaining.join(' ') + ' ' : currentFinal;
+                }
+             }
+             return currentFinal + newChunk + ' ';
+          };
+
           for (let i = 0; i < event.results.length; i++) {
+            let chunk = event.results[i][0].transcript;
             if (event.results[i].isFinal) {
-              finalTranscript += event.results[i][0].transcript + ' ';
+              finalStr = mergeText(finalStr, chunk);
             } else {
-              interimTranscript += event.results[i][0].transcript;
+              interimStr += chunk;
             }
           }
           
-          finalTranscriptRef.current = finalTranscript;
-          setDraftActivity(finalTranscript + interimTranscript);
+          finalTranscriptRef.current = finalStr;
+          setDraftActivity(finalStr + interimStr);
         };
 
         recognition.onerror = (event: any) => {
