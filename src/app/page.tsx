@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from 'react';
-import { Mic, Trash2, Keyboard, Edit2, Signal, Mail, Lock, Fingerprint, UploadCloud, Link as LinkIcon, ArrowRight, Eye, EyeOff, Map as MapIcon, List, Maximize2, Minimize2, X, Calendar, Navigation, MapPin, ChevronLeft, ChevronRight, Share2, FileText, CreditCard, ShieldCheck, Check } from 'lucide-react';
+import { Mic, Trash2, Keyboard, Edit2, Signal, Mail, Lock, Fingerprint, UploadCloud, Link as LinkIcon, ArrowRight, Eye, EyeOff, Map as MapIcon, List, Maximize2, Minimize2, X, Calendar, Navigation, MapPin, ChevronLeft, ChevronRight, Share2, FileText, CreditCard, ShieldCheck, Check, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from "react-simple-maps";
 import { getActivities, createActivity, toggleActivityCompletion, getOpportunities, createOpportunity, updateOpportunityStatus, getClients, createClient } from './actions';
@@ -79,6 +79,23 @@ export default function Home() {
           if (data.user.logoUrl && data.user.avatarUrl && currentView === 'onboarding') {
              setCurrentView('dashboard');
           }
+       }
+       
+       // Recuperación transparente espejo (Nube)
+       try {
+          const stateRes = await fetch('/api/user/state', { cache: 'no-store' });
+          if (stateRes.ok) {
+             const stateData = await stateRes.json();
+             if (stateData.demoData) {
+                const parsed = typeof stateData.demoData === 'string' ? JSON.parse(stateData.demoData) : stateData.demoData;
+                if (parsed.todayTasks) setTodayTasks(parsed.todayTasks);
+                if (parsed.newTimelineItems) setNewTimelineItems(parsed.newTimelineItems);
+                if (parsed.newCountryTimelineItems) setNewCountryTimelineItems(parsed.newCountryTimelineItems);
+                if (parsed.uploadedCatalogs) setUploadedCatalogs(parsed.uploadedCatalogs);
+             }
+          }
+       } catch (e) {
+          console.log("Error sincronizando estado de usuario:", e);
        }
      } catch(err) {
        console.log('Sin sesión activa aún...', err);
@@ -361,10 +378,14 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('easy_demo_data', JSON.stringify({
-        todayTasks, newTimelineItems, newCountryTimelineItems, uploadedCatalogs
-      }));
+    if (typeof window !== 'undefined' && currentView === 'dashboard') {
+      const stateObj = { todayTasks, newTimelineItems, newCountryTimelineItems, uploadedCatalogs };
+      localStorage.setItem('easy_demo_data', JSON.stringify(stateObj));
+      fetch('/api/user/state', {
+         method: 'PUT',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({ demoData: stateObj })
+      }).catch(() => {});
     }
   }, [todayTasks, newTimelineItems, newCountryTimelineItems, uploadedCatalogs]);
 
@@ -1065,6 +1086,16 @@ export default function Home() {
                           )}
                         </div>
                      </div>
+                     <button
+                        onClick={async () => {
+                           await fetch('/api/auth/logout', { method: 'POST' });
+                           localStorage.setItem('easy_currentView', 'login');
+                           window.location.reload();
+                        }}
+                        className="w-8 h-8 bg-red-50 border border-red-100 rounded-full flex items-center justify-center shadow-sm cursor-pointer hover:bg-red-100 transition-colors text-red-500 shrink-0"
+                     >
+                        <LogOut size={13} />
+                     </button>
                   </div>
 
                   <div className="w-1/3 flex justify-end items-center">
