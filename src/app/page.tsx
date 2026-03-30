@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from 'react';
-import { Mic, Trash2, Keyboard, Edit2, Signal, Wifi, BatteryFull, Mail, Lock, Fingerprint, UploadCloud, Link as LinkIcon, ArrowRight, Eye, EyeOff, Map as MapIcon, List, Maximize2, Minimize2, X, Calendar, Navigation, Loader2, Phone, MessageCircle, UserX, UserCheck, MapPin, ChevronLeft, ChevronRight, Share2, FileText, Download, CreditCard, ShieldCheck, Check } from 'lucide-react';
+import { Mic, Trash2, Keyboard, Edit2, Signal, Mail, Lock, Fingerprint, UploadCloud, Link as LinkIcon, ArrowRight, Eye, EyeOff, Map as MapIcon, List, Maximize2, Minimize2, X, Calendar, Navigation, Phone, MessageCircle, UserX, UserCheck, MapPin, ChevronLeft, ChevronRight, Share2, FileText, CreditCard, ShieldCheck, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from "react-simple-maps";
 import { getActivities, createActivity, toggleActivityCompletion, getOpportunities, createOpportunity, updateOpportunityStatus, getClients, createClient } from './actions';
@@ -232,6 +232,20 @@ export default function Home() {
   // Cargar datos reales desde la base de datos Neon (Vía Server Actions)
   useEffect(() => {
      if (currentView === 'dashboard') {
+        // 1. Cargar el Perfil del Usuario para hidratar Avatar y Logo Mandante desde Postgres
+        fetch('/api/auth/me')
+          .then(res => res.json())
+          .then(data => {
+            if (data.user) {
+               if (data.user.country) setUserCountry(getFlagCode(data.user.country));
+               if (data.user.clientUrl) setClientWebsite(data.user.clientUrl);
+               if (data.user.logoUrl) setClientLogo(data.user.logoUrl);
+               if (data.user.avatarUrl) setAvatarUrl(data.user.avatarUrl);
+               if (data.user.isPro) setIsProUser(true);
+            }
+          }).catch(err => console.log('Sin sesión activa aún...', err));
+
+        // 2. Cargar Tareas, Clientes y Oportunidades
         getActivities().then(activities => {
            const mapped = activities.map((a: any) => ({
               id: a.id,
@@ -299,17 +313,7 @@ export default function Home() {
       else if (savedView === 'onboarding') setCurrentView('onboarding');
       setIsProUser(savedPro === 'true');
 
-      // 1. Cargar configuración desde la NUBE (Prisma Database)
-      fetch('/api/auth/me')
-        .then(res => res.json())
-        .then(data => {
-          if (data.user) {
-             if (data.user.country) setUserCountry(getFlagCode(data.user.country));
-             if (data.user.clientUrl) setClientWebsite(data.user.clientUrl);
-             if (data.user.logoUrl) setClientLogo(data.user.logoUrl);
-             if (data.user.avatarUrl) setAvatarUrl(data.user.avatarUrl);
-          }
-        }).catch(() => console.log('Buscando sesión...'));
+      // La configuración ahora se carga en el useEffect que depende de currentView === 'dashboard'
 
       // 2. Cargar Timeline y Tareas desde caché local (hasta finalizar Fase 1)
       const savedData = localStorage.getItem('easy_demo_data');
@@ -627,10 +631,7 @@ export default function Home() {
     const autoCenterY = activeCountriesMetrics.length > 0 ? (activeCountriesMetrics.reduce((sum, m) => sum + m.coordinates[1], 0) / activeCountriesMetrics.length) : -15;
     const autoZoom = isFullscreen ? 2.5 : 1.3;
 
-    // Calcular min/max valores para las escalas de calor
-    const values = activeCountriesMetrics.filter(m => m.isActive).map(m => parseFloat(m.value.replace(/[^0-9.-]+/g,"")) || 0);
-    const maxValue = values.length > 0 ? Math.max(...values) : 1;
-    const minValue = values.length > 0 ? Math.min(...values) : 0;
+    // Mostrar mapa vacío si no hay data de forma elegante, sin computar variables no usadas si no se necesitan
 
     return (
       <ComposableMap
@@ -1284,7 +1285,7 @@ export default function Home() {
                 </div>
 
                 {/* FOOTER CREADOR DE ACTIVIDAD */}
-                <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-white/95 via-white/80 to-transparent pt-20 pb-[100px] sm:pb-8 px-4 flex flex-col items-center pointer-events-none z-20">
+                <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-white/95 via-white/80 to-transparent pt-20 pb-6 sm:pb-8 px-4 flex flex-col items-center pointer-events-none z-20">
                    <div className="pointer-events-auto flex items-end justify-center relative mb-2">
                       <motion.button 
                         onClick={handleMicClick}

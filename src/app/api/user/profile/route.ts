@@ -32,6 +32,15 @@ export async function PUT(req: Request) {
       }
     });
 
+    // Aseguramos que el Logo del Mandante quede guardado de forma permanente a nivel Global en el Tenant
+    let firstTenant = await prisma.tenant.findFirst();
+    if (firstTenant && logoUrl !== undefined) {
+       await prisma.tenant.update({
+          where: { id: firstTenant.id },
+          data: { logoUrl }
+       });
+    }
+
     return NextResponse.json({ message: "Perfil actualizado correctamente", user: updatedUser });
 
   } catch (error) {

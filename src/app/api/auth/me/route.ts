@@ -29,9 +29,20 @@ export async function GET(req: Request) {
          clientUrl: true,
          logoUrl: true,
          avatarUrl: true,
-         isPro: true
+         isPro: true,
+         tenant: {
+            select: {
+               logoUrl: true
+            }
+         }
       }
     });
+
+    // Si el tenant tiene un logo global, forzamos que sea el logo del usuario
+    // (Asegurando la persistencia del mandante)
+    if (user?.tenant?.logoUrl) {
+       user.logoUrl = user.tenant.logoUrl;
+    }
 
     if (!user) {
        return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
