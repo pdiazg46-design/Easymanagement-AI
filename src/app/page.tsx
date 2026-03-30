@@ -212,7 +212,6 @@ export default function Home() {
   const [calendarViewMode, setCalendarViewMode] = useState<'grid' | 'list'>('grid');
 
   const [opportunities, setOpportunities] = useState<any[]>([]);
-  const [showOppForm, setShowOppForm] = useState(false);
   const [draftOppTitle, setDraftOppTitle] = useState("");
   const [draftOppAmount, setDraftOppAmount] = useState("");
   
@@ -249,6 +248,31 @@ export default function Home() {
         refreshClients();
      }
   }, [currentView]);
+
+  const baseCountries = [
+      { name: 'México', coordinates: [-102.5528, 23.6345] },
+      { name: 'Colombia', coordinates: [-74.2973, 4.5709] },
+      { name: 'Perú', coordinates: [-75.0152, -9.1900] },
+      { name: 'Chile', coordinates: [-71.5430, -35.6751] },
+      { name: 'Argentina', coordinates: [-63.6167, -38.4161] },
+      { name: 'Brasil', coordinates: [-51.9253, -14.2350] },
+      { name: 'Ecuador', coordinates: [-78.1834, -1.8312] },
+   ];
+
+   const activeCountriesMetrics = baseCountries.map(c => {
+      const opps = opportunities.filter(o => o.client?.country === c.name && o.status !== 'PERDIDO');
+      const totalValueUsd = opps.reduce((acc, curr) => acc + curr.amountUsd, 0);
+      return {
+         ...c,
+         totalValueUsd,
+         totalProjects: opps.length,
+         value: totalValueUsd > 0 ? `$${(totalValueUsd/1000).toFixed(0)}K` : '0',
+         isActive: totalValueUsd > 0
+      };
+   }).filter(m => m.isActive).sort((a,b) => b.totalValueUsd - a.totalValueUsd);
+
+   const globalTotalUsd = activeCountriesMetrics.reduce((acc, curr) => acc + curr.totalValueUsd, 0);
+   const globalTotalProjects = activeCountriesMetrics.reduce((acc, curr) => acc + curr.totalProjects, 0);
 
   const totalPipeline = opportunities.reduce((acc, curr) => curr.status !== 'PERDIDO' ? acc + curr.amountUsd : acc, 0);
   const activeProjects = opportunities.filter(o => o.status === 'PROSPECTO' || o.status === 'COTIZADO').length;
@@ -311,19 +335,17 @@ export default function Home() {
         recognition.lang = lang === 'es' ? 'es-CL' : 'en-US';
         
         recognition.onresult = (event: any) => {
-          let finalTranscript = '';
           let interimTranscript = '';
           
-          // Iterar desde 0 asegura que no haya duplicaciones por bugs de la API nativa en Android/Chrome
-          for (let i = 0; i < event.results.length; i++) {
+          for (let i = event.resultIndex; i < event.results.length; i++) {
             if (event.results[i].isFinal) {
-              finalTranscript += event.results[i][0].transcript + ' ';
+              finalTranscriptRef.current += event.results[i][0].transcript + ' ';
             } else {
               interimTranscript += event.results[i][0].transcript;
             }
           }
           
-          setDraftActivity((finalTranscript + interimTranscript).trim());
+          setDraftActivity(finalTranscriptRef.current + interimTranscript);
         };
 
         recognition.onerror = (event: any) => {
@@ -585,30 +607,17 @@ export default function Home() {
 
   // Lógica reutilizable del Mapa Geográfico
   const renderGeoMap = (isFullscreen: boolean) => {
-    const baseCountries = [
-      { name: 'México', coordinates: [-102.5528, 23.6345] },
-      { name: 'Colombia', coordinates: [-74.2973, 4.5709] },
-      { name: 'Perú', coordinates: [-75.0152, -9.1900] },
-      { name: 'Chile', coordinates: [-71.5430, -35.6751] },
-      { name: 'Argentina', coordinates: [-63.6167, -38.4161] },
-      { name: 'Brasil', coordinates: [-51.9253, -14.2350] },
-      { name: 'Ecuador', coordinates: [-78.1834, -1.8312] },
-    ];
-
-    const activeMarkers = baseCountries.map(c => {
-       const opps = opportunities.filter(o => o.client?.country === c.name && o.status !== 'PERDIDO');
-       const totalValue = opps.reduce((acc, curr) => acc + curr.amountUsd, 0);
-       return {
-          ...c,
-          value: totalValue > 0 ? `$${(totalValue/1000).toFixed(0)}K` : '0',
-          isActive: totalValue > 0
-       };
-    });
+    // Usamos las métricas globales precalculadas activeCountriesMetrics
     
     // Forzamos un centro si no hay marcadores para que se vea LATAM
     const autoCenterX = -75;
-    const autoCenterY = -15;
+    const autoCenterY = activeCountriesMetrics.length > 0 ? (activeCountriesMetrics.reduce((sum, m) => sum + m.coordinates[1], 0) / activeCountriesMetrics.length) : -15;
     const autoZoom = isFullscreen ? 2.5 : 1.3;
+
+    // Calcular min/max valores para las escalas de calor
+    const values = activeCountriesMetrics.filter(m => m.isActive).map(m => parseFloat(m.value.replace(/[^0-9.-]+/g,"")) || 0);
+    const maxValue = values.length > 0 ? Math.max(...values) : 1;
+    const minValue = values.length > 0 ? Math.min(...values) : 0;
 
     return (
       <ComposableMap
@@ -655,7 +664,7 @@ export default function Home() {
             }
           </Geographies>
           
-          {activeMarkers.map(({ name, coordinates, value, isActive }) => (
+          {activeCountriesMetrics.map(({ name, coordinates, value, isActive }) => (
             <Marker key={name} coordinates={coordinates as [number, number]} onClick={() => setSelectedCountry(name)}>
               <g style={{ cursor: "pointer" }}>
                 <rect x="-24" y="-15" width="48" height="28" fill={isActive ? "#7C3AED" : "#ffffff"} fillOpacity="0.95" rx="6" stroke={isActive ? "#6D28D9" : "#cbd5e1"} strokeWidth={0.5 / autoZoom} className="drop-shadow-sm" />
@@ -1068,8 +1077,8 @@ export default function Home() {
                   >
                     <div className="flex justify-between items-center">
                       <div className="flex-1 text-left">
-                        <p className="text-white/80 text-xs font-medium uppercase tracking-wider mb-1">{t[lang].pipeline}</p>
-                        <h2 className="text-3xl font-extrabold tracking-tight">${totalPipeline.toLocaleString('en-US')} <span className="text-lg font-bold">USD</span></h2>
+                        <p className="text-white/80 text-[10px] sm:text-xs font-medium uppercase tracking-wider mb-1">{t[lang].pipeline}</p>
+                        <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight flex items-baseline gap-1.5 whitespace-nowrap">${totalPipeline.toLocaleString('en-US')} <span className="text-sm sm:text-lg font-bold">USD</span></h2>
                       </div>
                       <div className="w-px h-12 bg-white/20 mx-4"></div>
                       <div className="text-center pr-2">
@@ -1113,8 +1122,31 @@ export default function Home() {
                           </div>
                           
                           {regionalViewMode === 'list' ? (
-                            <div className="space-y-4">
-                              <p className="text-[11px] text-slate-400 font-medium italic tracking-wide text-center py-4">{lang === 'es' ? 'No hay países con métricas activas' : 'No countries with active metrics'}</p>
+                            <div className="space-y-3">
+                              {activeCountriesMetrics.length === 0 ? (
+                                 <p className="text-[11px] text-slate-400 font-medium italic tracking-wide text-center py-4">{lang === 'es' ? 'No hay países con métricas activas' : 'No countries with active metrics'}</p>
+                              ) : (
+                                 activeCountriesMetrics.map(c => (
+                                    <div key={c.name} className="flex flex-col gap-1.5 p-3.5 rounded-2xl border border-slate-100 bg-[#F8FAFC] hover:shadow-sm transition-all">
+                                       <div className="flex justify-between items-center mb-1">
+                                          <span className="text-sm font-bold text-[#1E3A8A] flex items-center gap-2">
+                                             <MapPin size={14} className="text-corporate-purple" /> {c.name}
+                                          </span>
+                                          <span className="text-[13px] font-black text-emerald-600">${c.totalValueUsd.toLocaleString('en-US')}</span>
+                                       </div>
+                                       <div className="flex items-center justify-between">
+                                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{c.totalProjects} Proyectos</span>
+                                          <div className="h-1.5 flex-1 mx-3 bg-slate-200 rounded-full overflow-hidden">
+                                             <div 
+                                                className="h-full bg-corporate-purple rounded-full" 
+                                                style={{ width: `${(c.totalValueUsd / (globalTotalUsd || 1)) * 100}%` }}
+                                             />
+                                          </div>
+                                          <span className="text-[10px] font-bold text-slate-500">{((c.totalValueUsd / (globalTotalUsd || 1)) * 100).toFixed(0)}%</span>
+                                       </div>
+                                    </div>
+                                 ))
+                              )}
                             </div>
                           ) : (
                              <div className="w-full aspect-square bg-slate-50 border border-slate-100 rounded-2xl relative overflow-hidden flex items-center justify-center shadow-inner cursor-pointer group">
@@ -1158,7 +1190,7 @@ export default function Home() {
                                         <div className="flex flex-col">
                                            <span className={`text-[13px] font-black uppercase tracking-widest mb-2 flex items-center gap-1.5 ${task.completed ? 'text-emerald-500' : 'text-[#F59E0B]'}`}><Navigation size={14}/> {task.completed ? 'COMPLETADO' : 'COMPROMISO'}: {task.date ? task.date.split('-').reverse().join('/') : 'Por definir'}</span>
                                            <span className={`font-black text-xl leading-tight mb-2 ${task.completed ? 'text-emerald-700 line-through decoration-emerald-400 opacity-60' : 'text-[#1E3A8A]'}`}>{task.title}</span>
-                                           <span className="text-[11px] text-slate-500 uppercase tracking-widest font-bold flex items-center gap-1.5"><Lock size={12}/> Registrado: {new Date(task.id).toLocaleDateString(lang === 'es' ? 'es-CL' : 'en-US')} {new Date(task.id).toLocaleTimeString(lang === 'es' ? 'es-CL' : 'en-US', { hour: '2-digit', minute: '2-digit' })}</span>
+                                           <span className="text-[11px] text-slate-500 uppercase tracking-widest font-bold flex items-center gap-1.5"><Lock size={12}/> Registrado: {new Date(task.createdAt || Date.now()).toLocaleDateString(lang === 'es' ? 'es-CL' : 'en-US')} {new Date(task.createdAt || Date.now()).toLocaleTimeString(lang === 'es' ? 'es-CL' : 'en-US', { hour: '2-digit', minute: '2-digit' })}</span>
                                         </div>
                                         <button 
                                           onClick={async (e) => {
@@ -1410,11 +1442,15 @@ export default function Home() {
                                             <div className="relative">
                                               <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-xs">$</span>
                                               <input 
-                                                type="number" 
+                                                type="text" 
                                                 placeholder={lang === 'es' ? 'Monto USD' : 'USD Amount'}
                                                 className="w-full bg-white border border-slate-200 text-xs px-6 py-2 rounded-lg font-medium outline-none text-[#1E3A8A]"
                                                 value={draftOppAmount}
-                                                onChange={e => setDraftOppAmount(e.target.value)}
+                                                onFocus={e => e.target.select()}
+                                                onChange={e => {
+                                                   const val = e.target.value.replace(/\D/g, "");
+                                                   setDraftOppAmount(val ? parseInt(val, 10).toLocaleString("en-US") : "");
+                                                }}
                                               />
                                             </div>
                                             <button 
@@ -1423,7 +1459,7 @@ export default function Home() {
                                                  if(!draftOppTitle || !draftOppAmount) return;
                                                  await createOpportunity({
                                                      title: draftOppTitle,
-                                                     amountUsd: parseFloat(draftOppAmount),
+                                                     amountUsd: parseFloat(draftOppAmount.replace(/\D/g, "")),
                                                      clientId: client.id
                                                  });
                                                  setDraftOppTitle("");
@@ -1566,25 +1602,24 @@ export default function Home() {
                        </h3>
                      </div>
                      <div className="space-y-4">
-                        {[].map(opp => (
-                           <div 
-                              key={opp.id} 
-                              onClick={() => setSelectedOpportunity(opp)}
-                              className="bg-white p-5 rounded-[20px] border border-slate-200 shadow-sm flex justify-between items-center cursor-pointer hover:border-corporate-purple/40 hover:shadow-md transition-all active:scale-[0.98]"
-                           >
-                              <div>
-                                 <h4 className="font-extrabold text-[#1E3A8A] text-[15px] mb-1.5">{opp.title}</h4>
-                                 <div className="flex items-center gap-2">
-                                    <span className="text-[10px] uppercase font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200/50">{opp.status}</span>
-                                    <span className="text-[11px] font-semibold text-slate-400">{opp.date}</span>
-                                 </div>
-                              </div>
-                              <div className="text-right">
-                                 <span className="text-[17px] font-black text-emerald-600 leading-none">{opp.amount}</span>
-                                 <div className="text-[10px] uppercase font-bold text-slate-400 mt-1">USD</div>
-                              </div>
-                           </div>
-                        ))}
+                        {opportunities.filter(o => o.client?.name === selectedClient?.name).map(opp => (
+                            <div 
+                               key={opp.id} 
+                               onClick={() => setSelectedOpportunity({id: opp.id, title: opp.title, amount: opp.amountUsd.toString()})}
+                               className="bg-white p-5 rounded-[20px] border border-slate-200 shadow-sm flex justify-between items-center cursor-pointer hover:border-corporate-purple/40 hover:shadow-md transition-all active:scale-[0.98]"
+                            >
+                               <div>
+                                  <h4 className="font-extrabold text-[#1E3A8A] text-[15px] mb-1.5">{opp.title}</h4>
+                                  <div className="flex items-center gap-2">
+                                     <span className="text-[10px] uppercase font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200/50">{opp.status}</span>
+                                  </div>
+                               </div>
+                               <div className="text-right">
+                                  <span className="text-[17px] font-black text-emerald-600 leading-none">${opp.amountUsd.toLocaleString('en-US')}</span>
+                                  <div className="text-[10px] uppercase font-bold text-slate-400 mt-1">USD</div>
+                               </div>
+                            </div>
+                         ))}
                      </div>
                   </div>
                ) : (
@@ -2044,9 +2079,9 @@ export default function Home() {
                            <MapIcon size={120} />
                         </div>
                         <p className="text-white/80 text-[10px] uppercase tracking-widest font-bold mb-1">Total Pipeline Latam</p>
-                        <h3 className="text-4xl font-extrabold tracking-tight mb-4">$0<span className="text-xl"> USD</span></h3>
+                        <h3 className="text-4xl font-extrabold tracking-tight mb-4">${globalTotalUsd.toLocaleString('en-US')}<span className="text-xl"> USD</span></h3>
                         <div className="flex items-center gap-2 bg-white/20 px-3 py-1.5 rounded-full w-max text-xs font-semibold backdrop-blur-sm">
-                          <Navigation size={12} className="text-slate-300"/> 0 Proyectos Activos
+                          <Navigation size={12} className="text-slate-300"/> {globalTotalProjects} Proyectos Activos
                         </div>
                      </div>
 
@@ -2054,9 +2089,13 @@ export default function Home() {
                      <div className="bg-white rounded-[24px] border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] p-5">
                         <h4 className="text-[11px] uppercase tracking-widest font-bold text-slate-400 mb-4 flex items-center gap-2"><MapIcon size={14}/> Mapa de Calor (Heatmap)</h4>
                         <div className="w-full aspect-[4/3] bg-slate-50 relative rounded-[16px] overflow-hidden shadow-inner border border-[#1E3A8A]/5">
-                           <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/50 backdrop-blur-[1px] z-10">
-                              <span className="text-xs font-bold text-slate-400">Sin distribuciones espaciales registradas</span>
-                           </div>
+                           {activeCountriesMetrics.length === 0 ? (
+                               <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/50 backdrop-blur-[1px] z-10">
+                                  <span className="text-xs font-bold text-slate-400">Sin distribuciones espaciales registradas</span>
+                               </div>
+                           ) : (
+                               renderGeoMap(false)
+                           )}
                         </div>
                      </div>
 
@@ -2064,17 +2103,36 @@ export default function Home() {
                      <div className="bg-white rounded-[24px] border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] p-6">
                         <h4 className="text-[11px] uppercase tracking-widest font-bold text-slate-400 mb-5 flex items-center gap-2"><List size={14}/> Cuadratura por Entidades</h4>
                         <div className="space-y-6">
-                           <div className="py-10 flex flex-col items-center justify-center text-center">
-                               <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 border border-slate-100 shadow-sm">
-                                  <List size={24} className="text-slate-300" />
+                           {activeCountriesMetrics.length === 0 ? (
+                               <div className="py-10 flex flex-col items-center justify-center text-center">
+                                   <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 border border-slate-100 shadow-sm">
+                                      <List size={24} className="text-slate-300" />
+                                   </div>
+                                   <h5 className="text-sm font-bold text-slate-700 mb-1">Cero Reportes Generados</h5>
+                                   <p className="text-xs text-slate-500 font-medium">Aún no has registrado proyectos ni presupuestos en tu gestión de pipeline.</p>
                                </div>
-                               <h5 className="text-sm font-bold text-slate-700 mb-1">Cero Reportes Generados</h5>
-                               <p className="text-xs text-slate-500 font-medium">Aún no has registrado proyectos ni presupuestos en tu gestión de pipeline.</p>
-                           </div>
+                           ) : (
+                               <div className="space-y-3">
+                                  {activeCountriesMetrics.map(c => (
+                                     <div key={c.name} className="flex justify-between items-center bg-[#F8FAFC] p-3 rounded-xl border border-slate-100">
+                                        <div className="flex items-center gap-3">
+                                           <div className="w-8 h-8 rounded-full bg-white border border-slate-200 shadow-sm flex items-center justify-center text-[10px] font-bold text-[#1E3A8A]">
+                                              {c.name.substring(0,2).toUpperCase()}
+                                           </div>
+                                           <div>
+                                              <div className="text-[13px] font-bold text-slate-700 leading-tight">{c.name}</div>
+                                              <div className="text-[10px] font-semibold text-slate-400">{c.totalProjects} proyectos activos</div>
+                                           </div>
+                                        </div>
+                                        <div className="text-sm font-black text-emerald-600">${c.totalValueUsd.toLocaleString('en-US')}</div>
+                                     </div>
+                                  ))}
+                               </div>
+                           )}
                            
                            <div className="pt-5 mt-4 border-t border-slate-200 flex justify-between items-center">
                               <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Total Calculado</span>
-                              <span className="text-lg font-black text-slate-400">$0 USD</span>
+                              <span className="text-lg font-black text-slate-800">${globalTotalUsd.toLocaleString('en-US')} USD</span>
                            </div>
                         </div>
                      </div>
