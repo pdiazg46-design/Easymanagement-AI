@@ -41,10 +41,16 @@ La aplicación opera como un coliseo SPA mediante `AnimatePresence` y z-index la
 
 ## 3. Pending Tasks & Roadmap para Mañana
 
+> [!CAUTION]
+> **PRIORIDAD CRÍTICA #1 PARA MAÑANA (BUG REPORTADO TRAS DESPLIEGUE):**
+> **Persistencia Totalmente Fallida de Assets Iniciales:** El Avatar del usuario (iniciales o foto), el Logo de la Institución/Mandante, y la página web inicial **¡se están borrando repetidamente en cada cierre de sesión/refresco profundo!** 
+> 
+> Aunque aparentemente se creyó haber resuelto, los datos de los perfiles base no están persisitiendo en la DB del servidor y siguen flotando en memoria caché (LocalStorage/Fugaz). **Bajo ninguna circunstancia entregar el código hasta no interconectar irrevocablemente el Setup Inicial (Tenant logo, Avatar, Web) en la base de datos `Neon` y asegurarlo bajo el modelo correspondiente para evitar amnesias por dispositivo.**
+
 Tu misión inmediata como agente desarrollador entrante (Fase de QA de Mañana):
 
 1.  **Revisión Total (QA Diurno):** Revisar cómo se experimenta todo el bloque en conjunto: Registrar usuario -> Crear Oportunidades (con input numérico con separador de miles) -> Registrar una Actividad de Voz -> Navegar al informe Ejecutivo -> Todo debe coincidir a la perfección y verse armónico en teléfono.
-2.  **Activos Faltantes Visuales:** Requeriremos que el Logo AT-SIT (institucional) sea gestionado para lucir impecable en la esquina y reemplazar el placeholder donde dice "Falta Logo" por un mecanismo persistente oficial para este Tenant de producción.
+2.  **Solución Estructural Faltante Visual (Logo/Avatar Servidor):** Reemplazar cualquier rastro de `localStorage.getItem("logo")` y persistir la configuración de la empresa a un Tenant global asociado al administrador `pdiazg46@gmail.com` directamente en Postgres.
 3.  **Auditoría de Lint:** Lograr "Cero Advertencias de Lint" eliminando variables e iconos no utilizados en `page.tsx` para optimizar el peso masivo del frontend de ~2200 líneas.
 4.  **Ajustes Menores de UI:** Atender solicitudes pendientes del cliente tras sus pruebas (Espacios, paletas, reportes PDF si es requerido).
 
