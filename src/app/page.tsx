@@ -287,7 +287,14 @@ export default function Home() {
    ];
 
    const activeCountriesMetrics = baseCountries.map(c => {
-      const opps = opportunities.filter(o => o.client?.country === c.name && o.status !== 'PERDIDO');
+      const opps = opportunities.filter(o => {
+         if (o.client?.country !== c.name) return false;
+         if (activeTab === 'historial') {
+            return o.status === 'GANADO' || o.status === 'PERDIDO';
+         } else {
+            return o.status === 'PROSPECTO' || o.status === 'COTIZADO';
+         }
+      });
       const totalValueUsd = opps.reduce((acc, curr) => acc + curr.amountUsd, 0);
       return {
          ...c,
@@ -298,8 +305,9 @@ export default function Home() {
       };
    }).filter(m => m.isActive).sort((a,b) => b.totalValueUsd - a.totalValueUsd);
 
-   const globalTotalUsd = activeCountriesMetrics.reduce((acc, curr) => acc + curr.totalValueUsd, 0);
-   const globalTotalProjects = activeCountriesMetrics.reduce((acc, curr) => acc + curr.totalProjects, 0);
+   const globalActiveOpps = opportunities.filter(o => o.status === 'PROSPECTO' || o.status === 'COTIZADO');
+   const globalTotalUsd = globalActiveOpps.reduce((acc, curr) => acc + curr.amountUsd, 0);
+   const globalTotalProjects = globalActiveOpps.length;
 
   const totalPipeline = opportunities.reduce((acc, curr) => curr.status !== 'PERDIDO' ? acc + curr.amountUsd : acc, 0);
   const activeProjects = opportunities.filter(o => o.status === 'PROSPECTO' || o.status === 'COTIZADO').length;
@@ -352,17 +360,21 @@ export default function Home() {
         recognition.lang = lang === 'es' ? 'es-CL' : 'en-US';
         
         recognition.onresult = (event: any) => {
+          let finalTranscript = '';
           let interimTranscript = '';
           
-          for (let i = event.resultIndex; i < event.results.length; i++) {
+          // Solucionamos el bug de "Efecto Eco" en Android Chrome asegurándonos
+          // de reconstruir el string desde 0 sin usar `+=` en una variable temporal.
+          for (let i = 0; i < event.results.length; i++) {
             if (event.results[i].isFinal) {
-              finalTranscriptRef.current += event.results[i][0].transcript + ' ';
+              finalTranscript += event.results[i][0].transcript + ' ';
             } else {
               interimTranscript += event.results[i][0].transcript;
             }
           }
           
-          setDraftActivity(finalTranscriptRef.current + interimTranscript);
+          finalTranscriptRef.current = finalTranscript;
+          setDraftActivity(finalTranscript + interimTranscript);
         };
 
         recognition.onerror = (event: any) => {
@@ -1149,7 +1161,7 @@ export default function Home() {
                                           <span className="text-[13px] font-black text-emerald-600">${c.totalValueUsd.toLocaleString('en-US')}</span>
                                        </div>
                                        <div className="flex items-center justify-between">
-                                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{c.totalProjects} Proyectos</span>
+                                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{c.totalProjects} {lang === 'es' ? 'Proyectos' : 'Projects'}</span>
                                           <div className="h-1.5 flex-1 mx-3 bg-slate-200 rounded-full overflow-hidden">
                                              <div 
                                                 className="h-full bg-corporate-purple rounded-full" 
@@ -1358,8 +1370,14 @@ export default function Home() {
                   onClick={e => e.stopPropagation()}
                >
                       <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6 shrink-0" />
-                  <h2 className="text-xl font-bold text-corporate-blue mb-1">{lang === 'es' ? 'Mercado' : 'Market'}: {selectedCountry}</h2>
-                  <p className="text-sm text-slate-500 mb-6">{lang === 'es' ? 'Selecciona un distribuidor o agrega una nota general.' : 'Select a distributor or add a general note.'}</p>
+                  <div className="flex justify-between items-center mb-1">
+                     <button onClick={() => setSelectedCountry(null)} className="p-2 -ml-2 text-slate-400 hover:text-slate-600 rounded-full transition-colors active:bg-slate-100 flex items-center">
+                        <ChevronLeft size={24} strokeWidth={2.5}/>
+                     </button>
+                     <h2 className="text-xl font-bold text-[#1E3A8A]">{lang === 'es' ? 'Mercado' : 'Market'}: {selectedCountry}</h2>
+                     <div className="w-8"></div> {/* Spacer para centrar el titulo */}
+                  </div>
+                  <p className="text-sm text-slate-500 mb-6 text-center">{lang === 'es' ? 'Selecciona un distribuidor o agrega una nota general.' : 'Select a distributor or add a general note.'}</p>
 
                   <div className="flex-1 overflow-y-auto w-full no-scrollbar pb-6 flex flex-col gap-6">
                      
@@ -2019,7 +2037,7 @@ export default function Home() {
                         <p className="text-white/80 text-[10px] uppercase tracking-widest font-bold mb-1">Total Pipeline Latam</p>
                         <h3 className="text-4xl font-extrabold tracking-tight mb-4">${globalTotalUsd.toLocaleString('en-US')}<span className="text-xl"> USD</span></h3>
                         <div className="flex items-center gap-2 bg-white/20 px-3 py-1.5 rounded-full w-max text-xs font-semibold backdrop-blur-sm">
-                          <Navigation size={12} className="text-slate-300"/> {globalTotalProjects} Proyectos Activos
+                          <Navigation size={12} className="text-slate-300"/> {globalTotalProjects} {lang === 'es' ? 'Proyectos Activos' : 'Active Projects'}
                         </div>
                      </div>
 
@@ -2059,7 +2077,7 @@ export default function Home() {
                                            </div>
                                            <div>
                                               <div className="text-[13px] font-bold text-slate-700 leading-tight">{c.name}</div>
-                                              <div className="text-[10px] font-semibold text-slate-400">{c.totalProjects} proyectos activos</div>
+                                              <div className="text-[10px] font-semibold text-slate-400">{c.totalProjects} {lang === 'es' ? 'proyectos activos' : 'active projects'}</div>
                                            </div>
                                         </div>
                                         <div className="text-sm font-black text-emerald-600">${c.totalValueUsd.toLocaleString('en-US')}</div>
