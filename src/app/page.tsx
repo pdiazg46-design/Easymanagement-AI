@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from 'react';
-import { Mic, Trash2, Keyboard, Edit2, Signal, Mail, Lock, Fingerprint, UploadCloud, Link as LinkIcon, ArrowRight, Eye, EyeOff, Map as MapIcon, List, Maximize2, Minimize2, X, Calendar, Navigation, Phone, MessageCircle, UserX, UserCheck, MapPin, ChevronLeft, ChevronRight, Share2, FileText, CreditCard, ShieldCheck, Check } from 'lucide-react';
+import { Mic, Trash2, Keyboard, Edit2, Signal, Mail, Lock, Fingerprint, UploadCloud, Link as LinkIcon, ArrowRight, Eye, EyeOff, Map as MapIcon, List, Maximize2, Minimize2, X, Calendar, Navigation, MapPin, ChevronLeft, ChevronRight, Share2, FileText, CreditCard, ShieldCheck, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from "react-simple-maps";
 import { getActivities, createActivity, toggleActivityCompletion, getOpportunities, createOpportunity, updateOpportunityStatus, getClients, createClient } from './actions';
@@ -1651,118 +1651,42 @@ export default function Home() {
                   <div className="relative pl-[26px] border-l-2 border-slate-200/80 space-y-9">
                      
                      {/* Dynamic Items (Recién Creados) */}
+                     {newTimelineItems.length === 0 && (
+                        <div className="flex flex-col items-center justify-center p-8 bg-slate-50/50 rounded-3xl border border-slate-100 shadow-sm mt-4">
+                           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest text-center">{lang === 'es' ? 'Aún no hay registros en la bitácora.' : 'No records in the timeline yet.'}</p>
+                           <p className="text-[10px] text-slate-400 font-medium mt-1 text-center">{lang === 'es' ? 'Usa el botón flotante para crear uno nuevo.' : 'Use the floating button to create one.'}</p>
+                        </div>
+                     )}
+                     
                      {newTimelineItems.map((item) => (
                         <motion.div key={item.id} initial={{opacity:0, y:-20}} animate={{opacity:1, y:0}} className="relative">
                            <div className="absolute -left-[35px] w-[26px] h-[26px] rounded-full bg-emerald-500 text-white shadow-sm flex items-center justify-center border-4 border-[#F8FAFC]">
                               <Signal size={10} strokeWidth={3} />
                            </div>
                            <div className="flex justify-between items-end mb-2 ml-1">
-                             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest bg-slate-100 w-max px-2 py-0.5 rounded-full border border-slate-200/50">{lang === 'es' ? 'Registro Ágil' : 'Quick Log'}</p>
-                             <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">{lang === 'es' ? 'Justo Ahora' : 'Just Now'}</p>
+                             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest bg-slate-100 w-max px-2 py-0.5 rounded-full border border-slate-200/50">{item.completed ? (lang === 'es' ? 'Completado' : 'Completed') : (lang === 'es' ? 'Registro Ágil' : 'Quick Log')}</p>
+                             <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">{item.date || (lang === 'es' ? 'Reciente' : 'Recent')}</p>
                            </div>
                            
                            <div className="bg-white p-5 rounded-[24px] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.03)] relative overflow-hidden">
                               <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-500"></div>
                               <div className="flex items-start justify-between mb-2">
                                 <h4 className="font-extrabold text-slate-800 text-[15px] pr-2 leading-tight">{item.title}</h4>
-                                <span className="text-[11px] font-black text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] border border-emerald-100/50 shrink-0">#{item.id < 10 ? `0${item.id}` : item.id}</span>
+                                <span className="text-[11px] font-black text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] border border-emerald-100/50 shrink-0">#{item.id < 10 ? `0${item.id}` : (typeof item.id === 'string' ? item.id.substring(item.id.length - 4).toUpperCase() : item.id)}</span>
                               </div>
                               <p className="text-[13px] text-slate-600 font-medium leading-relaxed mb-4">
                                 {item.content}
                               </p>
                               <div className="bg-slate-50 rounded-xl p-3 border border-slate-200/60 flex flex-col gap-1.5">
                                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 flex items-center gap-1.5 opacity-90">
-                                   <Edit2 size={11} strokeWidth={3} /> {lang === 'es' ? 'Nota Rápida:' : 'Quick Note:'}
+                                   <Edit2 size={11} strokeWidth={3} /> {lang === 'es' ? 'Nota:' : 'Note:'}
                                  </span>
-                                 <span className="text-[13.5px] font-bold text-slate-700 leading-tight">{lang === 'es' ? 'Sin compromisos asociados.' : 'No associated tasks.'}</span>
+                                 <span className="text-[13px] font-bold text-slate-700 leading-tight">{lang === 'es' ? 'Registrado por IA.' : 'Registered by AI.'}</span>
                               </div>
                            </div>
                         </motion.div>
                      ))}
 
-                     {/* Timeline Item 1: MI COMPROMISO (Visita) */}
-                     <div className="relative">
-                        <div className="absolute -left-[35px] w-[26px] h-[26px] rounded-full bg-corporate-purple text-white shadow-sm flex items-center justify-center border-4 border-[#F8FAFC]">
-                           <Mic size={10} strokeWidth={3} />
-                        </div>
-                        <div className="flex justify-between items-end mb-2 ml-1">
-                          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest bg-slate-100 w-max px-2 py-0.5 rounded-full border border-slate-200/50">{lang === 'es' ? 'Visita Presencial' : 'On-Site Visit'}</p>
-                          <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">{lang === 'es' ? 'Hoy, 16:45 hrs' : 'Today, 16:45 hrs'}</p>
-                        </div>
-                        
-                        <div className="bg-white p-5 rounded-[24px] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.03)] relative overflow-hidden">
-                           <div className="absolute top-0 left-0 w-1.5 h-full bg-[#7C3AED]"></div>
-                           <div className="flex items-start justify-between mb-2">
-                             <h4 className="font-extrabold text-slate-800 text-[15px] pr-2 leading-tight">{lang === 'es' ? 'Presentación Nueva Plana Directiva' : 'New Board Presentation'}</h4>
-                             <span className="text-[11px] font-black text-[#1E3A8A] bg-blue-50 px-2 py-0.5 rounded shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] border border-blue-100/50 shrink-0">#03</span>
-                           </div>
-                           
-                           <p className="text-[13px] text-slate-600 font-medium leading-relaxed mb-4">
-                             {lang === 'es' ? 'Acordamos revisar precios el próximo mes de la línea pesada. Pidieron que la propuesta se envíe rápidamente segmentando regiones por volumen de compra.' : 'Agreed to review heavy line prices next month. Requested prompt proposal segmented by regional purchase volume.'}
-                           </p>
-                           
-                           {/* Mi Compromiso Container */}
-                           <div className="bg-amber-50/70 rounded-xl p-3 border border-amber-200/60 flex flex-col gap-1.5">
-                              <span className="text-[9px] font-black uppercase tracking-widest text-amber-600 flex items-center gap-1.5 opacity-90">
-                                <UserCheck size={11} strokeWidth={3} /> {lang === 'es' ? 'Mi Tarea Pendiente:' : 'My Pending Task:'}
-                              </span>
-                              <span className="text-[13.5px] font-bold text-amber-900 leading-tight">Enviar Propuesta Segmentada (05 May)</span>
-                           </div>
-                        </div>
-                     </div>
-
-                     {/* Timeline Item 2: COMPROMISO DEL CLIENTE (Mensaje) */}
-                     <div className="relative opacity-95">
-                        <div className="absolute -left-[35px] w-[26px] h-[26px] rounded-full bg-rose-500 text-white shadow-sm flex items-center justify-center border-4 border-[#F8FAFC]">
-                           <MessageCircle size={10} strokeWidth={3} />
-                        </div>
-                        <div className="flex justify-between items-end mb-2 ml-1">
-                          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest bg-slate-100 w-max px-2 py-0.5 rounded-full border border-slate-200/50">WhatsApp / Mensaje</p>
-                          <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">24 Abril 2026</p>
-                        </div>
-
-                        <div className="bg-white p-5 rounded-[24px] border border-slate-100 shadow-sm relative overflow-hidden">
-                           <div className="absolute top-0 left-0 w-1.5 h-full bg-rose-500"></div>
-                           <div className="flex items-start justify-between mb-2">
-                             <h4 className="font-extrabold text-slate-700 text-[14px] leading-tight pr-2">Solicitud de Datos Bancarios</h4>
-                             <span className="text-[11px] font-black text-slate-500 bg-slate-50 px-2 py-0.5 rounded shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] border border-slate-200/50 shrink-0">#02</span>
-                           </div>
-                           <p className="text-[12.5px] text-slate-500 font-medium leading-relaxed mb-4">
-                             El gerente de finanzas me escribió para pedir validación de la cuenta de cobro antes del cierre de quincena.
-                           </p>
-
-                           {/* Compromiso del Cliente Container */}
-                           <div className="bg-rose-50 rounded-xl p-3 border border-rose-100 flex flex-col gap-1.5">
-                              <span className="text-[9px] font-black uppercase tracking-widest text-rose-600 flex items-center gap-1.5 opacity-90">
-                                <UserX size={11} strokeWidth={3} /> Esperando al Cliente:
-                              </span>
-                              <span className="text-[13px] font-bold text-rose-900 leading-tight">Transferir Pago Retrasado (25 Abril)</span>
-                           </div>
-                        </div>
-                     </div>
-
-                     {/* Timeline Item 3: SIN COMPROMISOS (Llamada) */}
-                     <div className="relative opacity-75">
-                        <div className="absolute -left-[35px] w-[26px] h-[26px] rounded-full bg-slate-400 text-white shadow-sm flex items-center justify-center border-4 border-[#F8FAFC]">
-                           <Phone size={10} strokeWidth={3} />
-                        </div>
-                        <div className="flex justify-between items-end mb-2 ml-1">
-                          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest bg-slate-100 w-max px-2 py-0.5 rounded-full border border-slate-200/50">Llamada de Control</p>
-                          <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">15 Marzo 2026</p>
-                        </div>
-                        <div className="bg-white p-5 rounded-[24px] border border-slate-100 shadow-sm relative overflow-hidden">
-                           <div className="flex items-start justify-between mb-1.5">
-                             <h4 className="font-bold text-slate-700 text-[14px] leading-tight pr-2">Revisión de Inventario Q2</h4>
-                             <span className="text-[11px] font-black text-slate-400 bg-slate-50 px-2 py-0.5 rounded shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] border border-slate-200/50 shrink-0">#01</span>
-                           </div>
-                           <p className="text-[12px] text-slate-500 font-medium leading-relaxed mb-3 mt-1.5">
-                             Todo marcha según lo provisto en el contrato anual. El cliente no reporta problemas operativos adicionales.
-                           </p>
-                           <div className="mt-3 text-[9.5px] font-extrabold tracking-widest text-slate-400 uppercase flex items-center gap-1 bg-slate-50 w-max px-2.5 py-1.5 rounded-md border border-slate-100">
-                             <Lock size={10} /> Ejecutada · Sin compromisos nuevos
-                           </div>
-                        </div>
-                     </div>
 
                   </div>
                </div>
