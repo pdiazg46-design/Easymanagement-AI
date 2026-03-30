@@ -877,7 +877,7 @@ export default function Home() {
                           ) : (
                              <>
                                <UploadCloud size={20} className="mb-1 text-slate-300 group-hover:text-corporate-purple transition-colors" />
-                               <span className="text-[9px] font-semibold text-slate-500 text-center leading-tight uppercase tracking-wider">Tu<br/>Foto</span>
+                               <span className="text-[10px] font-semibold text-slate-500 text-center leading-tight uppercase tracking-wider">{lang === 'es' ? <>Tu<br/>Foto</> : <>Your<br/>Photo</>}</span>
                              </>
                           )}
                        </label>
@@ -910,7 +910,7 @@ export default function Home() {
                          <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-corporate-purple" size={18} />
                          <input type="url" placeholder="https://cliente.com" value={clientWebsite} onChange={(e) => setClientWebsite(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 pl-11 pr-4 text-sm text-slate-800 transition-all focus:outline-none focus:border-corporate-purple shadow-sm" />
                        </div>
-                       <p className="text-[10px] text-slate-400 px-2 leading-tight">{lang === 'es' ? 'Esta URL será procesada por nuestro motor de IA para asistir tus gestiones.' : 'This URL will be processed by our AI engine to assist your daily management.'}</p>
+                       <p className="text-xs font-medium text-slate-500 px-2 leading-relaxed mt-1">{lang === 'es' ? 'Esta URL será procesada por nuestro motor de IA para asistir tus gestiones.' : 'This URL will be processed by our AI engine to assist your daily management.'}</p>
                     </div>
 
                     <div className="space-y-2">
@@ -922,14 +922,14 @@ export default function Home() {
                                <img src={clientLogo} alt="Logo Mandante" className="h-full w-full object-contain" />
                                <div className="absolute inset-0 bg-slate-900/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                   <Edit2 size={24} className="text-white mb-2" />
-                                  <span className="text-xs font-bold text-white uppercase tracking-wider">Cambiar Logo</span>
+                                  <span className="text-xs font-bold text-white uppercase tracking-wider">{lang === 'es' ? 'Cambiar Logo' : 'Change Logo'}</span>
                                </div>
                              </>
                           ) : (
                              <>
                                 <UploadCloud size={36} className="mb-3 text-slate-300 group-hover:text-corporate-purple transition-colors" />
-                                <span className="text-sm font-semibold text-slate-600 mb-1">Subir Imagen</span>
-                                <span className="text-[10px]">PNG o JPG (Max 2MB)</span>
+                                <span className="text-sm font-semibold text-slate-600 mb-1">{lang === 'es' ? 'Subir Imagen' : 'Upload Image'}</span>
+                                <span className="text-xs font-medium text-slate-400">{lang === 'es' ? 'PNG o JPG (Max 2MB)' : 'PNG or JPG (Max 2MB)'}</span>
                              </>
                           )}
                        </label>
@@ -937,10 +937,10 @@ export default function Home() {
 
                     <div className="space-y-2 mt-4 pt-4 border-t border-slate-100">
                        <div className="flex justify-between items-center ml-2 mb-2">
-                         <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5"><UploadCloud size={14}/> Base de Conocimiento (RAG)</label>
-                         <span className="bg-corporate-purple/10 text-corporate-purple text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest">NUEVO</span>
+                         <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5"><UploadCloud size={14}/> {lang === 'es' ? 'Base de Conocimiento (RAG)' : 'Knowledge Base (RAG)'}</label>
+                         <span className="bg-corporate-purple/10 text-corporate-purple text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest">{lang === 'es' ? 'NUEVO' : 'NEW'}</span>
                        </div>
-                       <p className="text-[10px] text-slate-500 px-2 leading-tight mb-3">Sube listas de precio o inventario. Nuestro motor extrae solo la tabla de datos, eliminando imágenes para máxima velocidad (RAG).</p>
+                       <p className="text-xs font-medium text-slate-500 px-2 leading-relaxed mb-3">{lang === 'es' ? 'Sube listas de precio o inventario. Nuestro motor extrae solo la tabla de datos, eliminando imágenes para máxima velocidad (RAG).' : 'Upload price lists or inventory. Our engine extracts only the data table, removing images for maximum speed (RAG).'}</p>
                        
                        <label className="border-2 border-dashed border-corporate-purple/30 bg-corporate-purple/5 rounded-2xl p-4 flex items-center justify-center gap-3 cursor-pointer hover:bg-corporate-purple/10 transition-colors">
                           <input type="file" accept=".csv,.xlsx,.xls" className="hidden" multiple onChange={(e) => {
@@ -958,7 +958,7 @@ export default function Home() {
                              <UploadCloud size={18} />
                           </div>
                           <div className="flex-1">
-                             <span className="text-xs font-bold text-slate-700 block">Subir Lista (Data)</span>
+                             <span className="text-xs font-bold text-slate-700 block">{lang === 'es' ? 'Subir Lista (Data)' : 'Upload List (Data)'}</span>
                              <span className="text-[9px] text-slate-500 uppercase tracking-widest">Excel, CSV</span>
                           </div>
                        </label>
@@ -1004,7 +1004,7 @@ export default function Home() {
                       }} 
                       className="bg-[#1E3A8A] text-white font-bold py-4 px-8 rounded-full shadow-xl shadow-blue-900/20 flex items-center gap-2 tracking-wide"
                     >
-                      FINALIZAR
+                      {lang === 'es' ? 'FINALIZAR' : 'FINISH STARTING'}
                       <ArrowRight size={18} />
                     </motion.button>
                  </div>
