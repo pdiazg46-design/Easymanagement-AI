@@ -229,23 +229,30 @@ export default function Home() {
       setClients(cls);
   };
 
-  // Cargar datos reales desde la base de datos Neon (Vía Server Actions)
+  // 1. Cargar el Perfil del Usuario SIEMPRE al iniciar, para pre-llenar la configuración y evitar que dispositivos nuevos la sobrescriban en blanco
+  useEffect(() => {
+     fetch('/api/auth/me', { cache: 'no-store' })
+       .then(res => res.json())
+       .then(data => {
+         if (data.user) {
+            if (data.user.country) setUserCountry(getFlagCode(data.user.country));
+            if (data.user.clientUrl) setClientWebsite(data.user.clientUrl);
+            if (data.user.logoUrl) setClientLogo(data.user.logoUrl);
+            if (data.user.avatarUrl) setAvatarUrl(data.user.avatarUrl);
+            if (data.user.isPro) setIsProUser(true);
+            
+            // Si ya está configurado, podemos asegurar que el dashboard debe ser la vista real
+            if (data.user.logoUrl && data.user.avatarUrl && currentView === 'onboarding') {
+                setCurrentView('dashboard');
+            }
+         }
+       }).catch(err => console.log('Sin sesión activa aún...', err));
+  }, []); // Run on mount
+
+  // 2. Cargar datos de negocio cuando estamos en el dashboard
   useEffect(() => {
      if (currentView === 'dashboard') {
-        // 1. Cargar el Perfil del Usuario para hidratar Avatar y Logo Mandante desde Postgres
-        fetch('/api/auth/me', { cache: 'no-store' })
-          .then(res => res.json())
-          .then(data => {
-            if (data.user) {
-               if (data.user.country) setUserCountry(getFlagCode(data.user.country));
-               if (data.user.clientUrl) setClientWebsite(data.user.clientUrl);
-               if (data.user.logoUrl) setClientLogo(data.user.logoUrl);
-               if (data.user.avatarUrl) setAvatarUrl(data.user.avatarUrl);
-               if (data.user.isPro) setIsProUser(true);
-            }
-          }).catch(err => console.log('Sin sesión activa aún...', err));
-
-        // 2. Cargar Tareas, Clientes y Oportunidades
+        // Cargar Tareas, Clientes y Oportunidades
         getActivities().then(activities => {
            const mapped = activities.map((a: any) => ({
               id: a.id,
