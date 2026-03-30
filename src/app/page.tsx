@@ -59,6 +59,26 @@ export default function Home() {
   const [reportPassword, setReportPassword] = useState('');
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 
+  const loadUserProfile = async () => {
+     try {
+       const res = await fetch('/api/auth/me', { cache: 'no-store' });
+       const data = await res.json();
+       if (data.user) {
+          if (data.user.country) setUserCountry(getFlagCode(data.user.country));
+          if (data.user.clientUrl) setClientWebsite(data.user.clientUrl);
+          if (data.user.logoUrl) setClientLogo(data.user.logoUrl);
+          if (data.user.avatarUrl) setAvatarUrl(data.user.avatarUrl);
+          if (data.user.isPro) setIsProUser(true);
+          
+          if (data.user.logoUrl && data.user.avatarUrl && currentView === 'onboarding') {
+             setCurrentView('dashboard');
+          }
+       }
+     } catch(err) {
+       console.log('Sin sesión activa aún...', err);
+     }
+  };
+
   const handleSignup = async () => {
     if (!password) {
        setAuthError('Debes ingresar una contraseña');
@@ -108,6 +128,10 @@ export default function Home() {
       const userIsPro = data.user?.isPro === true;
       setIsProUser(userIsPro);
       localStorage.setItem('easy_isPro', userIsPro ? 'true' : 'false');
+      
+      // Hydrate profile securely from DB immediately after successful login
+      await loadUserProfile();
+
       localStorage.setItem('easy_currentView', 'dashboard');
       setCurrentView('dashboard');
       
@@ -229,24 +253,9 @@ export default function Home() {
       setClients(cls);
   };
 
-  // 1. Cargar el Perfil del Usuario SIEMPRE al iniciar, para pre-llenar la configuración y evitar que dispositivos nuevos la sobrescriban en blanco
+  // 1. Cargar el Perfil del Usuario SIEMPRE al iniciar, para pre-llenar de ser posible si hay cookie
   useEffect(() => {
-     fetch('/api/auth/me', { cache: 'no-store' })
-       .then(res => res.json())
-       .then(data => {
-         if (data.user) {
-            if (data.user.country) setUserCountry(getFlagCode(data.user.country));
-            if (data.user.clientUrl) setClientWebsite(data.user.clientUrl);
-            if (data.user.logoUrl) setClientLogo(data.user.logoUrl);
-            if (data.user.avatarUrl) setAvatarUrl(data.user.avatarUrl);
-            if (data.user.isPro) setIsProUser(true);
-            
-            // Si ya está configurado, podemos asegurar que el dashboard debe ser la vista real
-            if (data.user.logoUrl && data.user.avatarUrl && currentView === 'onboarding') {
-                setCurrentView('dashboard');
-            }
-         }
-       }).catch(err => console.log('Sin sesión activa aún...', err));
+     loadUserProfile();
   }, []); // Run on mount
 
   // 2. Cargar datos de negocio cuando estamos en el dashboard
@@ -1663,13 +1672,13 @@ export default function Home() {
                   </div>
                ) : (
                   <div className="flex-1 overflow-y-auto w-full p-6 pb-32 bg-[#F8FAFC]">
-                     <div className="flex items-center justify-between mb-8 pb-3 border-b border-slate-200/60">
-                       <h3 className="font-bold text-[#1E3A8A] uppercase tracking-widest text-[13px] flex items-center gap-2 truncate pr-2">
-                          <List size={16} className="text-corporate-purple shrink-0" /> {lang === 'es' ? 'Historial' : 'History'}: {selectedOpportunity.title}
-                       </h3>
-                       <button onClick={() => setSelectedOpportunity(null)} className="text-[10px] font-bold text-slate-400 uppercase tracking-widest hover:text-slate-600 bg-slate-200/50 px-2 py-1 rounded shrink-0">
-                           {lang === 'es' ? '← Volver' : '← Back'}
+                     <div className="flex items-center gap-2 mb-8 pb-3 border-b border-slate-200/60 break-words">
+                       <button onClick={() => setSelectedOpportunity(null)} className="p-1 -ml-1 text-slate-400 hover:text-[#1E3A8A] rounded-full transition-colors active:bg-slate-100 shrink-0">
+                          <ChevronLeft size={26} strokeWidth={2.5}/>
                        </button>
+                       <h3 className="font-bold text-[#1E3A8A] uppercase tracking-widest text-[13px] leading-tight pr-2">
+                          {lang === 'es' ? 'Bitácora' : 'Timeline'}: <span className="text-slate-600">{selectedOpportunity.title}</span>
+                       </h3>
                      </div>
 
                   {/* The Timeline Vertical Line */}
