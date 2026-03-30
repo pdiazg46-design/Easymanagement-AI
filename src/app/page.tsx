@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Mic, Trash2, Keyboard, Edit2, Signal, Wifi, BatteryFull, Mail, Lock, Fingerprint, UploadCloud, Link as LinkIcon, ArrowRight, Eye, EyeOff, Map as MapIcon, List, Maximize2, Minimize2, X, Calendar, Navigation, Loader2, Phone, MessageCircle, UserX, UserCheck, MapPin, ChevronLeft, ChevronRight, Share2, FileText, Download, CreditCard, ShieldCheck, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from "react-simple-maps";
-import { getActivities, createActivity, toggleActivityCompletion, getOpportunities, createOpportunity, updateOpportunityStatus } from './actions';
+import { getActivities, createActivity, toggleActivityCompletion, getOpportunities, createOpportunity, updateOpportunityStatus, getClients, createClient } from './actions';
 
 export default function Home() {
   const [lang, setLang] = useState<'es'|'en'>('es');
@@ -206,6 +206,7 @@ export default function Home() {
   const [uploadedCatalogs, setUploadedCatalogs] = useState<{name: string, size: string}[]>([]);
   
   // Estados para simular Inputs del Formulario Action Modal
+  const [draftActivity, setDraftActivity] = useState("");
   const [draftAction, setDraftAction] = useState("");
   const [draftDate, setDraftDate] = useState("");
   const [calendarViewMode, setCalendarViewMode] = useState<'grid' | 'list'>('grid');
@@ -214,10 +215,19 @@ export default function Home() {
   const [showOppForm, setShowOppForm] = useState(false);
   const [draftOppTitle, setDraftOppTitle] = useState("");
   const [draftOppAmount, setDraftOppAmount] = useState("");
+  
+  const [clients, setClients] = useState<any[]>([]);
+  const [showClientForm, setShowClientForm] = useState(false);
+  const [draftClientName, setDraftClientName] = useState("");
+  const [openClientFormId, setOpenClientFormId] = useState<string | null>(null);
 
   const refreshOpportunities = async () => {
       const opps = await getOpportunities();
       setOpportunities(opps);
+  };
+  const refreshClients = async () => {
+      const cls = await getClients();
+      setClients(cls);
   };
 
   // Cargar datos reales desde la base de datos Neon (Vía Server Actions)
@@ -236,6 +246,7 @@ export default function Home() {
         }).catch(err => console.error("Error cargando actividades:", err));
 
         refreshOpportunities();
+        refreshClients();
      }
   }, [currentView]);
 
@@ -1327,96 +1338,138 @@ export default function Home() {
                         </div>
                      )}
 
-                     {/* Oportunidades Regionales */}
+                     {/* Distribuidores y Clientes */}
                      <div>
                        <div className="flex justify-between items-center mb-4 pr-1">
-                          <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest pl-1">{lang === 'es' ? 'Oportunidades (' : 'Opportunities ('}{selectedCountry}{')'}</h3>
+                          <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest pl-1">{lang === 'es' ? 'Canales / Distribuidores' : 'Channels / Distributors'}</h3>
                           <button 
-                            onClick={() => setShowOppForm(!showOppForm)}
+                            onClick={() => setShowClientForm(!showClientForm)}
                             className="bg-corporate-purple text-white text-[10px] px-3 py-1.5 rounded-full font-bold shadow-sm"
                           >
-                             {showOppForm ? 'Cancelar' : '+ Agregar'}
+                             {showClientForm ? (lang === 'es' ? 'Cancelar' : 'Cancel') : (lang === 'es' ? '+ Nuevo Cliente' : '+ New Client')}
                           </button>
                        </div>
                        
                        <AnimatePresence>
-                          {showOppForm && (
+                          {showClientForm && (
                              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden mb-4">
                                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col gap-3">
                                    <input 
                                      type="text" 
-                                     placeholder={lang === 'es' ? 'Ej. Licitación Gobierno' : 'E.g. Government Bid'}
+                                     placeholder={lang === 'es' ? 'Ej. Telefónica S.A.' : 'E.g. Telefonica Inc.'}
                                      className="w-full bg-white border border-slate-200 text-sm px-4 py-2.5 rounded-xl font-medium outline-none text-[#1E3A8A]"
-                                     value={draftOppTitle}
-                                     onChange={e => setDraftOppTitle(e.target.value)}
+                                     value={draftClientName}
+                                     onChange={e => setDraftClientName(e.target.value)}
                                    />
-                                   <div className="relative">
-                                     <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">$</span>
-                                     <input 
-                                       type="number" 
-                                       placeholder={lang === 'es' ? 'Monto en USD' : 'Amount in USD'}
-                                       className="w-full bg-white border border-slate-200 text-sm px-8 py-2.5 rounded-xl font-medium outline-none text-[#1E3A8A]"
-                                       value={draftOppAmount}
-                                       onChange={e => setDraftOppAmount(e.target.value)}
-                                     />
-                                   </div>
                                    <button 
                                      className="w-full bg-[#1E3A8A] text-white py-2.5 rounded-xl font-bold uppercase tracking-wider text-[11px] flex items-center justify-center gap-2 mt-1"
                                      onClick={async () => {
-                                        if(!draftOppTitle || !draftOppAmount) return;
-                                        await createOpportunity({
-                                            title: draftOppTitle,
-                                            amountUsd: parseFloat(draftOppAmount),
+                                        if(!draftClientName) return;
+                                        await createClient({
+                                            name: draftClientName,
                                             country: selectedCountry
                                         });
-                                        setDraftOppTitle("");
-                                        setDraftOppAmount("");
-                                        setShowOppForm(false);
-                                        refreshOpportunities();
+                                        setDraftClientName("");
+                                        setShowClientForm(false);
+                                        refreshClients();
                                      }}
                                    >
-                                      Guardar Oportunidad
+                                      {lang === 'es' ? 'Guardar Cliente' : 'Save Client'}
                                    </button>
                                 </div>
                              </motion.div>
                           )}
                        </AnimatePresence>
 
-                       <div className="space-y-3">
-                         {opportunities.filter(o => o.client?.country === selectedCountry).length === 0 ? (
+                       <div className="space-y-4">
+                         {clients.filter(c => c.country === selectedCountry).length === 0 ? (
                            <p className="text-[11px] text-slate-400 font-medium italic tracking-wide px-1">
-                             {lang === 'es' ? 'No hay oportunidades registradas.' : 'No opportunities registered.'}
+                             {lang === 'es' ? 'No hay clientes registrados en este país.' : 'No clients registered in this country.'}
                            </p>
                          ) : (
-                           opportunities.filter(o => o.client?.country === selectedCountry).map((opp: any) => (
-                             <div key={opp.id} className="bg-white p-4 rounded-[20px] border border-slate-100 shadow-[0_2px_10px_rgb(0,0,0,0.03)] text-left flex flex-col gap-3 group">
-                                <div className="flex justify-between items-start">
-                                  <div className="flex-1">
-                                     <h4 className="font-extrabold text-[#1E3A8A] text-[13px]">{opp.title}</h4>
-                                     <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mt-1">Canal: {opp.client?.name}</p>
-                                  </div>
-                                  <div className="text-right">
-                                     <p className="font-extrabold text-corporate-purple text-sm">${opp.amountUsd.toLocaleString('en-US')}</p>
-                                     <p className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">USD</p>
-                                  </div>
+                           clients.filter(c => c.country === selectedCountry).map((client: any) => (
+                             <div key={client.id} className="bg-white p-4 rounded-[20px] border border-slate-100 shadow-[0_2px_10px_rgb(0,0,0,0.03)] text-left flex flex-col gap-3 group">
+                                <div className="flex justify-between items-center mb-1">
+                                  <h4 className="font-extrabold text-[#1E3A8A] text-[15px]">{client.name}</h4>
+                                  <button onClick={() => setOpenClientFormId(openClientFormId === client.id ? null : client.id)} className="bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-1.5 rounded-[8px] text-[10px] font-bold uppercase tracking-widest shadow-sm flex items-center gap-1 hover:bg-emerald-100 transition-colors">
+                                     + {lang === 'es' ? 'Oportunidad' : 'Opportunity'}
+                                  </button>
                                 </div>
-                                <div className="flex justify-between items-center gap-2 bg-slate-50 p-1.5 rounded-full border border-slate-200 text-[10px] font-bold">
-                                   {['PROSPECTO', 'COTIZADO', 'GANADO', 'PERDIDO'].map(status => (
-                                     <button 
-                                       key={status}
-                                       onClick={async () => {
-                                          await updateOpportunityStatus(opp.id, status);
-                                          refreshOpportunities();
-                                       }}
-                                       className={`flex-1 py-1.5 rounded-full transition-all ${opp.status === status ? 
-                                          (status === 'GANADO' ? 'bg-emerald-500 text-white' : 
-                                           status === 'PERDIDO' ? 'bg-rose-500 text-white' : 
-                                           'bg-[#1E3A8A] text-white') 
-                                           : 'text-slate-400 hover:text-slate-600'}`}
-                                     >
-                                        {status.substring(0,3)}
-                                     </button>
-                                   ))}
+                                
+                                <AnimatePresence>
+                                   {openClientFormId === client.id && (
+                                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden mb-2">
+                                         <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-col gap-2">
+                                            <input 
+                                              type="text" 
+                                              placeholder={lang === 'es' ? 'Título (Ej. Servidores)' : 'Title (E.g. Servers)'}
+                                              className="w-full bg-white border border-slate-200 text-xs px-3 py-2 rounded-lg font-medium outline-none text-[#1E3A8A]"
+                                              value={draftOppTitle}
+                                              onChange={e => setDraftOppTitle(e.target.value)}
+                                            />
+                                            <div className="relative">
+                                              <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-xs">$</span>
+                                              <input 
+                                                type="number" 
+                                                placeholder={lang === 'es' ? 'Monto USD' : 'USD Amount'}
+                                                className="w-full bg-white border border-slate-200 text-xs px-6 py-2 rounded-lg font-medium outline-none text-[#1E3A8A]"
+                                                value={draftOppAmount}
+                                                onChange={e => setDraftOppAmount(e.target.value)}
+                                              />
+                                            </div>
+                                            <button 
+                                              className="w-full bg-[#1E3A8A] text-white py-2 rounded-lg font-bold uppercase text-[10px]"
+                                              onClick={async () => {
+                                                 if(!draftOppTitle || !draftOppAmount) return;
+                                                 await createOpportunity({
+                                                     title: draftOppTitle,
+                                                     amountUsd: parseFloat(draftOppAmount),
+                                                     clientId: client.id
+                                                 });
+                                                 setDraftOppTitle("");
+                                                 setDraftOppAmount("");
+                                                 setOpenClientFormId(null);
+                                                 refreshOpportunities();
+                                              }}
+                                            >
+                                               {lang === 'es' ? 'Guardar' : 'Save'}
+                                            </button>
+                                         </div>
+                                      </motion.div>
+                                   )}
+                                </AnimatePresence>
+
+                                {/* Lista de oportunidades atadas a este cliente */}
+                                <div className="flex flex-col gap-2 mt-2">
+                                  {opportunities.filter(o => o.clientId === client.id).length === 0 && (
+                                      <p className="text-[10px] text-slate-400 font-medium italic">{lang === 'es' ? 'Sin oportunidades aún.' : 'No opportunities yet.'}</p>
+                                  )}
+                                  {opportunities.filter(o => o.clientId === client.id).map(opp => (
+                                      <div key={opp.id} className="bg-slate-50 p-3 rounded-[12px] border border-slate-200/60">
+                                         <div className="flex justify-between items-start mb-2">
+                                            <span className="font-extrabold text-[#1E3A8A] text-[11px] leading-tight flex-1 pr-2">{opp.title}</span>
+                                            <span className="font-bold text-corporate-purple text-[12px]">${opp.amountUsd.toLocaleString('en-US')}</span>
+                                         </div>
+                                         <div className="flex gap-1 bg-white p-1 rounded-full border border-slate-100 shadow-sm">
+                                           {['PROSPECTO', 'COTIZADO', 'GANADO', 'PERDIDO'].map(status => (
+                                              <button 
+                                                key={status}
+                                                onClick={async () => {
+                                                   await updateOpportunityStatus(opp.id, status);
+                                                   refreshOpportunities();
+                                                }}
+                                                className={`flex-1 flex justify-center py-1 rounded-full transition-all text-[8px] sm:text-[9px] font-bold ${opp.status === status ? 
+                                                   (status === 'GANADO' ? 'bg-emerald-500 text-white' : 
+                                                    status === 'PERDIDO' ? 'bg-rose-500 text-white' : 
+                                                    'bg-[#1E3A8A] text-white') 
+                                                    : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}
+                                              >
+                                                 {status.substring(0,3)}
+                                              </button>
+                                           ))}
+                                         </div>
+                                      </div>
+                                  ))}
                                 </div>
                              </div>
                            ))

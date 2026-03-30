@@ -96,7 +96,39 @@ export async function deleteActivity(id: string) {
 }
 
 // ============================================
-// MODULO PIPELINE: OPORTUNIDADES
+// MODULO BASE DE CLIENTES Y DISTRIBUIDORES
+// ============================================
+
+export async function getClients(country?: string) {
+  const { tenant } = await getOrCreateMockSession();
+  
+  return await prisma.client.findMany({
+    where: { 
+      tenantId: tenant.id,
+      ...(country ? { country } : {})
+    },
+    include: { opportunities: true },
+    orderBy: { name: 'asc' }
+  });
+}
+
+export async function createClient(data: { name: string, country: string }) {
+  const { tenant } = await getOrCreateMockSession();
+  
+  const client = await prisma.client.create({
+    data: {
+      name: data.name,
+      country: data.country,
+      tenantId: tenant.id
+    }
+  });
+  
+  revalidatePath("/");
+  return client;
+}
+
+// ============================================
+// MODULO PIPELINE: OPORTUNIDADES (Atadas a un Cliente)
 // ============================================
 
 export async function getOpportunities() {
@@ -109,30 +141,15 @@ export async function getOpportunities() {
   });
 }
 
-export async function createOpportunity(data: { title: string, amountUsd: number, country: string }) {
+export async function createOpportunity(data: { title: string, amountUsd: number, clientId: string }) {
   const { tenant } = await getOrCreateMockSession();
-  
-  // Buscar o crear un Cliente Genérico para ese país, logrando una experiencia "Zero-Touch"
-  let client = await prisma.client.findFirst({
-    where: { tenantId: tenant.id, country: data.country }
-  });
-  
-  if (!client) {
-     client = await prisma.client.create({
-       data: {
-         name: `Canal ${data.country}`,
-         country: data.country,
-         tenantId: tenant.id
-       }
-     });
-  }
   
   const opp = await prisma.opportunity.create({
     data: {
        title: data.title,
        amountUsd: data.amountUsd,
        status: 'PROSPECTO',
-       clientId: client.id,
+       clientId: data.clientId,
        tenantId: tenant.id
     },
     include: { client: true }
