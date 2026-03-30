@@ -15,8 +15,8 @@ export async function POST(req: Request) {
       where: { email },
     });
 
-    if (!user) {
-      return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
+    if (!user || !user.password) {
+      return NextResponse.json({ error: "Usuario no encontrado o contrase\u00f1a no establecida" }, { status: 404 });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -42,11 +42,11 @@ export async function POST(req: Request) {
 
     const res = NextResponse.json({ message: "Login exitoso", user: { id: user.id, email: user.email, isPro: user.isPro } });
     
-    // Cookie HTTPOnly
+    // Cookie HTTPOnly - Lax for iOS PWA stability
     res.cookies.set('auth-token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
       maxAge: 30 * 24 * 60 * 60,
       path: '/'
     });

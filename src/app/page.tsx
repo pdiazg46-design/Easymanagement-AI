@@ -62,6 +62,12 @@ export default function Home() {
   const loadUserProfile = async () => {
      try {
        const res = await fetch('/api/auth/me', { cache: 'no-store' });
+       if (!res.ok) {
+           console.log("Sesión inválida o expirada");
+           localStorage.setItem('easy_currentView', 'login');
+           setCurrentView('login');
+           return;
+       }
        const data = await res.json();
        if (data.user) {
           if (data.user.country) setUserCountry(getFlagCode(data.user.country));
@@ -987,7 +993,7 @@ export default function Home() {
                       whileTap={{ scale: 0.95 }}
                       onClick={async () => {
                          try {
-                           await fetch('/api/user/profile', {
+                           const res = await fetch('/api/user/profile', {
                              method: 'PUT',
                              headers: { 'Content-Type': 'application/json' },
                              body: JSON.stringify({
@@ -997,10 +1003,18 @@ export default function Home() {
                                 avatarUrl: avatarUrl
                              })
                            });
+                           
+                           if (!res.ok) {
+                               const errData = await res.json();
+                               alert('Error al grabar configuración: ' + (errData.error || res.statusText));
+                               return; 
+                           }
+                           
                            localStorage.setItem('easy_currentView', 'dashboard');
                            setCurrentView('dashboard');
                          } catch(e) {
                            console.error(e);
+                           alert("Tu conexión falló. Intenta nuevamente.");
                          }
                       }} 
                       className="bg-[#1E3A8A] text-white font-bold py-4 px-8 rounded-full shadow-xl shadow-blue-900/20 flex items-center gap-2 tracking-wide"
