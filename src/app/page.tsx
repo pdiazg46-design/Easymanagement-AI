@@ -574,18 +574,30 @@ export default function Home() {
 
   // Lógica reutilizable del Mapa Geográfico
   const renderGeoMap = (isFullscreen: boolean) => {
-    const activeMarkers: any[] = [];
+    const baseCountries = [
+      { name: 'México', coordinates: [-102.5528, 23.6345] },
+      { name: 'Colombia', coordinates: [-74.2973, 4.5709] },
+      { name: 'Perú', coordinates: [-75.0152, -9.1900] },
+      { name: 'Chile', coordinates: [-71.5430, -35.6751] },
+      { name: 'Argentina', coordinates: [-63.6167, -38.4161] },
+      { name: 'Brasil', coordinates: [-51.9253, -14.2350] },
+      { name: 'Ecuador', coordinates: [-78.1834, -1.8312] },
+    ];
+
+    const activeMarkers = baseCountries.map(c => {
+       const opps = opportunities.filter(o => o.client?.country === c.name && o.status !== 'PERDIDO');
+       const totalValue = opps.reduce((acc, curr) => acc + curr.amountUsd, 0);
+       return {
+          ...c,
+          value: totalValue > 0 ? `$${(totalValue/1000).toFixed(0)}K` : '0',
+          isActive: totalValue > 0
+       };
+    });
     
-    const minX = activeMarkers.length ? Math.min(...activeMarkers.map(m => m.coordinates[0])) : -90;
-    const maxX = activeMarkers.length ? Math.max(...activeMarkers.map(m => m.coordinates[0])) : -50;
-    const minY = activeMarkers.length ? Math.min(...activeMarkers.map(m => m.coordinates[1])) : -55;
-    const maxY = activeMarkers.length ? Math.max(...activeMarkers.map(m => m.coordinates[1])) : 15;
-    
-    const autoCenterX = (minX + maxX) / 2;
-    const autoCenterY = (minY + maxY) / 2;
-    
-    const maxSpread = Math.max(maxX - minX, maxY - minY);
-    const autoZoom = activeMarkers.length > 0 && maxSpread > 0 ? Math.min(isFullscreen ? 4 : 6, (isFullscreen ? 45 : 60) / maxSpread) : 1.3;
+    // Forzamos un centro si no hay marcadores para que se vea LATAM
+    const autoCenterX = -75;
+    const autoCenterY = -15;
+    const autoZoom = isFullscreen ? 2.5 : 1.3;
 
     return (
       <ComposableMap
@@ -603,6 +615,7 @@ export default function Home() {
           <Geographies geography="https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json">
             {({ geographies }) =>
               geographies.map((geo) => {
+                // Color base, pero si hacemos match podríamos pintarlo
                 const fill = "#E2E8F0";
                 
                 return (
@@ -612,9 +625,17 @@ export default function Home() {
                     fill={fill}
                     stroke="#FFFFFF"
                     strokeWidth={0.7 / autoZoom}
+                    onClick={() => {
+                        // Mapeo básico de nombres
+                        let countryName = geo.properties.name;
+                        if (countryName === "Brazil") countryName = "Brasil";
+                        if (countryName === "Mexico") countryName = "México";
+                        if (countryName === "Peru") countryName = "Perú";
+                        setSelectedCountry(countryName);
+                    }}
                     style={{
                       default: { outline: "none", transition: "all 300ms ease" },
-                      hover: { filter: "brightness(1.1)", outline: "none", cursor: "pointer" },
+                      hover: { fill: "#cbd5e1", outline: "none", cursor: "pointer" },
                       pressed: { outline: "none" },
                     }}
                   />
@@ -623,14 +644,14 @@ export default function Home() {
             }
           </Geographies>
           
-          {activeMarkers.map(({ name, coordinates, value }) => (
+          {activeMarkers.map(({ name, coordinates, value, isActive }) => (
             <Marker key={name} coordinates={coordinates as [number, number]} onClick={() => setSelectedCountry(name)}>
               <g style={{ cursor: "pointer" }}>
-                <rect x="-24" y="-15" width="48" height="28" fill="#ffffff" fillOpacity="0.95" rx="6" stroke="#cbd5e1" strokeWidth={0.5 / autoZoom} className="drop-shadow-sm" />
-                <text textAnchor="middle" y="-3" style={{ fill: "#64748b", fontSize: 5.5, fontWeight: "800", textTransform: "uppercase", letterSpacing: "0.5px", pointerEvents: "none" }}>
+                <rect x="-24" y="-15" width="48" height="28" fill={isActive ? "#7C3AED" : "#ffffff"} fillOpacity="0.95" rx="6" stroke={isActive ? "#6D28D9" : "#cbd5e1"} strokeWidth={0.5 / autoZoom} className="drop-shadow-sm" />
+                <text textAnchor="middle" y="-3" style={{ fill: isActive ? "#ffffff" : "#64748b", opacity: isActive ? 0.9 : 1, fontSize: 5.5, fontWeight: "800", textTransform: "uppercase", letterSpacing: "0.5px", pointerEvents: "none" }}>
                    {name}
                 </text>
-                <text textAnchor="middle" y={8.5} style={{ fill: "#0f172a", fontSize: 9, fontWeight: "900", letterSpacing: "-0.2px", pointerEvents: "none" }}>
+                <text textAnchor="middle" y={8.5} style={{ fill: isActive ? "#ffffff" : "#0f172a", fontSize: 9, fontWeight: "900", letterSpacing: "-0.2px", pointerEvents: "none" }}>
                    {value}
                 </text>
               </g>
