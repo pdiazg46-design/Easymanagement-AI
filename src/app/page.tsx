@@ -1140,8 +1140,8 @@ export default function Home() {
                                  <p className="text-[11px] text-slate-400 font-medium italic tracking-wide text-center py-4">{lang === 'es' ? 'No hay países con métricas activas' : 'No countries with active metrics'}</p>
                               ) : (
                                  activeCountriesMetrics.map(c => (
-                                    <div key={c.name} className="flex flex-col gap-1.5 p-3.5 rounded-2xl border border-slate-100 bg-[#F8FAFC] hover:shadow-sm transition-all">
-                                       <div className="flex justify-between items-center mb-1">
+                                    <div key={c.name} onClick={() => setSelectedCountry(c.name)} className="flex flex-col gap-1.5 p-3.5 rounded-2xl border border-slate-100 bg-[#F8FAFC] hover:shadow-sm hover:border-corporate-purple/30 cursor-pointer transition-all">
+                                       <div className="flex justify-between items-center mb-1 pointer-events-none">
                                           <span className="text-sm font-bold text-[#1E3A8A] flex items-center gap-2">
                                              <MapPin size={14} className="text-corporate-purple" /> {c.name}
                                           </span>
@@ -1435,7 +1435,7 @@ export default function Home() {
                            clients.filter(c => c.country === selectedCountry).map((client: any) => (
                              <div key={client.id} className="bg-white p-4 rounded-[20px] border border-slate-100 shadow-[0_2px_10px_rgb(0,0,0,0.03)] text-left flex flex-col gap-3 group">
                                 <div className="flex justify-between items-center mb-1">
-                                  <h4 className="font-extrabold text-[#1E3A8A] text-[15px]">{client.name}</h4>
+                                  <h4 className="font-extrabold text-[#1E3A8A] text-[15px] cursor-pointer hover:text-corporate-purple transition-colors active:scale-95" onClick={() => setSelectedClient(client)}>{client.name}</h4>
                                   <button onClick={() => setOpenClientFormId(openClientFormId === client.id ? null : client.id)} className="bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-1.5 rounded-[8px] text-[10px] font-bold uppercase tracking-widest shadow-sm flex items-center gap-1 hover:bg-emerald-100 transition-colors">
                                      + {lang === 'es' ? 'Oportunidad' : 'Opportunity'}
                                   </button>
@@ -1494,12 +1494,12 @@ export default function Home() {
                                       <p className="text-[10px] text-slate-400 font-medium italic">{lang === 'es' ? 'Sin oportunidades aún.' : 'No opportunities yet.'}</p>
                                   )}
                                   {opportunities.filter(o => o.clientId === client.id).map(opp => (
-                                      <div key={opp.id} className="bg-slate-50 p-3 rounded-[12px] border border-slate-200/60">
-                                         <div className="flex justify-between items-start mb-2">
+                                      <div key={opp.id} onClick={() => { setSelectedClient(client); setSelectedOpportunity({id: opp.id, title: opp.title, amount: opp.amountUsd.toString()}); }} className="bg-slate-50 p-3 rounded-[12px] border border-slate-200/60 transition-all hover:bg-slate-100 hover:border-corporate-purple/40 hover:shadow-md cursor-pointer active:scale-95">
+                                         <div className="flex justify-between items-start mb-2 pointer-events-none">
                                             <span className="font-extrabold text-[#1E3A8A] text-[11px] leading-tight flex-1 pr-2">{opp.title}</span>
                                             <span className="font-bold text-corporate-purple text-[12px]">${opp.amountUsd.toLocaleString('en-US')}</span>
                                          </div>
-                                         <div className="flex gap-1 bg-white p-1 rounded-full border border-slate-100 shadow-sm">
+                                         <div className="flex gap-1 bg-white p-1 rounded-full border border-slate-100 shadow-sm" onClick={e => e.stopPropagation()}>
                                            {['PROSPECTO', 'COTIZADO', 'GANADO', 'PERDIDO'].map(status => (
                                               <button 
                                                 key={status}
