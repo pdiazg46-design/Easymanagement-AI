@@ -290,7 +290,9 @@ export default function Home() {
               content: a.rawAudioText || "",
               date: a.commitmentDate ? new Date(a.commitmentDate).toISOString().split('T')[0] : "",
               completed: a.completed,
-              createdAt: a.createdAt
+              createdAt: a.createdAt,
+              opportunityId: a.opportunityId,
+              clientId: a.clientId
            }));
            setTodayTasks(mapped);
         }).catch(err => console.error("Error cargando actividades:", err));
@@ -570,7 +572,9 @@ export default function Home() {
             content: newAct.rawAudioText || draftActivity,
             date: newAct.commitmentDate ? new Date(newAct.commitmentDate).toISOString().split('T')[0] : draftDate,
             completed: newAct.completed,
-            createdAt: newAct.createdAt
+            createdAt: newAct.createdAt,
+            opportunityId: newAct.opportunityId,
+            clientId: newAct.clientId
           };
 
           setTodayTasks(prev => [formatted, ...prev]);
@@ -1847,9 +1851,10 @@ export default function Home() {
                                               try { await updateOpportunityStatus(opp.id, newStatus); } catch(err) { console.error(err) }
                                             }}
                                             value={opp.status}
-                                            className={`text-[9px] uppercase font-bold px-2 py-1 rounded-md border appearance-none text-center cursor-pointer shadow-sm outline-none shrink-0 ${
-                                              opp.status === 'GANADO' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                                              'bg-red-50 text-red-700 border-red-200'
+                                            disabled={opp.status === 'GANADO' || opp.status === 'PERDIDO'}
+                                            className={`text-[9px] uppercase font-bold px-2 py-1 rounded-md border appearance-none text-center shadow-sm outline-none shrink-0 ${
+                                              opp.status === 'GANADO' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 cursor-not-allowed' :
+                                              'bg-red-50 text-red-700 border-red-200 cursor-not-allowed'
                                             }`}
                                           >
                                             <option value="PROSPECTO">PROSPECTO</option>
@@ -1912,11 +1917,12 @@ export default function Home() {
                                           try { await updateOpportunityStatus(oppDetails.id, newStatus); } catch(err) { console.error(err) }
                                         }}
                                         value={oppDetails.status}
-                                        className={`text-[10px] uppercase font-bold px-2.5 py-1 rounded-md border appearance-none text-center cursor-pointer shadow-sm outline-none transition-colors w-max ${
-                                          oppDetails.status === 'PROSPECTO' ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100' :
-                                          oppDetails.status === 'COTIZADO' ? 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100' :
-                                          oppDetails.status === 'GANADO' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                                          'bg-red-50 text-red-700 border-red-200'
+                                        disabled={oppDetails.status === 'GANADO' || oppDetails.status === 'PERDIDO'}
+                                        className={`text-[10px] uppercase font-bold px-2.5 py-1 rounded-md border appearance-none text-center shadow-sm outline-none transition-colors w-max ${
+                                          oppDetails.status === 'PROSPECTO' ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 cursor-pointer' :
+                                          oppDetails.status === 'COTIZADO' ? 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 cursor-pointer' :
+                                          oppDetails.status === 'GANADO' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 cursor-not-allowed' :
+                                          'bg-red-50 text-red-700 border-red-200 cursor-not-allowed'
                                         }`}
                                       >
                                         <option value="PROSPECTO">PROSPECTO</option>
@@ -1956,42 +1962,48 @@ export default function Home() {
                   {/* The Timeline Vertical Line */}
                   <div className="relative pl-[26px] border-l-2 border-slate-200/80 space-y-9">
                      
-                     {/* Dynamic Items (Recién Creados) */}
-                     {newTimelineItems.length === 0 && (
-                        <div className="flex flex-col items-center justify-center p-8 bg-slate-50/50 rounded-3xl border border-slate-100 shadow-sm mt-4">
-                           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest text-center">{lang === 'es' ? 'Aún no hay registros en la bitácora.' : 'No records in the timeline yet.'}</p>
-                           <p className="text-[10px] text-slate-400 font-medium mt-1 text-center">{lang === 'es' ? 'Usa el botón flotante para crear uno nuevo.' : 'Use the floating button to create one.'}</p>
-                        </div>
-                     )}
-                     
-                     {newTimelineItems.map((item) => (
-                        <motion.div key={item.id} initial={{opacity:0, y:-20}} animate={{opacity:1, y:0}} className="relative">
-                           <div className="absolute -left-[35px] w-[26px] h-[26px] rounded-full bg-emerald-500 text-white shadow-sm flex items-center justify-center border-4 border-[#F8FAFC]">
-                              <Signal size={10} strokeWidth={3} />
-                           </div>
-                           <div className="flex justify-between items-end mb-2 ml-1">
-                             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest bg-slate-100 w-max px-2 py-0.5 rounded-full border border-slate-200/50">{item.completed ? (lang === 'es' ? 'Completado' : 'Completed') : (lang === 'es' ? 'Registro Ágil' : 'Quick Log')}</p>
-                             <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">{item.date || (lang === 'es' ? 'Reciente' : 'Recent')}</p>
-                           </div>
-                           
-                           <div className="bg-white p-5 rounded-[24px] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.03)] relative overflow-hidden">
-                              <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-500"></div>
-                              <div className="flex items-start justify-between mb-2">
-                                <h4 className="font-extrabold text-slate-800 text-[15px] pr-2 leading-tight">{item.title}</h4>
-                                <span className="text-[11px] font-black text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] border border-emerald-100/50 shrink-0">#{item.id < 10 ? `0${item.id}` : (typeof item.id === 'string' ? item.id.substring(item.id.length - 4).toUpperCase() : item.id)}</span>
+                     {/* The Timeline Vertical Line */}
+                     {(() => {
+                        const projectActivities = todayTasks.filter((t: any) => t.opportunityId === selectedOpportunity.id);
+                        
+                        if (projectActivities.length === 0) {
+                           return (
+                              <div className="flex flex-col items-center justify-center p-8 bg-slate-50/50 rounded-3xl border border-slate-100 shadow-sm mt-4">
+                                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest text-center">{lang === 'es' ? 'Aún no hay registros en la bitácora.' : 'No records in the timeline yet.'}</p>
+                                 <p className="text-[10px] text-slate-400 font-medium mt-1 text-center">{lang === 'es' ? 'Usa el botón flotante para crear uno nuevo.' : 'Use the floating button to create one.'}</p>
                               </div>
-                              <p className="text-[13px] text-slate-600 font-medium leading-relaxed mb-4">
-                                {item.content}
-                              </p>
-                              <div className="bg-slate-50 rounded-xl p-3 border border-slate-200/60 flex flex-col gap-1.5">
-                                 <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 flex items-center gap-1.5 opacity-90">
-                                   <Edit2 size={11} strokeWidth={3} /> {lang === 'es' ? 'Nota:' : 'Note:'}
-                                 </span>
-                                 <span className="text-[13px] font-bold text-slate-700 leading-tight">{lang === 'es' ? 'Registrado por IA.' : 'Registered by AI.'}</span>
+                           );
+                        }
+
+                        return projectActivities.map((item: any) => (
+                           <motion.div key={item.id} initial={{opacity:0, y:-20}} animate={{opacity:1, y:0}} className="relative">
+                              <div className="absolute -left-[35px] w-[26px] h-[26px] rounded-full bg-emerald-500 text-white shadow-sm flex items-center justify-center border-4 border-[#F8FAFC]">
+                                 <Signal size={10} strokeWidth={3} />
                               </div>
-                           </div>
-                        </motion.div>
-                     ))}
+                              <div className="flex justify-between items-end mb-2 ml-1">
+                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest bg-slate-100 w-max px-2 py-0.5 rounded-full border border-slate-200/50">{item.completed ? (lang === 'es' ? 'Completado' : 'Completed') : (lang === 'es' ? 'Registro Ágil' : 'Quick Log')}</p>
+                                <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">{item.date ? new Date(item.createdAt).toLocaleDateString(lang === 'es' ? 'es-CL' : 'en-US') : (lang === 'es' ? 'Reciente' : 'Recent')}</p>
+                              </div>
+                              
+                              <div className="bg-white p-5 rounded-[24px] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.03)] relative overflow-hidden">
+                                 <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-500"></div>
+                                 <div className="flex items-start justify-between mb-2">
+                                   <h4 className="font-extrabold text-slate-800 text-[15px] pr-2 leading-tight">{item.title}</h4>
+                                   <span className="text-[11px] font-black text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] border border-emerald-100/50 shrink-0">#{typeof item.id === 'string' ? item.id.substring(item.id.length - 4).toUpperCase() : item.id}</span>
+                                 </div>
+                                 <p className="text-[13px] text-slate-600 font-medium leading-relaxed mb-4">
+                                   {item.content}
+                                 </p>
+                                 <div className="bg-slate-50 rounded-xl p-3 border border-slate-200/60 flex flex-col gap-1.5">
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 flex items-center gap-1.5 opacity-90">
+                                      <Edit2 size={11} strokeWidth={3} /> {lang === 'es' ? 'Nota:' : 'Note:'}
+                                    </span>
+                                    <span className="text-[13px] font-bold text-slate-700 leading-tight">{lang === 'es' ? 'Registrado por IA.' : 'Registered by AI.'}</span>
+                                 </div>
+                              </div>
+                           </motion.div>
+                        ));
+                     })()}
 
 
                   </div>
