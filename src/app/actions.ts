@@ -202,13 +202,6 @@ export async function updateOpportunityConfidence(id: string, confidenceLevel: s
   return opp;
 }
 
-export async function deleteOpportunity(id: string) {
-    await prisma.opportunity.delete({
-       where: { id }
-    });
-    revalidatePath('/');
-}
-
 // SUPER-ADMIN: Get All Users
 export async function getAllUsers() {
    const users = await prisma.user.findMany({
