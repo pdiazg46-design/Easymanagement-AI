@@ -41,6 +41,7 @@ model User {
   isPro        Boolean  @default(false)
   tenantId     String?
   tenant       Tenant?   @relation(fields: [tenantId], references: [id])
+  createdAt    DateTime  @default(now())
   
   activities   ActivityLog[]
 }

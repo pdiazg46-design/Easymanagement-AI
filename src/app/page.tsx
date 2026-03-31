@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Mic, Trash2, Keyboard, Edit2, Signal, Mail, Lock, Fingerprint, UploadCloud, Link as LinkIcon, ArrowRight, Eye, EyeOff, Map as MapIcon, List, Maximize2, Minimize2, X, Calendar, Navigation, MapPin, ChevronLeft, ChevronRight, Share2, FileText, CreditCard, ShieldCheck, Check, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from "react-simple-maps";
-import { getActivities, createActivity, toggleActivityCompletion, getOpportunities, createOpportunity, updateOpportunityStatus, getClients, createClient, deleteActivity, updateOpportunityConfidence, deleteOpportunity } from './actions';
+import { getActivities, createActivity, toggleActivityCompletion, getOpportunities, createOpportunity, updateOpportunityStatus, getClients, createClient, deleteActivity, updateOpportunityConfidence, deleteOpportunity, getAllUsers, toggleUserProStatus } from './actions';
 
 export default function Home() {
   const [lang, setLang] = useState<'es'|'en'>('es');
@@ -266,6 +266,7 @@ export default function Home() {
   const [showClientForm, setShowClientForm] = useState(false);
   const [draftClientName, setDraftClientName] = useState("");
   const [openClientFormId, setOpenClientFormId] = useState<string | null>(null);
+  const [adminUsers, setAdminUsers] = useState<any[]>([]);
 
   const refreshOpportunities = async () => {
       const opps = await getOpportunities();
@@ -283,6 +284,9 @@ export default function Home() {
 
   // 2. Cargar datos de negocio cuando estamos en el dashboard
   useEffect(() => {
+     if (currentView === 'onboarding' && email === 'pdiazg46@gmail.com') {
+         getAllUsers().then(u => setAdminUsers(u)).catch(console.error);
+     }
      if (currentView === 'dashboard') {
         // Cargar Tareas, Clientes y Oportunidades
         getActivities().then(activities => {
@@ -879,9 +883,9 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-[100dvh] w-full max-w-md mx-auto bg-white flex flex-col font-sans relative shadow-2xl overflow-hidden">
+    <div className={`min-h-[100dvh] w-full font-sans relative flex overflow-hidden bg-slate-100`}>
         {/* CONTENEDOR DE VISTAS */}
-        <div className="flex-1 relative overflow-hidden flex flex-col">
+        <div className={`flex-1 relative overflow-hidden flex ${currentView === 'onboarding' && email === 'pdiazg46@gmail.com' ? 'flex-row w-full max-w-none' : 'flex-col max-w-md mx-auto bg-white shadow-2xl'}`}>
           <AnimatePresence mode="wait">
 
             {/* VISTA 1: CREAR CUENTA / LOGIN */}
@@ -1004,9 +1008,11 @@ export default function Home() {
               <motion.div 
                 key="onboarding"
                 initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }}
-                className="absolute inset-0 flex flex-col px-7 pt-12 bg-white overflow-y-auto pb-10 no-scrollbar"
+                className={`absolute inset-0 flex flex-row px-0 pt-0 bg-transparent overflow-hidden`}
               >
-                 <div className="mb-6">
+                  {/* PANEL IZQUIERDO: CONFIGURACIÓN MÓVIL EXACTA */}
+                  <div className="w-full md:w-[450px] md:min-w-[450px] h-full shadow-2xl bg-white relative shrink-0 flex flex-col overflow-y-auto no-scrollbar pt-12 pb-10 px-7 mx-auto md:mx-0">
+                     <div className="mb-6">
                    <div className="w-12 h-1 bg-corporate-purple rounded-full mb-6 relative">
                       <button onClick={() => setLang(lang === 'es' ? 'en' : 'es')} className="absolute -right-60 -top-2 bg-slate-100 text-[#1E3A8A] px-2 py-1 rounded-full text-[10px] font-bold shadow-sm border border-slate-200 uppercase flex items-center gap-1">
                          🌐 {lang === 'es' ? 'ES' : 'EN'}
@@ -1135,7 +1141,7 @@ export default function Home() {
                     </div>
                  </div>
 
-                 <div className="mt-8 mb-10 w-full flex justify-end shrink-0">
+                 <div className="mt-8 mb-6 w-full flex flex-col justify-end gap-3 shrink-0">
                     <motion.button 
                       whileTap={{ scale: 0.95 }}
                       onClick={async () => {
@@ -1164,12 +1170,100 @@ export default function Home() {
                            alert("Tu conexión falló. Intenta nuevamente.");
                          }
                       }} 
-                      className="bg-[#1E3A8A] text-white font-bold py-4 px-8 rounded-full shadow-xl shadow-blue-900/20 flex items-center gap-2 tracking-wide"
+                      className="bg-[#1E3A8A] text-white font-bold py-4 px-8 rounded-full shadow-xl shadow-blue-900/20 flex items-center justify-center gap-2 tracking-wide w-full"
                     >
-                      {lang === 'es' ? 'FINALIZAR' : 'FINISH STARTING'}
+                      {lang === 'es' ? 'GUARDAR CONFIGURACIÓN' : 'SAVE CONFIGURATION'}
                       <ArrowRight size={18} />
                     </motion.button>
+
+                    <button 
+                      onClick={async () => {
+                        localStorage.removeItem('easy_currentView');
+                        setCurrentView('login');
+                        await fetch('/api/auth/logout', { method: 'POST' });
+                        window.location.reload();
+                      }}
+                      className="text-slate-400 font-bold py-3 text-sm flex items-center justify-center gap-2 hover:text-red-500 transition-colors w-full uppercase tracking-wider"
+                    >
+                      <LogOut size={16} />
+                      {lang === 'es' ? 'CERRAR SESIÓN' : 'LOG OUT'}
+                    </button>
                  </div>
+              </div>
+
+              {/* PANEL DERECHO: ADMIN DE USUARIOS (SOLO PATRICIO O PRO) */}
+              {email === 'pdiazg46@gmail.com' && (
+                  <div className="hidden md:flex flex-1 flex-col p-8 lg:p-12 items-center justify-start overflow-y-auto relative border-l border-slate-200 shadow-inner bg-[#F8FAFC]">
+                     <div className="w-full max-w-4xl bg-white rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100">
+                        <div className="flex justify-between items-center mb-6">
+                           <h2 className="text-[#1E3A8A] text-2xl font-black uppercase tracking-widest flex items-center gap-3">
+                              <ShieldCheck size={28} className="text-corporate-purple" /> 
+                              Super User Panel
+                           </h2>
+                           <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{adminUsers.length} Usuarios Activos</span>
+                        </div>
+
+                        <div className="w-full overflow-hidden rounded-2xl border border-slate-100 shadow-sm relative">
+                           <table className="w-full text-left border-collapse">
+                             <thead>
+                               <tr className="bg-slate-50 text-[10px] uppercase tracking-widest font-black text-slate-400 border-b border-slate-100">
+                                 <th className="px-5 py-4">Usuario</th>
+                                 <th className="px-5 py-4">Suscripción</th>
+                                 <th className="px-5 py-4">Días de Prueba</th>
+                                 <th className="px-5 py-4 text-center">Acciones</th>
+                               </tr>
+                             </thead>
+                             <tbody>
+                               {adminUsers.map(u => {
+                                  const cDate = new Date(u.createdAt || Date.now());
+                                  const now = new Date();
+                                  const diffDays = Math.floor((now.getTime() - cDate.getTime()) / (1000 * 3600 * 24));
+                                  const remainingTrials = Math.max(0, 7 - diffDays);
+                                  const isLocked = remainingTrials === 0 && !u.isPro;
+
+                                  return (
+                                    <tr key={u.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                                       <td className="px-5 py-4 text-sm font-bold text-[#1E3A8A] flex flex-col gap-0.5">
+                                          {u.name}
+                                          <span className="text-[10px] font-medium text-slate-400">{u.email}</span>
+                                       </td>
+                                       <td className="px-5 py-4">
+                                          {u.isPro ? (
+                                             <span className="bg-emerald-100 text-emerald-600 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md">Pro</span>
+                                          ) : isLocked ? (
+                                             <span className="bg-red-50 text-red-500 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md">Bloqueado</span>
+                                          ) : (
+                                             <span className="bg-amber-50 text-amber-500 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md shadow-sm border border-amber-200/50">Prueba Activa</span>
+                                          )}
+                                       </td>
+                                       <td className="px-5 py-4">
+                                          {u.isPro ? (
+                                             <span className="text-xs font-bold text-emerald-500">Ilimitado</span>
+                                          ) : (
+                                             <span className={`text-xs font-black ${isLocked ? 'text-red-500' : 'text-slate-600'}`}>{isLocked ? '0' : remainingTrials} días</span>
+                                          )}
+                                       </td>
+                                       <td className="px-5 py-4 text-center">
+                                          <button 
+                                             onClick={async () => {
+                                                await toggleUserProStatus(u.id, !u.isPro);
+                                                const newUsers = await getAllUsers();
+                                                setAdminUsers(newUsers);
+                                             }}
+                                             className={`text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 mx-auto ${u.isPro ? 'bg-white text-slate-400 border border-slate-200 hover:text-red-500 hover:border-red-200' : 'bg-gradient-to-r from-corporate-purple to-[#1E3A8A] text-white hover:shadow-lg hover:scale-105 active:scale-95'}`}
+                                          >
+                                             {u.isPro ? 'REVOCAR SUSCRIPCIÓN' : 'REGALAR SUSCRIPCIÓN'}
+                                          </button>
+                                       </td>
+                                    </tr>
+                                  );
+                               })}
+                             </tbody>
+                           </table>
+                        </div>
+                     </div>
+                  </div>
+              )}
               </motion.div>
             )}
 
