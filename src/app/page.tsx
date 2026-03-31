@@ -1753,14 +1753,55 @@ export default function Home() {
                   </div>
                ) : (
                   <div className="flex-1 overflow-y-auto w-full p-6 pb-32 bg-[#F8FAFC]">
-                     <div className="flex items-center gap-2 mb-8 pb-3 border-b border-slate-200/60 break-words">
-                       <button onClick={() => setSelectedOpportunity(null)} className="p-1 -ml-1 text-slate-400 hover:text-[#1E3A8A] rounded-full transition-colors active:bg-slate-100 shrink-0">
-                          <ChevronLeft size={26} strokeWidth={2.5}/>
-                       </button>
-                       <h3 className="font-bold text-[#1E3A8A] uppercase tracking-widest text-[13px] leading-tight pr-2">
-                          {lang === 'es' ? 'Bitácora' : 'Timeline'}: <span className="text-slate-600">{selectedOpportunity.title}</span>
-                       </h3>
-                     </div>
+                     {(() => {
+                        const oppDetails = opportunities.find(o => o.id === selectedOpportunity.id);
+                        if (!oppDetails) return null;
+                        
+                        return (
+                           <div className="mb-8">
+                             <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-200/60 break-words">
+                               <button onClick={() => setSelectedOpportunity(null)} className="p-1 -ml-1 text-slate-400 hover:text-[#1E3A8A] rounded-full transition-colors active:bg-slate-100 shrink-0">
+                                  <ChevronLeft size={26} strokeWidth={2.5}/>
+                               </button>
+                               <h3 className="font-bold text-[#1E3A8A] uppercase tracking-widest text-[13px] leading-tight pr-2">
+                                  {lang === 'es' ? 'Bitácora' : 'Timeline'}
+                               </h3>
+                             </div>
+
+                             {/* Detalle de Oportunidad (Cabecera) */}
+                             <div className="bg-white p-4 sm:p-5 rounded-[20px] border border-slate-200 shadow-sm flex flex-col gap-3">
+                                <h4 className="font-extrabold text-[#1E3A8A] text-[15px] sm:text-[16px] leading-tight">{oppDetails.title}</h4>
+                                <div className="flex justify-between items-end">
+                                   <div className="flex flex-col gap-2">
+                                      <span className="text-[10px] uppercase font-bold text-amber-700 bg-amber-50 w-max px-2.5 py-1 rounded-md border border-amber-200/50">{oppDetails.status}</span>
+                                      
+                                      <select 
+                                       onChange={async (e) => {
+                                         const newConf = e.target.value;
+                                         setOpportunities(prev => prev.map(o => o.id === oppDetails.id ? {...o, confidenceLevel: newConf} : o));
+                                         try { await updateOpportunityConfidence(oppDetails.id, newConf); } catch(err) { console.error(err) }
+                                       }}
+                                       value={oppDetails.confidenceLevel || 'MEDIA'}
+                                       className={`text-[10px] uppercase font-bold px-2.5 py-1.5 rounded-md border appearance-none cursor-pointer shadow-sm outline-none transition-colors w-max ${
+                                         oppDetails.confidenceLevel === 'ALTA' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' :
+                                         oppDetails.confidenceLevel === 'BAJA' ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100' :
+                                         'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'
+                                       }`}
+                                     >
+                                       <option value="ALTA">💚 CONF: ALTA</option>
+                                       <option value="MEDIA">💛 CONF: MEDIA</option>
+                                       <option value="BAJA">❤️ CONF: BAJA</option>
+                                     </select>
+                                   </div>
+                                   <div className="text-right">
+                                      <span className="text-[18px] sm:text-[20px] font-black text-emerald-600 leading-none">${oppDetails.amountUsd?.toLocaleString('en-US') || 0}</span>
+                                      <div className="text-[10px] uppercase font-bold text-slate-400 mt-1">USD</div>
+                                   </div>
+                                </div>
+                             </div>
+                           </div>
+                        );
+                     })()}
 
                   {/* The Timeline Vertical Line */}
                   <div className="relative pl-[26px] border-l-2 border-slate-200/80 space-y-9">
