@@ -201,3 +201,37 @@ export async function updateOpportunityConfidence(id: string, confidenceLevel: s
   revalidatePath("/");
   return opp;
 }
+
+export async function deleteOpportunity(id: string) {
+    await prisma.opportunity.delete({
+       where: { id }
+    });
+    revalidatePath('/');
+}
+
+// SUPER-ADMIN: Get All Users
+export async function getAllUsers() {
+   const users = await prisma.user.findMany({
+      orderBy: { createdAt: 'desc' },
+      select: {
+         id: true,
+         email: true,
+         name: true,
+         isPro: true,
+         createdAt: true,
+         country: true,
+         clientUrl: true
+      }
+   });
+   return users;
+}
+
+// SUPER-ADMIN: Toggle Pro Status
+export async function toggleUserProStatus(userId: string, isPro: boolean) {
+   await prisma.user.update({
+      where: { id: userId },
+      data: { isPro }
+   });
+   revalidatePath("/");
+   return { success: true };
+}
