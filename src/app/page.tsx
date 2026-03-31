@@ -245,6 +245,7 @@ export default function Home() {
   const [editingTask, setEditingTask] = useState<any>(null);
   const [selectedClient, setSelectedClient] = useState<{id?: string, name: string, country: string} | null>(null);
   const [selectedOpportunity, setSelectedOpportunity] = useState<{id: string, title: string, amount: string} | null>(null);
+  const [marketOppFilter, setMarketOppFilter] = useState<'ACTIVOS' | 'GANADOS' | 'PERDIDOS'>('ACTIVOS');
   const [pendingLostOpp, setPendingLostOpp] = useState<any>(null);
   const [newTimelineItems, setNewTimelineItems] = useState<any[]>([]);
   const [newCountryTimelineItems, setNewCountryTimelineItems] = useState<any[]>([]);
@@ -1484,12 +1485,23 @@ export default function Home() {
                      <div>
                        <div className="flex justify-between items-center mb-4 pr-1">
                           <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest pl-1">{lang === 'es' ? 'Canales / Distribuidores' : 'Channels / Distributors'}</h3>
-                          <button 
-                            onClick={() => setShowClientForm(!showClientForm)}
-                            className="bg-corporate-purple text-white text-[10px] px-3 py-1.5 rounded-full font-bold shadow-sm"
-                          >
-                             {showClientForm ? (lang === 'es' ? 'Cancelar' : 'Cancel') : (lang === 'es' ? '+ Nuevo Cliente' : '+ New Client')}
-                          </button>
+                          <div className="flex items-center gap-2">
+                             <select 
+                                value={marketOppFilter}
+                                onChange={e => setMarketOppFilter(e.target.value as any)}
+                                className="bg-white text-slate-500 text-[10px] px-2 py-1.5 rounded-full font-bold uppercase outline-none shadow-sm cursor-pointer border border-slate-200"
+                             >
+                                <option value="ACTIVOS">{lang === 'es' ? 'Activos' : 'Active'}</option>
+                                <option value="GANADOS">{lang === 'es' ? 'Ganados' : 'Won'}</option>
+                                <option value="PERDIDOS">{lang === 'es' ? 'Perdidos' : 'Lost'}</option>
+                             </select>
+                             <button 
+                               onClick={() => setShowClientForm(!showClientForm)}
+                               className="bg-corporate-purple text-white text-[10px] px-3 py-1.5 rounded-full font-bold shadow-sm"
+                             >
+                                {showClientForm ? (lang === 'es' ? 'Cancelar' : 'Cancel') : (lang === 'es' ? '+ Nuevo Cliente' : '+ New Client')}
+                             </button>
+                          </div>
                        </div>
                        
                        <AnimatePresence>
@@ -1587,35 +1599,41 @@ export default function Home() {
 
                                 {/* Lista de oportunidades atadas a este cliente */}
                                 <div className="flex flex-col gap-2 mt-2">
-                                  {opportunities.filter(o => o.clientId === client.id).length === 0 && (
-                                      <p className="text-[10px] text-slate-400 font-medium italic">{lang === 'es' ? 'Sin oportunidades aún.' : 'No opportunities yet.'}</p>
-                                  )}
-                                  {opportunities.filter(o => o.clientId === client.id).map(opp => (
-                                      <div key={opp.id} onClick={() => { setSelectedClient(client); setSelectedOpportunity({id: opp.id, title: opp.title, amount: opp.amountUsd.toString()}); }} className="bg-slate-50 p-3 rounded-[12px] border border-slate-200/60 transition-all hover:bg-slate-100 hover:border-corporate-purple/40 hover:shadow-md cursor-pointer active:scale-95">
-                                         <div className="flex justify-between items-start mb-2 pointer-events-none">
-                                            <span className="font-extrabold text-[#1E3A8A] text-[11px] leading-tight flex-1 pr-2">{opp.title}</span>
-                                            <span className="font-bold text-corporate-purple text-[12px]">${opp.amountUsd.toLocaleString('en-US')}</span>
-                                         </div>
-                                         <div className="flex gap-1 bg-white p-1 rounded-full border border-slate-100 shadow-sm" onClick={e => e.stopPropagation()}>
-                                           {['PROSPECTO', 'COTIZADO', 'GANADO', 'PERDIDO'].map(status => (
-                                              <button 
-                                                key={status}
-                                                onClick={async () => {
-                                                   await updateOpportunityStatus(opp.id, status);
-                                                   refreshOpportunities();
-                                                }}
-                                                className={`flex-1 flex justify-center py-1 rounded-full transition-all text-[8px] sm:text-[9px] font-bold ${opp.status === status ? 
-                                                   (status === 'GANADO' ? 'bg-emerald-500 text-white' : 
-                                                    status === 'PERDIDO' ? 'bg-rose-500 text-white' : 
-                                                    'bg-[#1E3A8A] text-white') 
-                                                    : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}
-                                              >
-                                                 {status.substring(0,3)}
-                                              </button>
-                                           ))}
-                                         </div>
-                                      </div>
-                                  ))}
+                                  {(() => {
+                                      const clientOppsFiltered = opportunities.filter(o => o.clientId === client.id).filter(o => {
+                                         if (marketOppFilter === 'ACTIVOS') return o.status === 'PROSPECTO' || o.status === 'COTIZADO';
+                                         if (marketOppFilter === 'GANADOS') return o.status === 'GANADO';
+                                         if (marketOppFilter === 'PERDIDOS') return o.status === 'PERDIDO';
+                                         return true;
+                                      });
+
+                                      if (clientOppsFiltered.length === 0) {
+                                         return <p className="text-[10px] text-slate-400 font-medium italic">{lang === 'es' ? 'Sin oportunidades en esta vista.' : 'No opportunities in this view.'}</p>;
+                                      }
+
+                                      return clientOppsFiltered.map(opp => (
+                                          <div key={opp.id} onClick={() => { setSelectedClient(client); setSelectedOpportunity({id: opp.id, title: opp.title, amount: opp.amountUsd.toString()}); }} className="bg-slate-50 p-3 rounded-[12px] border border-slate-200/60 transition-all hover:bg-slate-100 hover:border-corporate-purple/40 hover:shadow-md cursor-pointer active:scale-95">
+                                             <div className="flex justify-between items-start mb-2 pointer-events-none">
+                                                <span className="font-extrabold text-[#1E3A8A] text-[11px] leading-tight flex-1 pr-2">{opp.title}</span>
+                                                <span className="font-bold text-corporate-purple text-[12px]">${opp.amountUsd.toLocaleString('en-US')}</span>
+                                             </div>
+                                             <div className="flex gap-1 bg-white p-1 rounded-full border border-slate-100 shadow-sm" onClick={e => e.stopPropagation()}>
+                                               {['PROSPECTO', 'COTIZADO', 'GANADO', 'PERDIDO'].map(status => (
+                                                  <div 
+                                                    key={status}
+                                                    className={`flex-1 flex justify-center py-1 rounded-full transition-all text-[8px] sm:text-[9px] font-bold ${opp.status === status ? 
+                                                       (status === 'GANADO' ? 'bg-emerald-500 text-white shadow-sm' : 
+                                                        status === 'PERDIDO' ? 'bg-rose-500 text-white shadow-sm' : 
+                                                        'bg-[#1E3A8A] text-white shadow-sm') 
+                                                        : 'text-slate-300'}`}
+                                                  >
+                                                     {status.substring(0,3)}
+                                                  </div>
+                                               ))}
+                                             </div>
+                                          </div>
+                                      ));
+                                  })()}
                                 </div>
                              </div>
                            ))
