@@ -245,6 +245,7 @@ export default function Home() {
   const [editingTask, setEditingTask] = useState<any>(null);
   const [selectedClient, setSelectedClient] = useState<{id?: string, name: string, country: string} | null>(null);
   const [selectedOpportunity, setSelectedOpportunity] = useState<{id: string, title: string, amount: string} | null>(null);
+  const [pendingLostOpp, setPendingLostOpp] = useState<any>(null);
   const [newTimelineItems, setNewTimelineItems] = useState<any[]>([]);
   const [newCountryTimelineItems, setNewCountryTimelineItems] = useState<any[]>([]);
   const [uploadedCatalogs, setUploadedCatalogs] = useState<{name: string, size: string}[]>([]);
@@ -588,6 +589,14 @@ export default function Home() {
       } catch (err) {
           console.error("No se pudo guardar la actividad en la base de datos", err);
       }
+      
+      // Hook en grabar si es que estábamos justificando una pérdida
+      if (pendingLostOpp) {
+          setOpportunities(prev => prev.map(o => o.id === pendingLostOpp.id ? {...o, status: 'PERDIDO', statusUpdatedAt: new Date()} : o));
+          try { await updateOpportunityStatus(pendingLostOpp.id, 'PERDIDO'); } catch(err) { console.error(err) }
+          setPendingLostOpp(null);
+      }
+      
     } else {
       // Update logic (En Fase 2 lo moveremos a server action update)
       setTodayTasks(prev => prev.map(t => t.id === editingTask.id ? { ...t, title: draftAction, content: draftActivity, date: draftDate } : t));
@@ -1731,6 +1740,18 @@ export default function Home() {
                                         onChange={async (e) => {
                                           e.stopPropagation();
                                           const newStatus = e.target.value;
+                                          if (newStatus === 'PERDIDO') {
+                                             setPendingLostOpp(opp);
+                                             setSelectedOpportunity({id: opp.id, title: opp.title, amount: opp.amountUsd.toString()});
+                                             setIsRecording(true);
+                                             finalTranscriptRef.current = '';
+                                             setDraftActivity("");
+                                             setDraftAction(lang === 'es' ? "Motivos de pérdida de proyecto" : "Reason for lost deal");
+                                             if (recognitionRef.current) {
+                                                try { recognitionRef.current.start(); } catch(err){}
+                                             }
+                                             return;
+                                          }
                                           setOpportunities(prev => prev.map(o => o.id === opp.id ? {...o, status: newStatus, statusUpdatedAt: new Date()} : o));
                                           try { await updateOpportunityStatus(opp.id, newStatus); } catch(err) { console.error(err) }
                                         }}
@@ -1985,7 +2006,7 @@ export default function Home() {
                    onClick={(e) => {
                      e.stopPropagation();
                      setShowActionModal(false);
-                     setTimeout(() => setEditingTask(null), 300);
+                     setTimeout(() => { setEditingTask(null); setPendingLostOpp(null); }, 300);
                    }} 
                    className="p-3 bg-slate-100 rounded-full hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer active:scale-95"
                  >
@@ -2102,7 +2123,11 @@ export default function Home() {
                 </motion.div>
                 <h3 className="text-white text-2xl font-bold uppercase tracking-wider mb-3">{lang === 'es' ? 'Te Escucho' : 'I am listening'}</h3>
                 <p className="text-slate-300 text-center text-[13px] font-medium mb-12 max-w-[280px] leading-relaxed">
-                  {lang === 'es' ? 'Menciona los detalles de la visita y la próxima acción a tomar.' : 'Mention the details of the visit and the next action to take.'}
+                  {pendingLostOpp ? 
+                     (lang === 'es' ? 'Argumenta detalladamente por qué se perdió este proyecto.' : 'Argue in detail why this project was lost.') 
+                     : 
+                     (lang === 'es' ? 'Menciona los detalles de la visita y la próxima acción a tomar.' : 'Mention the details of the visit and the next action to take.')
+                  }
                 </p>
                 
                 <button onClick={handleMicClick} className="bg-white/20 hover:bg-white/30 text-white border border-white/30 rounded-full px-8 py-3 font-semibold backdrop-blur-sm transition-colors uppercase tracking-widest text-xs flex items-center gap-2">
