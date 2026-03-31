@@ -1711,45 +1711,122 @@ export default function Home() {
                           <Signal size={16} className="text-corporate-purple" /> {lang === 'es' ? 'Oportunidades Activas' : 'Active Opportunities'}
                        </h3>
                      </div>
-                     <div className="space-y-4">
-                        {opportunities.filter(o => o.client?.name === selectedClient?.name).map(opp => (
-                            <div 
-                               key={opp.id} 
-                               onClick={() => setSelectedOpportunity({id: opp.id, title: opp.title, amount: opp.amountUsd.toString()})}
-                               className="bg-white p-5 rounded-[20px] border border-slate-200 shadow-sm flex justify-between items-center cursor-pointer hover:border-corporate-purple/40 hover:shadow-md transition-all active:scale-[0.98]"
-                            >
-                               <div>
-                                  <h4 className="font-extrabold text-[#1E3A8A] text-[15px] mb-1.5">{opp.title}</h4>
-                                  <div className="flex items-center gap-2">
-                                     <span className="text-[10px] uppercase font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200/50 shrink-0">{opp.status}</span>
-                                     <select 
-                                       onClick={e => e.stopPropagation()} 
-                                       onChange={async (e) => {
-                                         e.stopPropagation();
-                                         const newConf = e.target.value;
-                                         setOpportunities(prev => prev.map(o => o.id === opp.id ? {...o, confidenceLevel: newConf} : o));
-                                         try { await updateOpportunityConfidence(opp.id, newConf); } catch(err) { console.error(err) }
-                                       }}
-                                       value={opp.confidenceLevel || 'MEDIA'}
-                                       className={`text-[9px] uppercase font-bold px-2 py-1 rounded-md border appearance-none text-center cursor-pointer shadow-sm outline-none transition-colors ${
-                                         opp.confidenceLevel === 'ALTA' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' :
-                                         opp.confidenceLevel === 'BAJA' ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100' :
-                                         'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100' // Default MEDIA
-                                       }`}
-                                     >
-                                       <option value="ALTA">💚 ALTA</option>
-                                       <option value="MEDIA">💛 MEDIA</option>
-                                       <option value="BAJA">❤️ BAJA</option>
-                                     </select>
-                                  </div>
-                               </div>
-                               <div className="text-right">
-                                  <span className="text-[17px] font-black text-emerald-600 leading-none">${opp.amountUsd.toLocaleString('en-US')}</span>
-                                  <div className="text-[10px] uppercase font-bold text-slate-400 mt-1">USD</div>
-                               </div>
-                            </div>
-                         ))}
+                     <div className="space-y-4 mb-8">
+                        {(() => {
+                           const activeOpps = opportunities.filter(o => o.client?.name === selectedClient?.name && (o.status === 'PROSPECTO' || o.status === 'COTIZADO'));
+                           if (activeOpps.length === 0) return <p className="text-xs text-slate-400 font-medium italic">{lang === 'es' ? 'No hay oportunidades activas.' : 'No active opportunities.'}</p>;
+                           
+                           return activeOpps.map(opp => (
+                             <div 
+                                key={opp.id} 
+                                onClick={() => setSelectedOpportunity({id: opp.id, title: opp.title, amount: opp.amountUsd.toString()})}
+                                className="bg-white p-5 rounded-[20px] border border-slate-200 shadow-sm flex justify-between items-center cursor-pointer hover:border-corporate-purple/40 hover:shadow-md transition-all active:scale-[0.98]"
+                             >
+                                <div>
+                                   <h4 className="font-extrabold text-[#1E3A8A] text-[15px] mb-1.5">{opp.title}</h4>
+                                   <div className="flex items-center gap-2">
+                                      {/* Status Selector */}
+                                      <select 
+                                        onClick={e => e.stopPropagation()} 
+                                        onChange={async (e) => {
+                                          e.stopPropagation();
+                                          const newStatus = e.target.value;
+                                          setOpportunities(prev => prev.map(o => o.id === opp.id ? {...o, status: newStatus} : o));
+                                          try { await updateOpportunityStatus(opp.id, newStatus); } catch(err) { console.error(err) }
+                                        }}
+                                        value={opp.status}
+                                        className={`text-[9px] uppercase font-bold px-2 py-1 rounded-md border appearance-none text-center cursor-pointer shadow-sm outline-none transition-colors shrink-0 ${
+                                          opp.status === 'PROSPECTO' ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100' :
+                                          'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100'
+                                        }`}
+                                      >
+                                        <option value="PROSPECTO">PROSPECTO</option>
+                                        <option value="COTIZADO">COTIZADO</option>
+                                        <option value="GANADO">GANADO</option>
+                                        <option value="PERDIDO">PERDIDO</option>
+                                      </select>
+
+                                      <select 
+                                        onClick={e => e.stopPropagation()} 
+                                        onChange={async (e) => {
+                                          e.stopPropagation();
+                                          const newConf = e.target.value;
+                                          setOpportunities(prev => prev.map(o => o.id === opp.id ? {...o, confidenceLevel: newConf} : o));
+                                          try { await updateOpportunityConfidence(opp.id, newConf); } catch(err) { console.error(err) }
+                                        }}
+                                        value={opp.confidenceLevel || 'MEDIA'}
+                                        className={`text-[9px] uppercase font-bold px-2 py-1 rounded-md border appearance-none text-center cursor-pointer shadow-sm outline-none transition-colors ${
+                                          opp.confidenceLevel === 'ALTA' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' :
+                                          opp.confidenceLevel === 'BAJA' ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100' :
+                                          'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100' // Default MEDIA
+                                        }`}
+                                      >
+                                        <option value="ALTA">💚 ALTA</option>
+                                        <option value="MEDIA">💛 MEDIA</option>
+                                        <option value="BAJA">❤️ BAJA</option>
+                                      </select>
+                                   </div>
+                                </div>
+                                <div className="text-right shrink-0">
+                                   <span className="text-[17px] font-black text-emerald-600 leading-none">${opp.amountUsd.toLocaleString('en-US')}</span>
+                                   <div className="text-[10px] uppercase font-bold text-slate-400 mt-1">USD</div>
+                                </div>
+                             </div>
+                           ));
+                        })()}
                      </div>
+
+                     {/* Historial (Ganado/Perdido) */}
+                     {(() => {
+                        const historyOpps = opportunities.filter(o => o.client?.name === selectedClient?.name && (o.status === 'GANADO' || o.status === 'PERDIDO'));
+                        if (historyOpps.length === 0) return null;
+                        return (
+                           <>
+                             <div className="flex items-center justify-between mb-6 pb-3 border-b border-slate-200/60 mt-12">
+                               <h3 className="font-bold text-slate-400 uppercase tracking-widest text-[11px] flex items-center gap-2">
+                                  {lang === 'es' ? 'Historial de Proyectos' : 'Project History'}
+                               </h3>
+                             </div>
+                             <div className="space-y-4 opacity-70 grayscale-[0.3]">
+                               {historyOpps.map(opp => (
+                                 <div 
+                                    key={opp.id} 
+                                    onClick={() => setSelectedOpportunity({id: opp.id, title: opp.title, amount: opp.amountUsd.toString()})}
+                                    className="bg-slate-50 p-5 rounded-[20px] border border-slate-200 shadow-sm flex justify-between items-center cursor-pointer transition-all"
+                                 >
+                                    <div>
+                                       <h4 className="font-extrabold text-slate-600 text-[14px] mb-1.5 line-through decoration-slate-300">{opp.title}</h4>
+                                       <div className="flex items-center gap-2">
+                                          <select 
+                                            onClick={e => e.stopPropagation()} 
+                                            onChange={async (e) => {
+                                              e.stopPropagation();
+                                              const newStatus = e.target.value;
+                                              setOpportunities(prev => prev.map(o => o.id === opp.id ? {...o, status: newStatus} : o));
+                                              try { await updateOpportunityStatus(opp.id, newStatus); } catch(err) { console.error(err) }
+                                            }}
+                                            value={opp.status}
+                                            className={`text-[9px] uppercase font-bold px-2 py-1 rounded-md border appearance-none text-center cursor-pointer shadow-sm outline-none shrink-0 ${
+                                              opp.status === 'GANADO' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                              'bg-red-50 text-red-700 border-red-200'
+                                            }`}
+                                          >
+                                            <option value="PROSPECTO">PROSPECTO</option>
+                                            <option value="COTIZADO">COTIZADO</option>
+                                            <option value="GANADO">GANADO 🏆</option>
+                                            <option value="PERDIDO">PERDIDO ❌</option>
+                                          </select>
+                                       </div>
+                                    </div>
+                                    <div className="text-right shrink-0">
+                                       <span className="text-[15px] font-black text-slate-500 leading-none">${opp.amountUsd.toLocaleString('en-US')}</span>
+                                    </div>
+                                 </div>
+                               ))}
+                             </div>
+                           </>
+                        );
+                     })()}
                   </div>
                ) : (
                   <div className="flex-1 overflow-y-auto w-full p-6 pb-32 bg-[#F8FAFC]">
