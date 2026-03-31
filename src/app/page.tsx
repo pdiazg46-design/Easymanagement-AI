@@ -1891,7 +1891,39 @@ export default function Home() {
                                 <h4 className="font-extrabold text-[#1E3A8A] text-[15px] sm:text-[16px] leading-tight">{oppDetails.title}</h4>
                                 <div className="flex justify-between items-end">
                                    <div className="flex flex-col gap-2">
-                                      <span className="text-[10px] uppercase font-bold text-amber-700 bg-amber-50 w-max px-2.5 py-1 rounded-md border border-amber-200/50">{oppDetails.status}</span>
+                                      <select 
+                                        onClick={e => e.stopPropagation()} 
+                                        onChange={async (e) => {
+                                          e.stopPropagation();
+                                          const newStatus = e.target.value;
+                                          if (newStatus === 'PERDIDO') {
+                                             setPendingLostOpp(oppDetails);
+                                             setSelectedOpportunity({id: oppDetails.id, title: oppDetails.title, amount: oppDetails.amountUsd.toString()});
+                                             setIsRecording(true);
+                                             finalTranscriptRef.current = '';
+                                             setDraftActivity("");
+                                             setDraftAction(lang === 'es' ? "Motivos de pérdida de proyecto" : "Reason for lost deal");
+                                             if (recognitionRef.current) {
+                                                try { recognitionRef.current.start(); } catch(err){}
+                                             }
+                                             return;
+                                          }
+                                          setOpportunities(prev => prev.map(o => o.id === oppDetails.id ? {...o, status: newStatus, statusUpdatedAt: new Date()} : o));
+                                          try { await updateOpportunityStatus(oppDetails.id, newStatus); } catch(err) { console.error(err) }
+                                        }}
+                                        value={oppDetails.status}
+                                        className={`text-[10px] uppercase font-bold px-2.5 py-1 rounded-md border appearance-none text-center cursor-pointer shadow-sm outline-none transition-colors w-max ${
+                                          oppDetails.status === 'PROSPECTO' ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100' :
+                                          oppDetails.status === 'COTIZADO' ? 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100' :
+                                          oppDetails.status === 'GANADO' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                          'bg-red-50 text-red-700 border-red-200'
+                                        }`}
+                                      >
+                                        <option value="PROSPECTO">PROSPECTO</option>
+                                        <option value="COTIZADO">COTIZADO</option>
+                                        <option value="GANADO">GANADO</option>
+                                        <option value="PERDIDO">PERDIDO</option>
+                                      </select>
                                       
                                       <select 
                                        onChange={async (e) => {
