@@ -165,7 +165,19 @@ export async function updateOpportunityStatus(id: string, status: any) {
   const { tenant } = await getOrCreateMockSession();
   const opp = await prisma.opportunity.update({
     where: { id, tenantId: tenant.id },
-    data: { status }
+    data: { 
+      status,
+      statusUpdatedAt: new Date()
+    }
+  });
+  revalidatePath("/");
+  return opp;
+}
+
+export async function deleteOpportunity(id: string) {
+  const { tenant } = await getOrCreateMockSession();
+  const opp = await prisma.opportunity.delete({
+    where: { id, tenantId: tenant.id }
   });
   revalidatePath("/");
   return opp;

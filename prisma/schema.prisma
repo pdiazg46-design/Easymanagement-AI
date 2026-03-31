@@ -80,6 +80,7 @@ model Opportunity {
   activities   ActivityLog[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  statusUpdatedAt DateTime? @default(now())
 }
 
 // 5. Bitácora de Acción y IA (Las tareas y el NLP)
@@ -93,7 +94,7 @@ model ActivityLog {
   clientId       String?
   client         Client?  @relation(fields: [clientId], references: [id])
   opportunityId  String?
-  opportunity    Opportunity? @relation(fields: [opportunityId], references: [id])
+  opportunity    Opportunity? @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
   
   userId         String
   user           User     @relation(fields: [userId], references: [id])

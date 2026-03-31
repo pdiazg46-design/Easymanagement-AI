@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Mic, Trash2, Keyboard, Edit2, Signal, Mail, Lock, Fingerprint, UploadCloud, Link as LinkIcon, ArrowRight, Eye, EyeOff, Map as MapIcon, List, Maximize2, Minimize2, X, Calendar, Navigation, MapPin, ChevronLeft, ChevronRight, Share2, FileText, CreditCard, ShieldCheck, Check, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from "react-simple-maps";
-import { getActivities, createActivity, toggleActivityCompletion, getOpportunities, createOpportunity, updateOpportunityStatus, getClients, createClient, deleteActivity, updateOpportunityConfidence } from './actions';
+import { getActivities, createActivity, toggleActivityCompletion, getOpportunities, createOpportunity, updateOpportunityStatus, getClients, createClient, deleteActivity, updateOpportunityConfidence, deleteOpportunity } from './actions';
 
 export default function Home() {
   const [lang, setLang] = useState<'es'|'en'>('es');
@@ -1731,7 +1731,7 @@ export default function Home() {
                                         onChange={async (e) => {
                                           e.stopPropagation();
                                           const newStatus = e.target.value;
-                                          setOpportunities(prev => prev.map(o => o.id === opp.id ? {...o, status: newStatus} : o));
+                                          setOpportunities(prev => prev.map(o => o.id === opp.id ? {...o, status: newStatus, statusUpdatedAt: new Date()} : o));
                                           try { await updateOpportunityStatus(opp.id, newStatus); } catch(err) { console.error(err) }
                                         }}
                                         value={opp.status}
@@ -1766,10 +1766,28 @@ export default function Home() {
                                         <option value="BAJA">❤️ BAJA</option>
                                       </select>
                                    </div>
+                                   <div className="mt-2 text-[9px] text-slate-400 font-medium">
+                                      <span>Creada: {opp.createdAt ? new Date(opp.createdAt).toLocaleDateString() : 'N/A'}</span>
+                                      <span className="mx-1.5">•</span>
+                                      <span>Estado: {opp.statusUpdatedAt ? new Date(opp.statusUpdatedAt).toLocaleDateString() : (opp.updatedAt ? new Date(opp.updatedAt).toLocaleDateString() : 'N/A')}</span>
+                                   </div>
                                 </div>
-                                <div className="text-right shrink-0">
+                                <div className="text-right shrink-0 flex flex-col items-end gap-1">
                                    <span className="text-[17px] font-black text-emerald-600 leading-none">${opp.amountUsd.toLocaleString('en-US')}</span>
-                                   <div className="text-[10px] uppercase font-bold text-slate-400 mt-1">USD</div>
+                                   <div className="text-[10px] uppercase font-bold text-slate-400 mt-1 mb-1">USD</div>
+                                   <button 
+                                      onClick={async (e) => {
+                                        e.stopPropagation();
+                                        if (confirm(lang === 'es' ? '¿Eliminar permanentemente este proyecto y sus bitácoras?' : 'Permanently delete this project and its timeline?')) {
+                                          setOpportunities(prev => prev.filter(o => o.id !== opp.id));
+                                          try { await deleteOpportunity(opp.id); } catch(err){ console.error(err) }
+                                        }
+                                      }}
+                                      className="p-1 px-1.5 text-slate-300 hover:text-red-500 bg-slate-50 hover:bg-red-50 border border-transparent hover:border-red-100 rounded transition-colors"
+                                      title={lang === 'es' ? 'Eliminar Oportunidad' : 'Delete Opportunity'}
+                                   >
+                                      <Trash2 size={13} />
+                                   </button>
                                 </div>
                              </div>
                            ));
