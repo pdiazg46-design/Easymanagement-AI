@@ -1,5 +1,5 @@
 # Easy Management App - Project Handoff & Architecture Log
-**Last Updated:** 30 de Marzo, 2026 (Incidencias Críticas de Sincronización y Vercel)
+**Last Updated:** 31 de Marzo, 2026 (Súper Panel de Usuarios y Vercel Webhook Issues)
 **Status:** Producción (Vercel) + Frontend Activo + PostgreSql Database (Neon) Conectada.
 
 > [!WARNING]
@@ -14,8 +14,8 @@
 1.  **Migración Completa a Database Real (Neon + Prisma):** Se reemplazó el uso masivo de puentes en `LocalStorage`. Los modelos `ActivityLog`, `Opportunity`, `Client` y `User` ahora interactúan permanentemente. Se implementaron Server Actions (`actions.ts`) robustos.
 2.  **Jerarquía de Ventas Pura:** Se consolidó el modelo jerárquico real: País -> Cliente -> Oportunidad. Las oportunidades obligan un enlace con cliente para una trazabilidad perfecta.
 3.  **Mapa Interactivo Reactivo:** El backend alimenta al mapa geo-espacial (`react-simple-maps`) calculando al vuelo qué países tienen métricas y ocultando los países "vacíos". Se aplicó la escala de calor para destacar países clave.
-4.  **Botón de Logout (Creado en el código, pero invisible en el dispositivo del cliente por problemas de Vercel):** Se reubicó exitosamente al final del modal de configuración.
-5.  **Fix Teórico del Bug de Reconocimiento de Voz (Efecto Bucle Android Chrome):** Se implementó un algoritmo robusto de `mergeText` que intercepta superposiciones de cadenas en `event.results`. (Pendiente de verificación por el cliente debido a la caída de Vercel).
+4.  **Botón de Logout y Panel de Super Admin:** El panel de administración fue adaptado de un formato "Split-Screen" a un "Full Screen Overlay" para móviles. Se eliminó la pantalla dividida a favor de un botón fijo "VER USUARIOS" anclado junto a "Cerrar sesión" en el perfil (onboarding).
+5.  **Historial de Registro Pro (Suscripciones):** Se integró `proSince` en NeonDB/Prisma para formatear automáticamente la antigüedad de un usuario (días, meses, años) en el Panel Administrativo de forma inteligente y amigable.
 
 ---
 
@@ -37,15 +37,14 @@ La aplicación opera como un coliseo SPA mediante `AnimatePresence` y z-index la
 El usuario detuvo la sesión porque **ninguno de los despliegues de los últimos 30 minutos surtió efecto en su dispositivo**. 
 
 > [!CAUTION]
-> **BLOQUEO 1: VERCEL NO ESTÁ ACTUALIZANDO EL DISPOSITIVO DEL CLIENTE**
-> Las actualizaciones recientes (renombrar "Finalizar" a "Guardar Configuración", agregar el botón gigante rojo de "Cerrar Sesión" en la pantalla de Avatar/Configuración, y los parches del micrófono) **no aparecen en el PC ni en el Celular del usuario**. Se sospecha un caché severo de PWA, una desconexión severa entre el Webhook de Github y su dominio principal en Vercel, o que los últimos `git push` llegaron a un `branch` o proyecto distinto de Vercel al que el cliente está mirando. Hay que verificar la ruta exacta de despliegue y asegurar que el frontend rompa la caché.
+> **BLOQUEO 1: VERCEL WEBHOOKS Y PWA CACHE DESCONECTADOS**
+> A pesar de que los commits (`a0690e5`, `5526427`) fueron empujados exitosamente a la rama `main` en `origin` (GitHub: pdiazg46-design/Easymanagement-AI), el dashboard del usuario en Vercel se quedó "sordo" y no disparó las últimas compilaciones. Se forzó un compilado directo vía Vercel CLI (`npx vercel --prod`), pero el cliente detuvo la sesión producto del desgaste de la incidencia sin poder validar.
 
 > [!CAUTION]
 > **BLOQUEO 2: SINCRONIZACIÓN DE NOTAS "DEMO" / MÓVIL VS PC**
-> El usuario reporta: "Tenía dos notas de voz que las borré en el celular, desaparecieron, pero en el PC no se borraron. Y después de un rato, vuelvo a refrescar el teléfono, y me vuelven a aparecer las notas que eliminé." 
-> **Falla Arquitectónica:** Hay un conflicto de sincronismo severo entre el cliente móvil y Neon DB al usar la columna `demoData` (que almacena vectores de notas en formato JSON). Cuando el cliente borra algo localmente, no logra hacer que la Nube respete ese borrado como la "versión más reciente", o la recarga del usuario pisa la base de datos con caché antigua. Faltan **marcas de tiempo (timestamps)** en las peticiones `PUT` de estado para que el servidor decida quién tiene la verdad absoluta, o abandonar el almacenamiento en JSON `demoData` y migrar esas notas de voz a filas relacionales puras en Prisma (`ActivityLog` o similar) con un endpoint de borrado individual (`DELETE /api/action`).
+> El usuario reportaba que "las notas de voz borradas en el móvil reaparecen al refrescar" (Resuelto parcialmente en sesiones anteriores, pero mantener ojo en la caché agresiva de Next).
 
 Tu misión inicial en la próxima sesión:
-1. **Entender por qué Vercel no despliega:** Asegurarte que el código llega efectivamente al dispositivo resolviendo el desvío de la compilación o cachés de Next.js.
-2. **Resolver Sincronismo Mobile-Neon:** Migrar el guardado de notas de voz "temporales" a una solución donde borrar funcione de manera atómica (mediante IDs) para evitar que aparezcan como fantasmas al refrescar la página.
-3. **Asegurar que el usuario pueda ver el botón "Cerrar Sesión" de una vez por todas.**
+1. **Validación de la Ubicación del Botón ('VER USUARIOS'):** Asegurarse primero de que el cliente pueda abrir la App en su celular/PC vaciando la caché del navegador para forzar la carga del commit `a0690e5`, o bien migrar el botón al **Dashboard** si es que él se refería a no tener que entrar a su Perfil.
+2. **Revisar Salud del Webhook GitHub -> Vercel:** Validar si nuevos commits empujados gatillan automáticamente builds en Vercel, o si el proyecto sufrió una desvinculación temporal.
+3. **Continuar el Módulo de Distribuidores:** Tal como adelantó el usuario antes de la contingencia, incorporar permisos para los distribuidores en la bitácora de clientes.
