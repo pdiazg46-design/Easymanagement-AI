@@ -1809,46 +1809,7 @@ export default function Home() {
                         })()}
                      </div>
 
-                     {/* Historial (Ganado/Perdido) */}
-                     {(() => {
-                        const historyOpps = opportunities.filter(o => o.client?.name === selectedClient?.name && (o.status === 'GANADO' || o.status === 'PERDIDO'));
-                        if (historyOpps.length === 0) return null;
-                        return (
-                           <>
-                             <div className="flex items-center justify-between mb-6 pb-3 border-b border-slate-200/60 mt-12">
-                               <h3 className="font-bold text-slate-400 uppercase tracking-widest text-[11px] flex items-center gap-2">
-                                  {lang === 'es' ? 'Historial de Proyectos' : 'Project History'}
-                               </h3>
-                             </div>
-                             <div className="space-y-4 opacity-70 grayscale-[0.3]">
-                               {historyOpps.map(opp => (
-                                 <div 
-                                    key={opp.id} 
-                                    onClick={() => setSelectedOpportunity({id: opp.id, title: opp.title, amount: opp.amountUsd.toString()})}
-                                    className="bg-slate-50 p-5 rounded-[20px] border border-slate-200 shadow-sm flex justify-between items-center cursor-pointer transition-all"
-                                 >
-                                    <div>
-                                       <h4 className="font-extrabold text-slate-600 text-[14px] mb-1.5 line-through decoration-slate-300">{opp.title}</h4>
-                                       <div className="flex items-center gap-2">
-                                          <span 
-                                            className={`text-[9px] uppercase font-bold px-2 py-1 rounded-md border text-center shadow-sm shrink-0 ${
-                                              opp.status === 'GANADO' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                                              'bg-red-50 text-red-700 border-red-200'
-                                            }`}
-                                          >
-                                            {opp.status === 'GANADO' ? 'GANADO 🏆' : 'PERDIDO ❌'}
-                                          </span>
-                                       </div>
-                                    </div>
-                                    <div className="text-right shrink-0">
-                                       <span className="text-[15px] font-black text-slate-500 leading-none">${opp.amountUsd.toLocaleString('en-US')}</span>
-                                    </div>
-                                 </div>
-                               ))}
-                             </div>
-                           </>
-                        );
-                     })()}
+                     {/* El Historial de Proyectos (Ganado/Perdido) ha sido ocultado por instrucción de diseño operacional (Regla de Oro: Solo ver lo que se está trabajando). Los proyectos históricos se visualizan en el filtro regional. */}
                   </div>
                ) : (
                   <div className="flex-1 overflow-y-auto w-full p-6 pb-32 bg-[#F8FAFC]">
