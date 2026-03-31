@@ -267,6 +267,7 @@ export default function Home() {
   const [draftClientName, setDraftClientName] = useState("");
   const [openClientFormId, setOpenClientFormId] = useState<string | null>(null);
   const [adminUsers, setAdminUsers] = useState<any[]>([]);
+  const [showMobilePanel, setShowMobilePanel] = useState(false);
 
   const refreshOpportunities = async () => {
       const opps = await getOpportunities();
@@ -1176,35 +1177,52 @@ export default function Home() {
                       <ArrowRight size={18} />
                     </motion.button>
 
-                    <button 
-                      onClick={async () => {
-                        localStorage.removeItem('easy_currentView');
-                        setCurrentView('login');
-                        await fetch('/api/auth/logout', { method: 'POST' });
-                        window.location.reload();
-                      }}
-                      className="text-slate-400 font-bold py-3 text-sm flex items-center justify-center gap-2 hover:text-red-500 transition-colors w-full uppercase tracking-wider"
-                    >
-                      <LogOut size={16} />
-                      {lang === 'es' ? 'CERRAR SESIÓN' : 'LOG OUT'}
-                    </button>
+                    <div className="flex w-full items-center justify-between mt-2 gap-4">
+                      <button 
+                        onClick={async () => {
+                          localStorage.removeItem('easy_currentView');
+                          setCurrentView('login');
+                          await fetch('/api/auth/logout', { method: 'POST' });
+                          window.location.reload();
+                        }}
+                        className="text-slate-500 font-bold py-3 text-xs flex items-center justify-center gap-2 hover:text-red-500 transition-colors uppercase tracking-wider flex-1 bg-slate-50 rounded-xl"
+                      >
+                        <LogOut size={16} />
+                        {lang === 'es' ? 'CERRAR SESIÓN' : 'LOG OUT'}
+                      </button>
+
+                      {email === 'pdiazg46@gmail.com' && (
+                        <button 
+                          onClick={() => setShowMobilePanel(true)}
+                          className="text-corporate-purple font-bold py-3 px-4 text-xs flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors uppercase tracking-wider flex-1 border border-corporate-purple/20 bg-corporate-purple/5 rounded-xl md:hidden whitespace-nowrap"
+                        >
+                          <ShieldCheck size={16} />
+                          {lang === 'es' ? 'VER USUARIOS' : 'USERS'}
+                        </button>
+                      )}
+                    </div>
                  </div>
               </div>
 
               {/* PANEL DERECHO: ADMIN DE USUARIOS (SOLO PATRICIO O PRO) */}
               {email === 'pdiazg46@gmail.com' && (
-                  <div className="hidden md:flex flex-1 flex-col p-8 lg:p-12 items-center justify-start overflow-y-auto relative border-l border-slate-200 shadow-inner bg-[#F8FAFC]">
-                     <div className="w-full max-w-4xl bg-white rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100">
+                  <div className={`${showMobilePanel ? 'flex absolute inset-0 z-50 bg-[#F8FAFC] flex-col p-4 overflow-y-auto' : 'hidden md:flex flex-1 flex-col p-8 lg:p-12 items-center justify-start overflow-y-auto relative border-l border-slate-200 shadow-inner bg-[#F8FAFC]'}`}>
+                     {showMobilePanel && (
+                        <button onClick={() => setShowMobilePanel(false)} className="mb-4 flex items-center gap-2 text-slate-500 font-bold self-start bg-white px-4 py-2 rounded-full text-xs shadow-sm border border-slate-200">
+                           <ChevronLeft size={16} /> {lang === 'es' ? 'Volver a mi perfil' : 'Back to Profile'}
+                        </button>
+                     )}
+                     <div className="w-full max-w-4xl bg-white rounded-3xl p-4 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100">
                         <div className="flex justify-between items-center mb-6">
-                           <h2 className="text-[#1E3A8A] text-2xl font-black uppercase tracking-widest flex items-center gap-3">
-                              <ShieldCheck size={28} className="text-corporate-purple" /> 
+                           <h2 className="text-[#1E3A8A] text-lg md:text-2xl font-black uppercase tracking-widest flex items-center gap-3">
+                              <ShieldCheck size={28} className="text-corporate-purple hidden md:block" /> 
                               Super User Panel
                            </h2>
                            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{adminUsers.length} Usuarios Activos</span>
                         </div>
 
-                        <div className="w-full overflow-hidden rounded-2xl border border-slate-100 shadow-sm relative">
-                           <table className="w-full text-left border-collapse">
+                        <div className="w-full overflow-hidden rounded-2xl border border-slate-100 shadow-sm relative overflow-x-auto">
+                           <table className="w-full text-left border-collapse min-w-[600px] md:min-w-full">
                              <thead>
                                <tr className="bg-slate-50 text-[10px] uppercase tracking-widest font-black text-slate-400 border-b border-slate-100">
                                  <th className="px-5 py-4">Usuario</th>
