@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Mic, Trash2, Keyboard, Edit2, Signal, Mail, Lock, Fingerprint, UploadCloud, Link as LinkIcon, ArrowRight, Eye, EyeOff, Map as MapIcon, List, Maximize2, Minimize2, X, Calendar, Navigation, MapPin, ChevronLeft, ChevronRight, Share2, FileText, CreditCard, ShieldCheck, Check, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from "react-simple-maps";
-import { getActivities, createActivity, toggleActivityCompletion, getOpportunities, createOpportunity, updateOpportunityStatus, getClients, createClient, deleteActivity } from './actions';
+import { getActivities, createActivity, toggleActivityCompletion, getOpportunities, createOpportunity, updateOpportunityStatus, getClients, createClient, deleteActivity, updateOpportunityConfidence } from './actions';
 
 export default function Home() {
   const [lang, setLang] = useState<'es'|'en'>('es');
@@ -1685,21 +1685,6 @@ export default function Home() {
                         return `$${num}`;
                      };
 
-                     const hasWon = clientOpps.some(o => o.status === 'GANADO' || o.status === 'WON');
-                     const isAlta = hasWon || clientTotalUsd >= 100000;
-                     const isMedia = !isAlta && clientTotalUsd > 0;
-                     
-                     let confText = 'Baja';
-                     let confColor = 'text-red-500';
-                     if (isAlta) { confText = 'Alta'; confColor = 'text-emerald-500'; }
-                     else if (isMedia) { confText = 'Media'; confColor = 'text-amber-500'; }
-
-                     if (lang === 'en') {
-                        if (confText === 'Alta') confText = 'High';
-                        else if (confText === 'Media') confText = 'Medium';
-                        else confText = 'Low';
-                     }
-
                      return (
                         <div className="flex gap-3">
                            <div className="flex-1 bg-gradient-to-br from-[#1E3A8A] to-[#1e40af] rounded-[16px] p-4 flex flex-col items-center shadow-lg relative overflow-hidden group">
@@ -1710,8 +1695,8 @@ export default function Home() {
                              <span className="text-2xl font-black text-white relative z-10">{formatCompact(clientTotalUsd)}</span>
                            </div>
                            <div className="flex-1 bg-white border border-slate-200 rounded-[16px] p-4 flex flex-col items-center shadow-sm">
-                             <span className="text-[10px] uppercase font-bold text-slate-400 mb-0.5 tracking-widest">{lang === 'es' ? 'Confianza' : 'Confidence'}</span>
-                             <span className={`text-xl sm:text-2xl font-black ${confColor} flex items-center gap-1`}><Fingerprint size={16}/> {confText}</span>
+                             <span className="text-[10px] uppercase font-bold text-slate-400 mb-0.5 tracking-widest text-center leading-tight">Proyectos Activos</span>
+                             <span className="text-2xl font-black text-[#1E3A8A] flex items-center gap-1">{clientOpps.length}</span>
                            </div>
                         </div>
                      );
@@ -1736,7 +1721,26 @@ export default function Home() {
                                <div>
                                   <h4 className="font-extrabold text-[#1E3A8A] text-[15px] mb-1.5">{opp.title}</h4>
                                   <div className="flex items-center gap-2">
-                                     <span className="text-[10px] uppercase font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200/50">{opp.status}</span>
+                                     <span className="text-[10px] uppercase font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200/50 shrink-0">{opp.status}</span>
+                                     <select 
+                                       onClick={e => e.stopPropagation()} 
+                                       onChange={async (e) => {
+                                         e.stopPropagation();
+                                         const newConf = e.target.value;
+                                         setOpportunities(prev => prev.map(o => o.id === opp.id ? {...o, confidenceLevel: newConf} : o));
+                                         try { await updateOpportunityConfidence(opp.id, newConf); } catch(err) { console.error(err) }
+                                       }}
+                                       value={opp.confidenceLevel || 'MEDIA'}
+                                       className={`text-[9px] uppercase font-bold px-2 py-1 rounded-md border appearance-none text-center cursor-pointer shadow-sm outline-none transition-colors ${
+                                         opp.confidenceLevel === 'ALTA' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' :
+                                         opp.confidenceLevel === 'BAJA' ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100' :
+                                         'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100' // Default MEDIA
+                                       }`}
+                                     >
+                                       <option value="ALTA">💚 ALTA</option>
+                                       <option value="MEDIA">💛 MEDIA</option>
+                                       <option value="BAJA">❤️ BAJA</option>
+                                     </select>
                                   </div>
                                </div>
                                <div className="text-right">

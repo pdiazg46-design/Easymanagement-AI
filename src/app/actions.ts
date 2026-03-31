@@ -170,3 +170,13 @@ export async function updateOpportunityStatus(id: string, status: any) {
   revalidatePath("/");
   return opp;
 }
+
+export async function updateOpportunityConfidence(id: string, confidenceLevel: string) {
+  const { tenant } = await getOrCreateMockSession();
+  const opp = await prisma.opportunity.update({
+    where: { id, tenantId: tenant.id },
+    data: { confidenceLevel }
+  });
+  revalidatePath("/");
+  return opp;
+}

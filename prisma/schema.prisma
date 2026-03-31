@@ -70,6 +70,7 @@ model Opportunity {
   title        String   // Ej: "Venta de herramientas de telecomunicaciones"
   amountUsd    Float    // Monto de la Oportunidad
   status       OpportunityStatus @default(PROSPECTO)
+  confidenceLevel String @default("MEDIA")
   
   clientId     String
   client       Client   @relation(fields: [clientId], references: [id])
