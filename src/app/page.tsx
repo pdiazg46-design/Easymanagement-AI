@@ -246,6 +246,7 @@ export default function Home() {
   const [selectedClient, setSelectedClient] = useState<{id?: string, name: string, country: string} | null>(null);
   const [selectedOpportunity, setSelectedOpportunity] = useState<{id: string, title: string, amount: string} | null>(null);
   const [marketOppFilter, setMarketOppFilter] = useState<'ACTIVOS' | 'GANADOS' | 'PERDIDOS'>('ACTIVOS');
+  const [hoveredMapCountry, setHoveredMapCountry] = useState<string | null>(null);
   const [pendingLostOpp, setPendingLostOpp] = useState<any>(null);
   const [newTimelineItems, setNewTimelineItems] = useState<any[]>([]);
   const [newCountryTimelineItems, setNewCountryTimelineItems] = useState<any[]>([]);
@@ -346,14 +347,30 @@ export default function Home() {
       };
    }).filter(m => m.isActive).sort((a,b) => b.totalValueUsd - a.totalValueUsd);
 
+   const isHistorial = activeTab === 'historial';
+   const now = new Date();
+   const cMonth = now.getMonth();
+   const cYear = now.getFullYear();
+
+   const pipelineOpps = opportunities.filter(o => {
+      if (isHistorial) {
+         if (o.status !== 'GANADO') return false;
+         if (!o.statusUpdatedAt) return true;
+         const dUp = new Date(o.statusUpdatedAt);
+         return dUp.getMonth() === cMonth && dUp.getFullYear() === cYear;
+      } else {
+         return o.status === 'PROSPECTO' || o.status === 'COTIZADO';
+      }
+   });
+
    const globalActiveOpps = opportunities.filter(o => o.status === 'PROSPECTO' || o.status === 'COTIZADO');
    const globalTotalUsd = globalActiveOpps.reduce((acc, curr) => acc + curr.amountUsd, 0);
    const globalTotalProjects = globalActiveOpps.length;
 
-  const totalPipeline = opportunities.reduce((acc, curr) => curr.status !== 'PERDIDO' ? acc + curr.amountUsd : acc, 0);
-  const activeProjects = opportunities.filter(o => o.status === 'PROSPECTO' || o.status === 'COTIZADO').length;
+   const totalPipeline = pipelineOpps.reduce((acc, curr) => acc + curr.amountUsd, 0);
+   const activeProjects = pipelineOpps.length;
 
-  // PERSISTENCIA HÍBRIDA: Perfil en PostgreSQL, Tareas en RAM temporal
+   // PERSISTENCIA HÍBRIDA: Perfil en PostgreSQL, Tareas en RAM temporal
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedView = localStorage.getItem('easy_currentView');
@@ -446,6 +463,12 @@ export default function Home() {
     
     // 1. Extraer el Compromiso (Lo que sigue)
     let extractedAction = currentLang === 'es' ? "Acción registrada en terreno" : "Field recorded action";
+    
+    if (lowerText.includes("proyecto ganado") || lowerText.includes("ganamos el proyecto") || lowerText.includes("gané el proyecto") || lowerText.includes("ganamos el negocio")) {
+       extractedAction = "Proyecto Ganado 🏆";
+    } else if (lowerText.includes("motivo") && lowerText.includes("pérdida")) {
+       extractedAction = "Motivo de pérdida de proyecto";
+    }
     
     const actionKeywords = ["tengo que ", "necesito ", "debo ", "hay que ", "compromiso para ", "me comprometí a "];
     for (const keyword of actionKeywords) {
@@ -740,8 +763,15 @@ export default function Home() {
                     fill={fill}
                     stroke="#FFFFFF"
                     strokeWidth={0.7 / autoZoom}
+                    onMouseEnter={() => {
+                        let countryName = geo.properties.name;
+                        if (countryName === "Brazil") countryName = "Brasil";
+                        if (countryName === "Mexico") countryName = "México";
+                        if (countryName === "Peru") countryName = "Perú";
+                        setHoveredMapCountry(countryName);
+                    }}
+                    onMouseLeave={() => setHoveredMapCountry(null)}
                     onClick={() => {
-                        // Mapeo básico de nombres
                         let countryName = geo.properties.name;
                         if (countryName === "Brazil") countryName = "Brasil";
                         if (countryName === "Mexico") countryName = "México";
@@ -1182,12 +1212,12 @@ export default function Home() {
                   >
                     <div className="flex items-center w-full">
                       <div className="w-[75%] pr-3 text-left overflow-hidden">
-                        <p className="text-white/80 text-[10px] sm:text-xs font-medium uppercase tracking-wider mb-1 truncate">{t[lang].pipeline}</p>
+                        <p className="text-white/80 text-[10px] sm:text-xs font-medium uppercase tracking-wider mb-1 truncate">{activeTab === 'historial' ? (lang === 'es' ? 'GANADOS ESTE MES' : 'WON THIS MONTH') : t[lang].pipeline}</p>
                         <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight flex items-baseline gap-1.5 truncate">${totalPipeline.toLocaleString('en-US')} <span className="text-sm font-bold opacity-80">USD</span></h2>
                       </div>
                       <div className="w-px h-12 bg-white/20 shrink-0"></div>
                       <div className="w-[25%] text-center pl-2 flex flex-col justify-center items-center shrink-0">
-                        <p className="text-white/80 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mb-1 leading-tight">{t[lang].activeProj.split(' ')[0]}<br/>{t[lang].activeProj.split(' ')[1]}</p>
+                        <p className="text-white/80 text-[7px] sm:text-[8px] font-bold uppercase tracking-widest mb-1 leading-tight">{activeTab === 'historial' ? (lang === 'es' ? 'PROYECTOS GANADOS' : 'WON PROJECTS') : t[lang].activeProj.split(' ')[0] + '\n' + t[lang].activeProj.split(' ')[1]}</p>
                         <h2 className="text-2xl sm:text-3xl font-extrabold pb-0 leading-none">{activeProjects}</h2>
                       </div>
                     </div>
@@ -1264,6 +1294,17 @@ export default function Home() {
                                 </button>
                                 
                                 {renderGeoMap(false)}
+
+                                <AnimatePresence>
+                                   {hoveredMapCountry && (
+                                     <motion.div 
+                                        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
+                                        className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-[#1E3A8A] text-white text-[11px] font-bold py-1.5 px-3.5 rounded-xl shadow-lg border border-blue-800 tracking-wider pointer-events-none z-20"
+                                     >
+                                        {hoveredMapCountry}
+                                     </motion.div>
+                                   )}
+                                </AnimatePresence>
                              </div>
                           )}
                         </div>
