@@ -1674,20 +1674,48 @@ export default function Home() {
                      </div>
                   </div>
 
-                  {/* KPI Quick Stats */}
-                  <div className="flex gap-3">
-                     <div className="flex-1 bg-gradient-to-br from-[#1E3A8A] to-[#1e40af] rounded-[16px] p-4 flex flex-col items-center shadow-lg relative overflow-hidden group">
-                       <div className="absolute right-0 bottom-0 opacity-10">
-                         <Signal size={60} />
-                       </div>
-                       <span className="text-[10px] uppercase font-bold text-blue-200 mb-0.5 tracking-widest relative z-10">{lang === 'es' ? 'Pipeline Actual' : 'Current Pipeline'}</span>
-                       <span className="text-2xl font-black text-white relative z-10">$120K</span>
-                     </div>
-                     <div className="flex-1 bg-white border border-slate-200 rounded-[16px] p-4 flex flex-col items-center shadow-sm">
-                       <span className="text-[10px] uppercase font-bold text-slate-400 mb-0.5 tracking-widest">{lang === 'es' ? 'Confianza' : 'Confidence'}</span>
-                       <span className="text-2xl font-black text-emerald-600 flex items-center gap-1"><Fingerprint size={16}/> {lang === 'es' ? 'Alta' : 'High'}</span>
-                     </div>
-                  </div>
+                  {/* KPI Quick Stats Dinámicos */}
+                  {(() => {
+                     const clientOpps = opportunities.filter(o => o.client?.name === selectedClient?.name);
+                     const clientTotalUsd = clientOpps.reduce((sum, opp) => sum + opp.amountUsd, 0);
+                     
+                     const formatCompact = (num: number) => {
+                        if (num >= 1000000) return `$${(num/1000000).toFixed(1)}M`;
+                        if (num >= 1000) return `$${(num/1000).toFixed(0)}K`;
+                        return `$${num}`;
+                     };
+
+                     const hasWon = clientOpps.some(o => o.status === 'GANADO' || o.status === 'WON');
+                     const isAlta = hasWon || clientTotalUsd >= 100000;
+                     const isMedia = !isAlta && clientTotalUsd > 0;
+                     
+                     let confText = 'Baja';
+                     let confColor = 'text-red-500';
+                     if (isAlta) { confText = 'Alta'; confColor = 'text-emerald-500'; }
+                     else if (isMedia) { confText = 'Media'; confColor = 'text-amber-500'; }
+
+                     if (lang === 'en') {
+                        if (confText === 'Alta') confText = 'High';
+                        else if (confText === 'Media') confText = 'Medium';
+                        else confText = 'Low';
+                     }
+
+                     return (
+                        <div className="flex gap-3">
+                           <div className="flex-1 bg-gradient-to-br from-[#1E3A8A] to-[#1e40af] rounded-[16px] p-4 flex flex-col items-center shadow-lg relative overflow-hidden group">
+                             <div className="absolute right-0 bottom-0 opacity-10">
+                               <Signal size={60} />
+                             </div>
+                             <span className="text-[10px] uppercase font-bold text-blue-200 mb-0.5 tracking-widest relative z-10">{lang === 'es' ? 'Pipeline Actual' : 'Current Pipeline'}</span>
+                             <span className="text-2xl font-black text-white relative z-10">{formatCompact(clientTotalUsd)}</span>
+                           </div>
+                           <div className="flex-1 bg-white border border-slate-200 rounded-[16px] p-4 flex flex-col items-center shadow-sm">
+                             <span className="text-[10px] uppercase font-bold text-slate-400 mb-0.5 tracking-widest">{lang === 'es' ? 'Confianza' : 'Confidence'}</span>
+                             <span className={`text-xl sm:text-2xl font-black ${confColor} flex items-center gap-1`}><Fingerprint size={16}/> {confText}</span>
+                           </div>
+                        </div>
+                     );
+                  })()}
                </div>
 
                {/* Switcher entre Oportunidades vs Bitácora de Oportunidad */}
