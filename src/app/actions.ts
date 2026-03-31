@@ -176,6 +176,15 @@ export async function updateOpportunityStatus(id: string, status: any) {
 
 export async function deleteOpportunity(id: string) {
   const { tenant } = await getOrCreateMockSession();
+  
+  const oppCheck = await prisma.opportunity.findUnique({
+    where: { id, tenantId: tenant.id }
+  });
+
+  if (oppCheck && oppCheck.status !== 'PROSPECTO') {
+    throw new Error("No se puede eliminar una oportunidad que ya cambió de estado (Cotizada, Ganada, etc).");
+  }
+
   const opp = await prisma.opportunity.delete({
     where: { id, tenantId: tenant.id }
   });

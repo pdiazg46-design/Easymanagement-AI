@@ -1775,19 +1775,21 @@ export default function Home() {
                                 <div className="text-right shrink-0 flex flex-col items-end gap-1">
                                    <span className="text-[17px] font-black text-emerald-600 leading-none">${opp.amountUsd.toLocaleString('en-US')}</span>
                                    <div className="text-[10px] uppercase font-bold text-slate-400 mt-1 mb-1">USD</div>
-                                   <button 
-                                      onClick={async (e) => {
-                                        e.stopPropagation();
-                                        if (confirm(lang === 'es' ? '¿Eliminar permanentemente este proyecto y sus bitácoras?' : 'Permanently delete this project and its timeline?')) {
-                                          setOpportunities(prev => prev.filter(o => o.id !== opp.id));
-                                          try { await deleteOpportunity(opp.id); } catch(err){ console.error(err) }
-                                        }
-                                      }}
-                                      className="p-1 px-1.5 text-slate-300 hover:text-red-500 bg-slate-50 hover:bg-red-50 border border-transparent hover:border-red-100 rounded transition-colors"
-                                      title={lang === 'es' ? 'Eliminar Oportunidad' : 'Delete Opportunity'}
-                                   >
-                                      <Trash2 size={13} />
-                                   </button>
+                                   {opp.status === 'PROSPECTO' && (
+                                     <button 
+                                        onClick={async (e) => {
+                                          e.stopPropagation();
+                                          if (confirm(lang === 'es' ? '¿Eliminar permanentemente este proyecto y sus bitácoras?' : 'Permanently delete this project and its timeline?')) {
+                                            setOpportunities(prev => prev.filter(o => o.id !== opp.id));
+                                            try { await deleteOpportunity(opp.id); } catch(err){ console.error(err) }
+                                          }
+                                        }}
+                                        className="p-1 px-1.5 text-slate-300 hover:text-red-500 bg-slate-50 hover:bg-red-50 border border-transparent hover:border-red-100 rounded transition-colors"
+                                        title={lang === 'es' ? 'Eliminar Oportunidad' : 'Delete Opportunity'}
+                                     >
+                                        <Trash2 size={13} />
+                                     </button>
+                                   )}
                                 </div>
                              </div>
                            ));
