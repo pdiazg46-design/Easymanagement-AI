@@ -233,6 +233,8 @@ export default function Home() {
   const [showPipelineModal, setShowPipelineModal] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [regionalViewMode, setRegionalViewMode] = useState<'list' | 'map'>('list');
+  const [historialViewMode, setHistorialViewMode] = useState<'list' | 'map'>('list');
+  const [historialTimeframe, setHistorialTimeframe] = useState('month');
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   const [showActionModal, setShowActionModal] = useState(false);
   const [showCalendarModal, setShowCalendarModal] = useState(false);
@@ -348,27 +350,82 @@ export default function Home() {
    }).filter(m => m.isActive).sort((a,b) => b.totalValueUsd - a.totalValueUsd);
 
    const isHistorial = activeTab === 'historial';
-   const now = new Date();
-   const cMonth = now.getMonth();
-   const cYear = now.getFullYear();
+
+   const isDateInTimeframe = (dateStr: string | null | undefined, timeframe: string) => {
+      if (!dateStr) return true; 
+      const date = new Date(dateStr);
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+      const dateYear = date.getFullYear();
+      const dateMonth = date.getMonth();
+
+      switch (timeframe) {
+         case 'week': {
+            const startOfWeek = new Date(now);
+            const currentDay = now.getDay() || 7;
+            startOfWeek.setDate(now.getDate() - currentDay + 1);
+            startOfWeek.setHours(0,0,0,0);
+            return date.getTime() >= startOfWeek.getTime();
+         }
+         case 'month': return dateYear === currentYear && dateMonth === currentMonth;
+         case 'last_month':
+            if (currentMonth === 0) return dateYear === currentYear - 1 && dateMonth === 11;
+            return dateYear === currentYear && dateMonth === currentMonth - 1;
+         case 'year': return dateYear === currentYear;
+         case 'last_year': return dateYear === currentYear - 1;
+         case 'all': return true;
+         default: return true;
+      }
+   };
 
    const pipelineOpps = opportunities.filter(o => {
       if (isHistorial) {
          if (o.status !== 'GANADO') return false;
-         if (!o.statusUpdatedAt) return true;
-         const dUp = new Date(o.statusUpdatedAt);
-         return dUp.getMonth() === cMonth && dUp.getFullYear() === cYear;
+         return isDateInTimeframe(o.statusUpdatedAt, historialTimeframe);
       } else {
          return o.status === 'PROSPECTO' || o.status === 'COTIZADO';
       }
    });
 
+   const totalPipeline = pipelineOpps.reduce((acc, curr) => acc + curr.amountUsd, 0);
+   const activeProjects = pipelineOpps.length;
+
+   const activeCountriesMetrics = baseCountries.map(c => {
+      const opps = opportunities.filter(o => {
+         if (o.client?.country !== c.name) return false;
+         if (isHistorial) {
+            return o.status === 'GANADO' && isDateInTimeframe(o.statusUpdatedAt, historialTimeframe);
+         } else {
+            return o.status === 'PROSPECTO' || o.status === 'COTIZADO';
+         }
+      });
+      const totalValueUsd = opps.reduce((acc, curr) => acc + curr.amountUsd, 0);
+      return {
+         ...c,
+         opps,
+         totalValueUsd,
+         totalProjects: opps.length,
+         value: totalValueUsd > 0 ? `$${(totalValueUsd/1000).toFixed(0)}K` : '0',
+         isActive: totalValueUsd > 0
+      };
+   }).filter(m => m.isActive).sort((a,b) => b.totalValueUsd - a.totalValueUsd);
+
    const globalActiveOpps = opportunities.filter(o => o.status === 'PROSPECTO' || o.status === 'COTIZADO');
    const globalTotalUsd = globalActiveOpps.reduce((acc, curr) => acc + curr.amountUsd, 0);
    const globalTotalProjects = globalActiveOpps.length;
 
-   const totalPipeline = pipelineOpps.reduce((acc, curr) => acc + curr.amountUsd, 0);
-   const activeProjects = pipelineOpps.length;
+   const getHistorialTitle = () => {
+      switch (historialTimeframe) {
+         case 'week': return lang === 'es' ? 'GANADOS ESTA SEMANA' : 'WON THIS WEEK';
+         case 'month': return lang === 'es' ? 'GANADOS ESTE MES' : 'WON THIS MONTH';
+         case 'last_month': return lang === 'es' ? 'GANADOS MES ANTERIOR' : 'WON LAST MONTH';
+         case 'year': return lang === 'es' ? 'GANADOS ESTE AÑO' : 'WON THIS YEAR';
+         case 'last_year': return lang === 'es' ? 'GANADOS AÑO ANTERIOR' : 'WON LAST YEAR';
+         case 'all': return lang === 'es' ? 'HISTORIAL COMPLETO' : 'ALL TIME WON';
+         default: return lang === 'es' ? 'PROYECTOS GANADOS' : 'WON PROJECTS';
+      }
+   };
 
    // PERSISTENCIA HÍBRIDA: Perfil en PostgreSQL, Tareas en RAM temporal
   useEffect(() => {
@@ -1248,7 +1305,7 @@ export default function Home() {
                   >
                     <div className="flex items-center w-full">
                       <div className="w-[75%] pr-3 text-left overflow-hidden">
-                        <p className="text-white/80 text-[10px] sm:text-xs font-medium uppercase tracking-wider mb-1 truncate">{activeTab === 'historial' ? (lang === 'es' ? 'GANADOS ESTE MES' : 'WON THIS MONTH') : t[lang].pipeline}</p>
+                        <p className="text-white/80 text-[10px] sm:text-xs font-medium uppercase tracking-wider mb-1 truncate">{activeTab === 'historial' ? getHistorialTitle() : t[lang].pipeline}</p>
                         <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight flex items-baseline gap-1.5 truncate">${totalPipeline.toLocaleString('en-US')} <span className="text-sm font-bold opacity-80">USD</span></h2>
                       </div>
                       <div className="w-px h-12 bg-white/20 shrink-0"></div>
@@ -1433,7 +1490,30 @@ export default function Home() {
 
                           {historialViewMode === 'list' ? (
                             <div className="space-y-3">
-                               <p className="text-[11px] text-slate-400 font-medium italic tracking-wide text-center py-4">{lang === 'es' ? 'No hay historial disponible' : 'No history available'}</p>
+                              {activeCountriesMetrics.length === 0 ? (
+                                 <p className="text-[11px] text-slate-400 font-medium italic tracking-wide text-center py-4">{lang === 'es' ? 'No hay historial disponible' : 'No history available'}</p>
+                              ) : (
+                                 activeCountriesMetrics.map(c => (
+                                    <div key={c.name} onClick={() => setSelectedCountry(c.name)} className="flex flex-col gap-1.5 p-3.5 rounded-2xl border border-slate-100 bg-[#F8FAFC] hover:shadow-sm hover:border-[#1E3A8A]/30 cursor-pointer transition-all">
+                                       <div className="flex justify-between items-center mb-1 pointer-events-none">
+                                          <span className="text-sm font-bold text-[#1E3A8A] flex items-center gap-2">
+                                             <MapPin size={14} className="text-[#1E3A8A]" /> {c.name}
+                                          </span>
+                                          <span className="text-[13px] font-black text-[#1E3A8A] border border-[#1E3A8A]/20 bg-[#1E3A8A]/5 px-2 py-0.5 rounded-lg">${c.totalValueUsd.toLocaleString('en-US')}</span>
+                                       </div>
+                                       <div className="flex items-center justify-between">
+                                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{c.totalProjects} {lang === 'es' ? 'Proyectos' : 'Projects'}</span>
+                                          <div className="h-1.5 flex-1 mx-3 bg-slate-200 rounded-full overflow-hidden">
+                                             <div 
+                                                className="h-full bg-[#1E3A8A] rounded-full" 
+                                                style={{ width: `${(c.totalValueUsd / (totalPipeline || 1)) * 100}%` }}
+                                             />
+                                          </div>
+                                          <span className="text-[10px] font-bold text-slate-500">{((c.totalValueUsd / (totalPipeline || 1)) * 100).toFixed(0)}%</span>
+                                       </div>
+                                    </div>
+                                 ))
+                              )}
                             </div>
                           ) : (
                              <div className="w-full aspect-square bg-slate-50 border border-slate-100 rounded-2xl relative overflow-hidden flex items-center justify-center shadow-inner cursor-pointer group">
