@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Mic, Trash2, Keyboard, Edit2, Signal, Mail, Lock, Fingerprint, UploadCloud, Link as LinkIcon, ArrowRight, Eye, EyeOff, Map as MapIcon, List, Maximize2, Minimize2, X, Calendar, Navigation, MapPin, ChevronLeft, ChevronRight, Share2, FileText, CreditCard, ShieldCheck, Check, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from "react-simple-maps";
-import { getActivities, createActivity, toggleActivityCompletion, getOpportunities, createOpportunity, updateOpportunityStatus, getClients, createClient } from './actions';
+import { getActivities, createActivity, toggleActivityCompletion, getOpportunities, createOpportunity, updateOpportunityStatus, getClients, createClient, deleteActivity } from './actions';
 
 export default function Home() {
   const [lang, setLang] = useState<'es'|'en'>('es');
@@ -88,9 +88,6 @@ export default function Home() {
              const stateData = await stateRes.json();
              if (stateData.demoData) {
                 const parsed = typeof stateData.demoData === 'string' ? JSON.parse(stateData.demoData) : stateData.demoData;
-                if (parsed.todayTasks) setTodayTasks(parsed.todayTasks);
-                if (parsed.newTimelineItems) setNewTimelineItems(parsed.newTimelineItems);
-                if (parsed.newCountryTimelineItems) setNewCountryTimelineItems(parsed.newCountryTimelineItems);
                 if (parsed.uploadedCatalogs) setUploadedCatalogs(parsed.uploadedCatalogs);
              }
           }
@@ -246,7 +243,7 @@ export default function Home() {
   const [showToast, setShowToast] = useState(false);
   const [todayTasks, setTodayTasks] = useState<any[]>([]);
   const [editingTask, setEditingTask] = useState<any>(null);
-  const [selectedClient, setSelectedClient] = useState<{name: string, country: string} | null>(null);
+  const [selectedClient, setSelectedClient] = useState<{id?: string, name: string, country: string} | null>(null);
   const [selectedOpportunity, setSelectedOpportunity] = useState<{id: string, title: string, amount: string} | null>(null);
   const [newTimelineItems, setNewTimelineItems] = useState<any[]>([]);
   const [newCountryTimelineItems, setNewCountryTimelineItems] = useState<any[]>([]);
@@ -369,7 +366,7 @@ export default function Home() {
 
   useEffect(() => {
     if (typeof window !== 'undefined' && currentView === 'dashboard') {
-      const stateObj = { todayTasks, newTimelineItems, newCountryTimelineItems, uploadedCatalogs };
+      const stateObj = { uploadedCatalogs };
       localStorage.setItem('easy_demo_data', JSON.stringify(stateObj));
       fetch('/api/user/state', {
          method: 'PUT',
@@ -377,7 +374,7 @@ export default function Home() {
          body: JSON.stringify({ demoData: stateObj })
       }).catch(() => {});
     }
-  }, [todayTasks, newTimelineItems, newCountryTimelineItems, uploadedCatalogs]);
+  }, [uploadedCatalogs]);
 
   // Referencia para la API nativa del navegador
   const recognitionRef = useRef<any>(null);
@@ -561,7 +558,9 @@ export default function Home() {
           const newAct = await createActivity({
              extractedAction: draftAction,
              rawAudioText: draftActivity,
-             commitmentDateStr: draftDate || undefined
+             commitmentDateStr: draftDate || undefined,
+             clientId: selectedClient ? selectedClient.id : undefined,
+             opportunityId: selectedOpportunity ? selectedOpportunity.id : undefined
           });
 
           const formatted = {
@@ -599,9 +598,12 @@ export default function Home() {
     setTimeout(() => setShowToast(false), 3000);
   };
 
-  const handleDeleteTask = () => {
+  const handleDeleteTask = async () => {
      if (!editingTask) return;
      if (window.confirm(lang === 'es' ? '¿Estás seguro de que deseas eliminar este registro permanentemente?' : 'Are you sure you want to delete this record permanently?')) {
+        if (typeof editingTask.id === 'string') {
+           try { await deleteActivity(editingTask.id); } catch(e) { console.error("Error deleting", e); }
+        }
         setTodayTasks(prev => prev.filter(t => t.id !== editingTask.id));
         setNewTimelineItems(prev => prev.filter(t => t.id !== editingTask.id));
         setNewCountryTimelineItems(prev => prev.filter(t => t.id !== editingTask.id));
@@ -1064,48 +1066,50 @@ export default function Home() {
                 className="absolute inset-0 flex flex-col bg-white"
               >
                 {/* HEADER DUAL BRANDING */}
-                <div className="px-5 pt-2 pb-4 flex justify-between items-center z-10 shrink-0">
-                  <div className="relative group flex items-center w-1/3">
-                    <div className="w-full h-12 flex items-center opacity-90 transition-opacity">
+                <div className="px-3 sm:px-5 pt-3 pb-3 flex justify-between items-center z-10 shrink-0">
+                  {/* Left Logo */}
+                  <div className="flex-1 flex justify-start items-center">
+                    <div className="h-10 sm:h-12 flex items-center opacity-90 transition-opacity">
                        {clientLogo ? (
-                          <img src={clientLogo} alt="Cliente" className="max-w-[110px] h-10 object-contain object-left" />
+                          <img src={clientLogo} alt="Cliente" className="max-w-[100px] h-8 sm:h-10 object-contain object-left" />
                        ) : (
-                          <div className="w-14 h-14 bg-slate-50 rounded-lg border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-400">
-                             <span className="text-[10px] leading-tight text-center font-medium">Falta<br/>Logo</span>
+                          <div className="w-10 sm:w-14 h-10 sm:h-14 bg-slate-50 rounded-lg border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-400">
+                             <span className="text-[8px] sm:text-[10px] leading-tight text-center font-medium">Falta<br/>Logo</span>
                           </div>
                        )}
                     </div>
                   </div>
 
-                  {/* Centro: Residencia y Avatar del Usuario */}
-                  <div className="flex items-center justify-center gap-2 w-1/3">
-                     <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-full px-2.5 py-1 shadow-sm">
+                  {/* Center Flag and Avatar */}
+                  <div className="shrink-0 flex items-center justify-center gap-1.5 sm:gap-2 mx-2">
+                     <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-50 border border-slate-200 rounded-full px-2 py-1 sm:px-2.5 shadow-sm">
                         <img src={`https://flagcdn.com/w20/${getFlagCode(userCountry)}.png`} alt="Bandera" className="w-4 h-auto rounded-sm shadow-[0_0_2px_rgba(0,0,0,0.2)]" />
-                        <span className="text-[10px] font-bold text-slate-600 uppercase">{getCountryName(userCountry)}</span>
+                        <span className="text-[9px] sm:text-[10px] font-bold text-slate-600 uppercase hidden sm:inline-block">{getCountryName(userCountry)}</span>
                      </div>
                      <div 
                         onClick={() => setCurrentView('onboarding')}
-                        className="w-8 h-8 bg-slate-100 border border-slate-200 rounded-full flex items-center justify-center shadow-sm cursor-pointer hover:bg-slate-200 transition-colors relative group"
+                        className="w-7 h-7 sm:w-8 sm:h-8 bg-slate-100 border border-slate-200 rounded-full flex items-center justify-center shadow-sm cursor-pointer hover:bg-slate-200 transition-colors relative group"
                      >
                         <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center">
                           {avatarUrl ? (
                              <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                           ) : (
-                             <span className="text-xs font-bold text-slate-600">P</span>
+                             <span className="text-[10px] sm:text-xs font-bold text-slate-600">P</span>
                           )}
                         </div>
                      </div>
                   </div>
 
-                  <div className="w-1/3 flex justify-end items-center">
-                    <img src="/logo_at_sit_full.png" alt="AT-SIT" className="h-11 max-w-[120px] object-contain object-right" />
+                  {/* Right Logo */}
+                  <div className="flex-1 flex justify-end items-center">
+                    <img src="/logo_at_sit_full.png" alt="AT-SIT" className="h-8 sm:h-10 max-w-[90px] sm:max-w-[110px] object-contain object-right" />
                   </div>
                 </div>
 
                 {/* Título Central */}
-                <div className="pb-4 shrink-0 bg-white flex flex-col items-center justify-center px-4 gap-2 pt-2">
-                  <h1 className="text-[#1E3A8A] font-extrabold text-[18px] sm:text-xl tracking-wide text-center">EASY MANAGEMENT AI</h1>
-                  <button onClick={() => setLang(lang === 'es' ? 'en' : 'es')} className="bg-slate-50 text-[#1E3A8A] px-3 py-1 rounded-full text-[10px] font-bold shadow-sm border border-slate-200 uppercase flex items-center gap-1 transition-colors hover:bg-slate-100">
+                <div className="pb-3 shrink-0 bg-white flex flex-col items-center justify-center px-4 gap-1.5 pt-1">
+                  <h1 className="text-[#1E3A8A] font-black text-[15px] sm:text-[18px] tracking-wide text-center">EASY MANAGEMENT AI</h1>
+                  <button onClick={() => setLang(lang === 'es' ? 'en' : 'es')} className="bg-slate-50 text-[#1E3A8A] px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-bold shadow-sm border border-slate-200 uppercase flex items-center gap-1 transition-colors hover:bg-slate-100">
                      🌐 {lang === 'es' ? 'ES' : 'EN'}
                   </button>
                 </div>
@@ -1127,7 +1131,7 @@ export default function Home() {
                 )}
 
                 {/* CONTENIDO PRINCIPAL SCROLLABLE */}
-                <div className="flex-1 overflow-y-auto no-scrollbar px-5 pb-40 flex flex-col gap-6">
+                <div className="flex-1 overflow-y-auto no-scrollbar px-3 sm:px-5 pb-36 flex flex-col gap-4 sm:gap-6">
                   
 
 
@@ -1197,7 +1201,7 @@ export default function Home() {
                         initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
                         className="flex flex-col gap-6"
                       >
-                        <div className="bg-white rounded-3xl p-5 shadow-[0_4px_25px_rgb(0,0,0,0.04)] border border-slate-100 relative">
+                        <div className="bg-white rounded-[24px] p-4 sm:p-5 shadow-[0_4px_25px_rgb(0,0,0,0.04)] border border-slate-100 relative">
                           <div className="flex justify-between items-center mb-4">
                             <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide">{t[lang].performance}</h3>
                             <button 
@@ -1250,10 +1254,10 @@ export default function Home() {
                           )}
                         </div>
 
-                        <div className="bg-white rounded-3xl p-6 shadow-[0_4px_25px_rgb(0,0,0,0.04)] border border-slate-100">
-                          <div className="flex justify-between items-center mb-5">
-                            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide">{lang === 'es' ? `Tareas de Hoy (${new Date().toLocaleDateString('es-CL', {day: '2-digit', month: 'short'}).replace('.', '')})` : `Today's Tasks (${new Date().toLocaleDateString('en-US', {month: 'short', day: '2-digit'})})`}</h3>
-                            <button onClick={() => setShowCalendarModal(true)} className="text-xs font-semibold px-3 py-1.5 bg-slate-50 text-[#1E3A8A] rounded-full border border-slate-200 shadow-sm transition-colors hover:bg-slate-100">{lang === 'es' ? 'VER CALENDARIO' : 'VIEW CALENDAR'}</button>
+                        <div className="bg-white rounded-[24px] p-4 sm:p-6 shadow-[0_4px_25px_rgb(0,0,0,0.04)] border border-slate-100">
+                          <div className="flex justify-between items-start sm:items-center mb-4 gap-2">
+                            <h3 className="text-[12px] sm:text-sm font-bold text-slate-800 uppercase tracking-wide leading-tight">{lang === 'es' ? `Tareas de Hoy (${new Date().toLocaleDateString('es-CL', {day: '2-digit', month: 'short'}).replace('.', '')})` : `Today's Tasks (${new Date().toLocaleDateString('en-US', {month: 'short', day: '2-digit'})})`}</h3>
+                            <button onClick={() => setShowCalendarModal(true)} className="text-[10px] sm:text-xs whitespace-nowrap font-semibold px-2.5 sm:px-3 py-1.5 shrink-0 bg-slate-50 text-[#1E3A8A] rounded-full border border-slate-200 shadow-sm transition-colors hover:bg-slate-100">{lang === 'es' ? 'VER CALENDARIO' : 'VIEW CALENDAR'}</button>
                           </div>
                           
                           {todayTasks.length === 0 ? (
@@ -1307,7 +1311,7 @@ export default function Home() {
                         initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
                         className="flex flex-col gap-6"
                       >
-                         <div className="bg-white rounded-3xl p-5 shadow-[0_4px_25px_rgb(0,0,0,0.04)] border border-slate-100 relative">
+                         <div className="bg-white rounded-[24px] p-4 sm:p-5 shadow-[0_4px_25px_rgb(0,0,0,0.04)] border border-slate-100 relative">
                            <div className="flex flex-col gap-3 mb-4">
                              <div className="flex justify-between items-center">
                                <h3 className="text-sm font-bold text-[#1E3A8A] uppercase tracking-wide">{lang === 'es' ? 'Proyectos Ganados' : 'Won Projects'}</h3>
@@ -1358,27 +1362,27 @@ export default function Home() {
                 </div>
 
                 {/* FOOTER CREADOR DE ACTIVIDAD */}
-                <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-white/95 via-white/80 to-transparent pt-20 pb-[70px] sm:pb-8 px-4 flex flex-col items-center pointer-events-none z-20">
+                <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-white via-white/95 to-transparent pt-12 pb-4 sm:pb-6 px-4 flex flex-col items-center pointer-events-none z-20">
                    <div className="pointer-events-auto flex items-end justify-center relative mb-2">
                       <motion.button 
                         onClick={handleMicClick}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className="w-[72px] h-[72px] bg-corporate-purple text-white rounded-full flex items-center justify-center shadow-[0_8px_25px_rgb(124,58,237,0.4)] z-10"
+                        className="w-[64px] h-[64px] sm:w-[72px] sm:h-[72px] bg-corporate-purple text-white rounded-full flex items-center justify-center shadow-[0_8px_25px_rgb(124,58,237,0.4)] z-10"
                       >
-                         <Mic size={32} />
+                         <Mic size={28} className="sm:w-8 sm:h-8" />
                       </motion.button>
                       
                       <motion.button 
                         onClick={() => setShowActionModal(true)}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className="absolute -right-12 bottom-2 w-11 h-11 bg-white border border-slate-200 text-slate-800 rounded-full flex items-center justify-center shadow-lg hover:bg-slate-50 z-0"
+                        className="absolute -right-12 sm:-right-14 bottom-1 sm:bottom-2 w-10 h-10 sm:w-11 sm:h-11 bg-white border border-slate-200 text-slate-800 rounded-full flex items-center justify-center shadow-lg hover:bg-slate-50 z-0"
                       >
-                         <Keyboard size={20} />
+                         <Keyboard size={18} className="sm:w-5 sm:h-5" />
                       </motion.button>
                    </div>
-                   <span className="text-[10px] font-bold text-slate-500 tracking-wider uppercase">{lang === 'es' ? 'Agregar Actividad Rápida (Voz o Texto)' : 'Quick Add Activity (Voice/Text)'}</span>
+                   <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 tracking-wider uppercase bg-white/50 px-2 py-0.5 rounded-full">{lang === 'es' ? 'Actividad Rápida (Voz o Texto)' : 'Quick Log (Voice/Text)'}</span>
                 </div>
               </motion.div>
             )}

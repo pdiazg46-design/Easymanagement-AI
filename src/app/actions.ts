@@ -45,7 +45,7 @@ export async function getActivities() {
 }
 
 // CREAR ACTIVIDAD
-export async function createActivity(data: { extractedAction: string, commitmentDateStr?: string, rawAudioText?: string }) {
+export async function createActivity(data: { extractedAction: string, commitmentDateStr?: string, rawAudioText?: string, clientId?: string, opportunityId?: string }) {
   const { user } = await getOrCreateMockSession();
   
   // Parse YYYY-MM-DD to DateTime if possible
@@ -62,7 +62,9 @@ export async function createActivity(data: { extractedAction: string, commitment
       userId: user.id,
       extractedAction: data.extractedAction,
       commitmentDate: commitmentDate,
-      rawAudioText: data.rawAudioText
+      rawAudioText: data.rawAudioText,
+      clientId: data.clientId,
+      opportunityId: data.opportunityId
     }
   });
 
