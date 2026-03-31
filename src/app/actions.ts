@@ -211,6 +211,7 @@ export async function getAllUsers() {
          email: true,
          name: true,
          isPro: true,
+         proSince: true,
          createdAt: true,
          country: true,
          clientUrl: true
@@ -223,7 +224,10 @@ export async function getAllUsers() {
 export async function toggleUserProStatus(userId: string, isPro: boolean) {
    await prisma.user.update({
       where: { id: userId },
-      data: { isPro }
+      data: { 
+         isPro,
+         proSince: isPro ? new Date() : null
+      }
    });
    revalidatePath("/");
    return { success: true };

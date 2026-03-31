@@ -1209,7 +1209,7 @@ export default function Home() {
                                <tr className="bg-slate-50 text-[10px] uppercase tracking-widest font-black text-slate-400 border-b border-slate-100">
                                  <th className="px-5 py-4">Usuario</th>
                                  <th className="px-5 py-4">Suscripción</th>
-                                 <th className="px-5 py-4">Días de Prueba</th>
+                                 <th className="px-5 py-4">Antigüedad</th>
                                  <th className="px-5 py-4 text-center">Acciones</th>
                                </tr>
                              </thead>
@@ -1225,7 +1225,8 @@ export default function Home() {
                                     <tr key={u.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                                        <td className="px-5 py-4 text-sm font-bold text-[#1E3A8A] flex flex-col gap-0.5">
                                           {u.name}
-                                          <span className="text-[10px] font-medium text-slate-400">{u.email}</span>
+                                          <span className="text-[10px] font-medium text-slate-400 leading-none mb-0.5">{u.email}</span>
+                                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Ingresó: {cDate.toLocaleDateString('es-ES')}</span>
                                        </td>
                                        <td className="px-5 py-4">
                                           {u.isPro ? (
@@ -1236,11 +1237,15 @@ export default function Home() {
                                              <span className="bg-amber-50 text-amber-500 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md shadow-sm border border-amber-200/50">Prueba Activa</span>
                                           )}
                                        </td>
-                                       <td className="px-5 py-4">
+                                       <td className="px-5 py-4 flex flex-col gap-1 items-start justify-center h-full">
                                           {u.isPro ? (
-                                             <span className="text-xs font-bold text-emerald-500">Ilimitado</span>
+                                             <span className="text-xs font-bold text-emerald-500 flex items-center gap-1.5">
+                                                {u.proSince ? `Suscrito hace ${Math.floor((now.getTime() - new Date(u.proSince).getTime()) / (1000 * 3600 * 24))} días` : 'Suscripción Activa'}
+                                             </span>
                                           ) : (
-                                             <span className={`text-xs font-black ${isLocked ? 'text-red-500' : 'text-slate-600'}`}>{isLocked ? '0' : remainingTrials} días</span>
+                                             <span className={`text-xs font-black ${isLocked ? 'text-red-500' : 'text-slate-600'}`}>
+                                                {isLocked ? 'Venció' : `Quedan ${remainingTrials} días`}
+                                             </span>
                                           )}
                                        </td>
                                        <td className="px-5 py-4 text-center">

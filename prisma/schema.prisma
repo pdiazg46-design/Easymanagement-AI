@@ -39,6 +39,7 @@ model User {
   avatarUrl    String?
   demoData     String?
   isPro        Boolean  @default(false)
+  proSince     DateTime?
   tenantId     String?
   tenant       Tenant?   @relation(fields: [tenantId], references: [id])
   createdAt    DateTime  @default(now())
