@@ -233,8 +233,6 @@ export default function Home() {
   const [showPipelineModal, setShowPipelineModal] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [regionalViewMode, setRegionalViewMode] = useState<'list' | 'map'>('list');
-  const [historialViewMode, setHistorialViewMode] = useState<'list' | 'map'>('list');
-  const [historialTimeframe, setHistorialTimeframe] = useState('month');
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   const [showActionModal, setShowActionModal] = useState(false);
   const [showCalendarModal, setShowCalendarModal] = useState(false);
@@ -328,26 +326,6 @@ export default function Home() {
       { name: 'Cuba', coordinates: [-79.8282, 21.5218] },
       { name: 'Puerto Rico', coordinates: [-66.5901, 18.2208] },
    ];
-
-   const activeCountriesMetrics = baseCountries.map(c => {
-      const opps = opportunities.filter(o => {
-         if (o.client?.country !== c.name) return false;
-         if (activeTab === 'historial') {
-            return o.status === 'GANADO' || o.status === 'PERDIDO';
-         } else {
-            return o.status === 'PROSPECTO' || o.status === 'COTIZADO';
-         }
-      });
-      const totalValueUsd = opps.reduce((acc, curr) => acc + curr.amountUsd, 0);
-      return {
-         ...c,
-         opps,
-         totalValueUsd,
-         totalProjects: opps.length,
-         value: totalValueUsd > 0 ? `$${(totalValueUsd/1000).toFixed(0)}K` : '0',
-         isActive: totalValueUsd > 0
-      };
-   }).filter(m => m.isActive).sort((a,b) => b.totalValueUsd - a.totalValueUsd);
 
    const isHistorial = activeTab === 'historial';
 
