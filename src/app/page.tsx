@@ -1739,57 +1739,27 @@ export default function Home() {
                                    <h4 className="font-extrabold text-[#1E3A8A] text-[15px] mb-1.5">{opp.title}</h4>
                                    <div className="flex items-center gap-2">
                                       {/* Status Selector */}
-                                      <select 
-                                        onClick={e => e.stopPropagation()} 
-                                        onChange={async (e) => {
-                                          e.stopPropagation();
-                                          const newStatus = e.target.value;
-                                          if (newStatus === 'PERDIDO') {
-                                             setPendingLostOpp(opp);
-                                             setSelectedOpportunity({id: opp.id, title: opp.title, amount: opp.amountUsd.toString()});
-                                             setIsRecording(true);
-                                             finalTranscriptRef.current = '';
-                                             setDraftActivity("");
-                                             setDraftAction(lang === 'es' ? "Motivos de pérdida de proyecto" : "Reason for lost deal");
-                                             if (recognitionRef.current) {
-                                                try { recognitionRef.current.start(); } catch(err){}
-                                             }
-                                             return;
-                                          }
-                                          setOpportunities(prev => prev.map(o => o.id === opp.id ? {...o, status: newStatus, statusUpdatedAt: new Date()} : o));
-                                          try { await updateOpportunityStatus(opp.id, newStatus); } catch(err) { console.error(err) }
-                                        }}
-                                        value={opp.status}
-                                        className={`text-[9px] uppercase font-bold px-2 py-1 rounded-md border appearance-none text-center cursor-pointer shadow-sm outline-none transition-colors shrink-0 ${
-                                          opp.status === 'PROSPECTO' ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100' :
-                                          'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100'
+                                      {/* Status Display Only */}
+                                      <span 
+                                        className={`text-[9px] uppercase font-bold px-2 py-1 rounded-md border text-center shadow-sm shrink-0 ${
+                                          opp.status === 'PROSPECTO' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                          'bg-blue-50 text-blue-700 border-blue-200'
                                         }`}
                                       >
-                                        <option value="PROSPECTO">PROSPECTO</option>
-                                        <option value="COTIZADO">COTIZADO</option>
-                                        <option value="GANADO">GANADO</option>
-                                        <option value="PERDIDO">PERDIDO</option>
-                                      </select>
+                                         {opp.status}
+                                      </span>
 
-                                      <select 
-                                        onClick={e => e.stopPropagation()} 
-                                        onChange={async (e) => {
-                                          e.stopPropagation();
-                                          const newConf = e.target.value;
-                                          setOpportunities(prev => prev.map(o => o.id === opp.id ? {...o, confidenceLevel: newConf} : o));
-                                          try { await updateOpportunityConfidence(opp.id, newConf); } catch(err) { console.error(err) }
-                                        }}
-                                        value={opp.confidenceLevel || 'MEDIA'}
-                                        className={`text-[9px] uppercase font-bold px-2 py-1 rounded-md border appearance-none text-center cursor-pointer shadow-sm outline-none transition-colors ${
-                                          opp.confidenceLevel === 'ALTA' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' :
-                                          opp.confidenceLevel === 'BAJA' ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100' :
-                                          'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100' // Default MEDIA
+                                      {/* Confidence Display Only */}
+                                      <span 
+                                        className={`text-[9px] uppercase font-bold px-2 py-1 rounded-md border text-center shadow-sm ${
+                                          opp.confidenceLevel === 'ALTA' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                          opp.confidenceLevel === 'BAJA' ? 'bg-red-50 text-red-700 border-red-200' :
+                                          'bg-amber-50 text-amber-700 border-amber-200'
                                         }`}
                                       >
-                                        <option value="ALTA">💚 ALTA</option>
-                                        <option value="MEDIA">💛 MEDIA</option>
-                                        <option value="BAJA">❤️ BAJA</option>
-                                      </select>
+                                         {opp.confidenceLevel === 'ALTA' ? '💚 ALTA' :
+                                          opp.confidenceLevel === 'BAJA' ? '❤️ BAJA' : '💛 MEDIA'}
+                                      </span>
                                    </div>
                                    <div className="mt-2 text-[9px] text-slate-400 font-medium">
                                       <span>Creada: {opp.createdAt ? new Date(opp.createdAt).toLocaleDateString() : 'N/A'}</span>
@@ -1842,26 +1812,14 @@ export default function Home() {
                                     <div>
                                        <h4 className="font-extrabold text-slate-600 text-[14px] mb-1.5 line-through decoration-slate-300">{opp.title}</h4>
                                        <div className="flex items-center gap-2">
-                                          <select 
-                                            onClick={e => e.stopPropagation()} 
-                                            onChange={async (e) => {
-                                              e.stopPropagation();
-                                              const newStatus = e.target.value;
-                                              setOpportunities(prev => prev.map(o => o.id === opp.id ? {...o, status: newStatus} : o));
-                                              try { await updateOpportunityStatus(opp.id, newStatus); } catch(err) { console.error(err) }
-                                            }}
-                                            value={opp.status}
-                                            disabled={opp.status === 'GANADO' || opp.status === 'PERDIDO'}
-                                            className={`text-[9px] uppercase font-bold px-2 py-1 rounded-md border appearance-none text-center shadow-sm outline-none shrink-0 ${
-                                              opp.status === 'GANADO' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 cursor-not-allowed' :
-                                              'bg-red-50 text-red-700 border-red-200 cursor-not-allowed'
+                                          <span 
+                                            className={`text-[9px] uppercase font-bold px-2 py-1 rounded-md border text-center shadow-sm shrink-0 ${
+                                              opp.status === 'GANADO' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                              'bg-red-50 text-red-700 border-red-200'
                                             }`}
                                           >
-                                            <option value="PROSPECTO">PROSPECTO</option>
-                                            <option value="COTIZADO">COTIZADO</option>
-                                            <option value="GANADO">GANADO 🏆</option>
-                                            <option value="PERDIDO">PERDIDO ❌</option>
-                                          </select>
+                                            {opp.status === 'GANADO' ? 'GANADO 🏆' : 'PERDIDO ❌'}
+                                          </span>
                                        </div>
                                     </div>
                                     <div className="text-right shrink-0">
