@@ -886,7 +886,7 @@ export default function Home() {
   return (
     <div className={`min-h-[100dvh] w-full font-sans relative flex overflow-hidden bg-slate-100`}>
         {/* CONTENEDOR DE VISTAS */}
-        <div className={`flex-1 relative overflow-hidden flex ${currentView === 'onboarding' && email === 'pdiazg46@gmail.com' ? 'flex-row w-full max-w-none' : 'flex-col max-w-md mx-auto bg-white shadow-2xl'}`}>
+        <div className={`flex-1 relative overflow-hidden flex ${currentView === 'onboarding' && showMobilePanel ? 'w-full max-w-none flex-col bg-[#F8FAFC]' : 'flex-col max-w-md mx-auto bg-white shadow-2xl'}`}>
           <AnimatePresence mode="wait">
 
             {/* VISTA 1: CREAR CUENTA / LOGIN */}
@@ -1012,7 +1012,8 @@ export default function Home() {
                 className={`absolute inset-0 flex flex-row px-0 pt-0 bg-transparent overflow-hidden`}
               >
                   {/* PANEL IZQUIERDO: CONFIGURACIÓN MÓVIL EXACTA */}
-                  <div className="w-full md:w-[450px] md:min-w-[450px] h-full shadow-2xl bg-white relative shrink-0 flex flex-col overflow-y-auto no-scrollbar pt-12 pb-10 px-7 mx-auto md:mx-0">
+                  {!showMobilePanel && (
+                  <div className="w-full h-full bg-white relative shrink-0 flex flex-col overflow-y-auto no-scrollbar pt-12 pb-10 px-7 mx-auto">
                      <div className="mb-6">
                    <div className="w-12 h-1 bg-corporate-purple rounded-full mb-6 relative">
                       <button onClick={() => setLang(lang === 'es' ? 'en' : 'es')} className="absolute -right-60 -top-2 bg-slate-100 text-[#1E3A8A] px-2 py-1 rounded-full text-[10px] font-bold shadow-sm border border-slate-200 uppercase flex items-center gap-1">
@@ -1194,7 +1195,7 @@ export default function Home() {
                       {email === 'pdiazg46@gmail.com' && (
                         <button 
                           onClick={() => setShowMobilePanel(true)}
-                          className="text-corporate-purple font-bold py-3 px-4 text-xs flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors uppercase tracking-wider flex-1 border border-corporate-purple/20 bg-corporate-purple/5 rounded-xl md:hidden whitespace-nowrap"
+                          className="text-corporate-purple font-bold py-3 px-4 text-xs flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors uppercase tracking-wider flex-1 border border-corporate-purple/20 bg-corporate-purple/5 rounded-xl whitespace-nowrap"
                         >
                           <ShieldCheck size={16} />
                           {lang === 'es' ? 'VER USUARIOS' : 'USERS'}
@@ -1203,16 +1204,16 @@ export default function Home() {
                     </div>
                  </div>
               </div>
+              )}
 
               {/* PANEL DERECHO: ADMIN DE USUARIOS (SOLO PATRICIO O PRO) */}
-              {email === 'pdiazg46@gmail.com' && (
-                  <div className={`${showMobilePanel ? 'flex absolute inset-0 z-50 bg-[#F8FAFC] flex-col p-4 overflow-y-auto' : 'hidden md:flex flex-1 flex-col p-8 lg:p-12 items-center justify-start overflow-y-auto relative border-l border-slate-200 shadow-inner bg-[#F8FAFC]'}`}>
-                     {showMobilePanel && (
-                        <button onClick={() => setShowMobilePanel(false)} className="mb-4 flex items-center gap-2 text-slate-500 font-bold self-start bg-white px-4 py-2 rounded-full text-xs shadow-sm border border-slate-200">
-                           <ChevronLeft size={16} /> {lang === 'es' ? 'Volver a mi perfil' : 'Back to Profile'}
-                        </button>
-                     )}
-                     <div className="w-full max-w-4xl bg-white rounded-3xl p-4 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100">
+              {email === 'pdiazg46@gmail.com' && showMobilePanel && (
+                  <div className="flex flex-1 flex-col p-4 md:p-8 lg:p-12 items-center justify-start overflow-y-auto relative bg-[#F8FAFC]">
+                     <div className="w-full max-w-5xl flex flex-col mx-auto">
+                         <button onClick={() => setShowMobilePanel(false)} className="mb-6 flex items-center gap-2 text-slate-500 font-bold self-start bg-white px-5 py-2.5 rounded-full text-xs shadow-sm border border-slate-200 hover:bg-slate-50 transition-colors">
+                            <ChevronLeft size={16} /> {lang === 'es' ? 'Volver a mi perfil' : 'Back to Profile'}
+                         </button>
+                         <div className="w-full bg-white rounded-3xl p-5 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100">
                         <div className="flex justify-between items-center mb-6">
                            <h2 className="text-[#1E3A8A] text-lg md:text-2xl font-black uppercase tracking-widest flex items-center gap-3">
                               <ShieldCheck size={28} className="text-corporate-purple hidden md:block" /> 
@@ -1310,6 +1311,7 @@ export default function Home() {
                         </div>
                      </div>
                   </div>
+                 </div>
               )}
               </motion.div>
             )}
