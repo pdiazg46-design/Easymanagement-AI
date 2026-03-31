@@ -400,6 +400,8 @@ export default function Home() {
   // Referencia para la API nativa del navegador
   const recognitionRef = useRef<any>(null);
   const finalTranscriptRef = useRef<string>('');
+  const activeMicFieldRef = useRef<'activity' | 'action'>('activity');
+  const [recordingField, setRecordingField] = useState<'activity' | 'action' | null>(null);
 
   // Inicializar Speech Recognition
   useEffect(() => {
@@ -445,7 +447,12 @@ export default function Home() {
           }
           
           finalTranscriptRef.current = finalStr;
-          setDraftActivity(finalStr + interimStr);
+
+          if (activeMicFieldRef.current === 'action') {
+             setDraftAction(finalStr + interimStr);
+          } else {
+             setDraftActivity(finalStr + interimStr);
+          }
         };
 
         recognition.onerror = (event: any) => {
@@ -527,14 +534,21 @@ export default function Home() {
     return { action: extractedAction, date: extractedDate };
   };
 
-  const handleMicClick = () => {
+  const handleMicClick = (field: 'activity' | 'action' = 'activity') => {
     setEditingTask(null);
     
     if (!isRecording) {
+      activeMicFieldRef.current = field;
+      setRecordingField(field);
       setIsRecording(true);
       finalTranscriptRef.current = '';
-      setDraftActivity("");
-      setDraftAction(lang === 'es' ? "Acción registrada en terreno" : "Field recorded action");
+      
+      if (field === 'activity') {
+        setDraftActivity("");
+        setDraftAction(lang === 'es' ? "Acción registrada en terreno" : "Field recorded action");
+      } else {
+        setDraftAction(lang === 'es' ? "Escuchando..." : "Listening...");
+      }
       
       // Iniciar escucha real
       if (recognitionRef.current) {
@@ -542,6 +556,7 @@ export default function Home() {
       }
     } else {
       setIsRecording(false);
+      setRecordingField(null);
       setIsProcessingVoice(true);
       
       // Detener escucha real
@@ -553,25 +568,46 @@ export default function Home() {
       setTimeout(() => {
         setIsProcessingVoice(false);
         
-        setDraftActivity(prevActivity => {
-           const finalAct = prevActivity.trim();
-           if (!finalAct && !finalTranscriptRef.current) {
-              return lang === 'es' ? "No se detectó audio (Permiso denegado o micrófono apagado). Escribe manualmente." : "No audio detected. Please type manually.";
-           }
-           
-           // Procesar Texto con Motor NLP Fake
-           const result = processVoiceWithFakeAI(finalAct, lang);
-           if (result.action !== "Acción registrada en terreno" && result.action !== "Field recorded action") {
-              setDraftAction(result.action);
-           }
-           if (result.date) {
-              setDraftDate(result.date);
-           }
-           
-           return finalAct;
-        });
-
-        setShowActionModal(true);
+        if (activeMicFieldRef.current === 'activity') {
+            setDraftActivity(prevActivity => {
+               const finalAct = prevActivity.trim();
+               if (!finalAct && !finalTranscriptRef.current) {
+                  return lang === 'es' ? "No se detectó audio (Permiso denegado o micrófono apagado). Escribe manualmente." : "No audio detected. Please type manually.";
+               }
+               
+               // Procesar Texto con Motor NLP Fake
+               const result = processVoiceWithFakeAI(finalAct, lang);
+               if (result.action && result.action !== "Acción registrada en terreno" && result.action !== "Field recorded action") {
+                  setDraftAction(result.action);
+               }
+               if (result.date) {
+                  setDraftDate(result.date);
+               }
+               
+               return finalAct;
+            });
+            setShowActionModal(true);
+        } else if (activeMicFieldRef.current === 'action') {
+            setDraftAction(prevAction => {
+               const finalTxt = prevAction.trim();
+               const result = processVoiceWithFakeAI(finalTxt, lang);
+               if (result.date) setDraftDate(result.date);
+               
+               let cleanAction = finalTxt;
+               const wordsToClean = [" el próximo", " para el", " el lunes", " el martes", " el miércoles", " el jueves", " el viernes", " mañana", " la próxima", " para el próximo"];
+               let truncateIdx = finalTxt.length;
+               for (const w of wordsToClean) {
+                   const idx = cleanAction.toLowerCase().indexOf(w);
+                   if (idx !== -1 && idx < truncateIdx) truncateIdx = idx;
+               }
+               if (truncateIdx > 0 && truncateIdx < cleanAction.length) {
+                   cleanAction = cleanAction.substring(0, truncateIdx).trim();
+               }
+               
+               if (cleanAction === "Escuchando..." || cleanAction === "Listening...") return "";
+               return cleanAction || finalTxt;
+            });
+        }
       }, 1500);
     }
   };
@@ -662,7 +698,7 @@ export default function Home() {
     
     const cells = [];
     for (let i = 0; i < firstDay; i++) {
-        cells.push(<div key={`empty-${i}`} className="h-16 sm:h-20 border border-slate-100 bg-slate-50/50"></div>);
+        cells.push(<div key={`empty-${i}`} className="h-[96px] sm:h-[110px] border border-slate-100 bg-slate-50/50"></div>);
     }
     for (let day = 1; day <= daysInMonth; day++) {
         const dStr = `${currentYear}-${(currentMonth+1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
@@ -670,9 +706,9 @@ export default function Home() {
         const isToday = day === today.getDate();
         
         cells.push(
-            <div key={`day-${day}`} className={`h-16 sm:h-20 border border-slate-100 p-1 relative flex flex-col ${isToday ? 'bg-blue-50/50' : 'bg-white'}`}>
-                <span className={`text-[10px] font-bold mx-auto mb-1 flex items-center justify-center ${isToday ? 'text-white w-5 h-5 bg-[#1E3A8A] rounded-full shadow-sm' : 'text-slate-500'}`}>{day}</span>
-                <div className="flex-1 overflow-y-auto flex gap-1 flex-col content-start hide-scrollbar">
+            <div key={`day-${day}`} className={`h-[96px] sm:h-[110px] border border-slate-100 p-1 relative flex flex-col ${isToday ? 'bg-blue-50/50' : 'bg-white'}`}>
+                <span className={`text-[10px] font-bold mx-auto mb-1 flex items-center shrink-0 justify-center ${isToday ? 'text-white w-5 h-5 bg-[#1E3A8A] rounded-full shadow-sm' : 'text-slate-500'}`}>{day}</span>
+                <div className="flex-1 overflow-y-auto flex gap-1 flex-col content-start hide-scrollbar pb-2">
                     {dayTasks.map(task => (
                         <div key={task.id} 
                              onClick={(e) => {
@@ -1998,8 +2034,8 @@ export default function Home() {
                   <motion.button 
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={handleMicClick}
-                    className={`w-[68px] h-[68px] text-white rounded-full flex items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.2)] border-[5px] border-slate-50 transition-colors ${selectedOpportunity ? 'bg-gradient-to-br from-[#F59E0B] to-[#D97706]' : 'bg-gradient-to-br from-[#7C3AED] to-[#5B21B6]'}`}
+                    onClick={() => handleMicClick('activity')}
+                    className={`w-[68px] h-[68px] text-white rounded-full flex items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.2)] border-[5px] border-slate-50 transition-colors ${selectedOpportunity ? 'bg-gradient-to-br from-[#F59E0B] to-[#D97706]' : 'bg-gradient-to-br from-[#7C3AED] to-[#5B21B6]'} ${recordingField === 'activity' ? 'animate-pulse' : ''}`}
                   >
                      <Mic size={30} />
                   </motion.button>
@@ -2088,8 +2124,13 @@ export default function Home() {
                     <div className="space-y-5">
                       {/* Campo Acción */}
                       <div>
-                        <label className="text-[11px] font-bold text-slate-500 mb-2 block uppercase tracking-widest pl-3 flex items-center gap-2">{lang === 'es' ? '¿Qué sigue?' : 'What\'s next?'}</label>
-                        <input type="text" value={draftAction} onChange={(e) => setDraftAction(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-slate-700 font-bold focus:outline-none focus:ring-2 focus:ring-[#F59E0B]/50 text-sm shadow-inner" />
+                        <div className="flex justify-between items-center mb-2 pl-3 px-1">
+                           <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">{lang === 'es' ? '¿Qué sigue?' : 'What\'s next?'}</label>
+                           <button onClick={(e) => { e.preventDefault(); handleMicClick('action'); }} className={`p-1.5 rounded-full shadow-sm transition-colors border outline-none active:scale-95 ${recordingField === 'action' ? 'bg-[#F59E0B] text-white  animate-pulse border-[#F59E0B]' : 'bg-white text-slate-400 border-slate-200 hover:text-[#F59E0B] hover:border-[#F59E0B]/30'}`}>
+                               <Mic size={14} />
+                           </button>
+                        </div>
+                        <input type="text" value={draftAction} onChange={(e) => setDraftAction(e.target.value)} className={`w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-slate-700 font-bold focus:outline-none focus:ring-2 focus:ring-[#F59E0B]/50 text-sm shadow-inner transition-colors ${recordingField === 'action' ? 'border-[#F59E0B]' : 'border-slate-200'}`} />
                       </div>
                       
                       {/* Campo Fecha */}
