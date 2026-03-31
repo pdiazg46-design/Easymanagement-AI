@@ -1221,6 +1221,30 @@ export default function Home() {
                                   const remainingTrials = Math.max(0, 7 - diffDays);
                                   const isLocked = remainingTrials === 0 && !u.isPro;
 
+                                  let formattedProTime = "Suscripción Activa";
+                                  if (u.proSince) {
+                                     const proStart = new Date(u.proSince);
+                                     let years = now.getFullYear() - proStart.getFullYear();
+                                     let months = now.getMonth() - proStart.getMonth();
+                                     let days = Math.floor((now.getTime() - proStart.getTime()) / (1000 * 60 * 60 * 24));
+                                     
+                                     if (now.getDate() < proStart.getDate()) {
+                                        months -= 1;
+                                     }
+                                     if (months < 0) {
+                                        years -= 1;
+                                        months += 12;
+                                     }
+                                     
+                                     if (days <= 30) {
+                                        formattedProTime = days === 0 ? 'Pro desde hoy' : `Pro hace ${days} día${days === 1 ? '' : 's'}`;
+                                     } else if (years === 0) {
+                                        formattedProTime = `Pro hace ${months} mes${months === 1 ? '' : 'es'}`;
+                                     } else {
+                                        formattedProTime = `Pro hace ${years} año${years === 1 ? '' : 's'}${months > 0 ? ` y ${months} mes${months === 1 ? '' : 'es'}` : ''}`;
+                                     }
+                                  }
+
                                   return (
                                     <tr key={u.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                                        <td className="px-5 py-4 text-sm font-bold text-[#1E3A8A] flex flex-col gap-0.5">
@@ -1240,7 +1264,7 @@ export default function Home() {
                                        <td className="px-5 py-4 flex flex-col gap-1 items-start justify-center h-full">
                                           {u.isPro ? (
                                              <span className="text-xs font-bold text-emerald-500 flex items-center gap-1.5">
-                                                {u.proSince ? `Suscrito hace ${Math.floor((now.getTime() - new Date(u.proSince).getTime()) / (1000 * 3600 * 24))} días` : 'Suscripción Activa'}
+                                                {formattedProTime}
                                              </span>
                                           ) : (
                                              <span className={`text-xs font-black ${isLocked ? 'text-red-500' : 'text-slate-600'}`}>
