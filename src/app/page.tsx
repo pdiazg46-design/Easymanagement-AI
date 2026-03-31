@@ -1707,7 +1707,7 @@ export default function Home() {
 
                   {/* KPI Quick Stats Dinámicos */}
                   {(() => {
-                     const clientOpps = opportunities.filter(o => o.client?.name === selectedClient?.name);
+                     const clientOpps = opportunities.filter(o => o.client?.name === selectedClient?.name && (o.status === 'PROSPECTO' || o.status === 'COTIZADO'));
                      const clientTotalUsd = clientOpps.reduce((sum, opp) => sum + opp.amountUsd, 0);
                      
                      const formatCompact = (num: number) => {
