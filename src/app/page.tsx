@@ -546,12 +546,32 @@ export default function Home() {
     let extractedDate = "";
     const today = new Date();
     
-    // Matcheos Directos
-    const matchDayThisMonth = lowerText.match(/(\d{1,2})\s+de\s+este\s+mes/);
-    if (matchDayThisMonth) {
-       const day = parseInt(matchDayThisMonth[1], 10);
+    // Diccionario de meses
+    const monthsMap: Record<string, number> = { "enero":0, "febrero":1, "marzo":2, "abril":3, "mayo":4, "junio":5, "julio":6, "agosto":7, "septiembre":8, "octubre":9, "noviembre":10, "diciembre":11 };
+
+    // 1. "DD de [mes]" (Ej: 2 de abril, 15 de mayo)
+    const matchExplicitDate = lowerText.match(/(\d{1,2})\s+de\s+(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)/);
+    
+    if (matchExplicitDate) {
+       const day = parseInt(matchExplicitDate[1], 10);
+       const month = monthsMap[matchExplicitDate[2]];
+       let year = today.getFullYear();
+       extractedDate = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+    } 
+    // 2. "mañana" o "para mañana"
+    else if (lowerText.includes("mañana")) {
+       const tmrw = new Date(today);
+       tmrw.setDate(today.getDate() + 1);
+       extractedDate = `${tmrw.getFullYear()}-${(tmrw.getMonth() + 1).toString().padStart(2, '0')}-${tmrw.getDate().toString().padStart(2, '0')}`;
+    }
+    // 3. "X de este mes"
+    else if (lowerText.match(/(\d{1,2})\s+de\s+este\s+mes/)) {
+       const matchDayThisMonth = lowerText.match(/(\d{1,2})\s+de\s+este\s+mes/);
+       const day = parseInt(matchDayThisMonth![1], 10);
        extractedDate = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-    } else {
+    } 
+    // 4. "próximo lunes" o "el lunes"
+    else {
         const daysMap: Record<string, number> = { "domingo":0, "lunes":1, "martes":2, "miércoles":3, "miercoles": 3, "jueves":4, "viernes":5, "sábado":6, "sabado": 6 };
         for (const [dayName, dayNum] of Object.entries(daysMap)) {
             if (lowerText.includes(`próximo ${dayName}`) || lowerText.includes(`proximo ${dayName}`) || lowerText.includes(`el ${dayName}`)) {
