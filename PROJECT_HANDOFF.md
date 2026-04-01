@@ -15,15 +15,22 @@
 > El usuario NO está testeando la aplicación de manera local (`localhost:3000`). Todas las pruebas de UI, PWA y Base de Datos las está realizando **directamente en Producción a través de Vercel** (`easymanagement-ai.vercel.app`). 
 > **Regla de Oro:** Todo cambio de código (frontend, backend, Prisma o assets) que hagas localmente MUST ser empujado al repositorio vía Git (`git add .`, `git commit`, `git push`) para que Vercel lo recompile y el usuario pueda validar el resultado. Si no haces `git push`, el usuario no verá absolutamente nada de lo que programas.
 
-## 1. Project Overview & Logros Recientes
-**Easy Management AI** es un CRM "Mobile-First" e "Offline-First" enfocado en velocidad operativa para la región LATAM, impulsado por Voice-To-Action.
+## 1. Project Overview & Modelo de Negocio Core
+**Easy Management AI** es un CRM "Mobile-First" enfocado en velocidad operativa para la región LATAM, impulsado por Voice-To-Action.
+**El Modelo de Negocio REAL (Core Mechanism):**
+El usuario (Vendedor/Ejecutivo) trabaja para un **MANDANTE** o Proveedor principal (Ej: *Bartech*), definido en la Configuración de Entorno. La herramienta asimila el catálogo completo de productos/servicios de este Mandante mediante IA (RAG). 
+La jerarquía estructural pura del sistema es:
+1. **Mandante (Proveedor Unico del Vendedor):** Tiene un catálogo de productos/precios precargado en la Configuración.
+2. **Canal / Distribuidor / Cliente Final:** Son las entidades creadas en el país asignado (Ej: Chile). Son a quienes se les vende.
+3. **Oportunidad / Proyecto:** Nacen y se vinculan bajo cada Distribuidor/Cliente, alimentando el Pipeline.
+4. **Bitácora (Voice-to-Action):** Registra el roce diario con el distribuidor, captando qué productos reales del Mandante se están moviendo, cotizando o perdiendo.
 
 ### Avances Críticos Logrados:
-1.  **Migración Completa a Database Real (Neon + Prisma):** Se reemplazó el uso masivo de puentes en `LocalStorage`. Los modelos `ActivityLog`, `Opportunity`, `Client` y `User` ahora interactúan permanentemente. Se implementaron Server Actions (`actions.ts`) robustos.
-2.  **Jerarquía de Ventas Pura:** Se consolidó el modelo jerárquico real: País -> Cliente -> Oportunidad. Las oportunidades obligan un enlace con cliente para una trazabilidad perfecta.
-3.  **Mapa Interactivo Reactivo:** El backend alimenta al mapa geo-espacial (`react-simple-maps`) calculando al vuelo qué países tienen métricas y ocultando los países "vacíos". Se aplicó la escala de calor para destacar países clave.
-4.  **Botón de Logout y Panel de Super Admin:** El panel de administración fue adaptado de un formato "Split-Screen" a un "Full Screen Overlay" para móviles. Se eliminó la pantalla dividida a favor de un botón fijo "VER USUARIOS" anclado junto a "Cerrar sesión" en el perfil (onboarding).
-5.  **Historial de Registro Pro (Suscripciones):** Se integró `proSince` en NeonDB/Prisma para formatear automáticamente la antigüedad de un usuario (días, meses, años) en el Panel Administrativo de forma inteligente y amigable.
+1.  **Migración Completa a Database Real (Neon + Prisma):** Modelos `ActivityLog`, `Opportunity`, `Client` y `User` interactúan conectando la jerarquía Vendedor -> Distribuidor -> Oportunidad.
+2.  **Jerarquía de Ventas Pura:** Se consolidó el modelo jerárquico real: País -> Cliente (Canal/Distribuidor) -> Oportunidad. 
+3.  **Mapa Interactivo Reactivo:** Backend alimenta al mapa geo-espacial (`react-simple-maps`) con métricas vivas.
+4.  **Panel de Super Admin (Botón VER USUARIOS):** Restaurado y asegurado su acceso (case-insensitive + trim).
+5.  **Historial de Registro Pro:** Integración de `proSince` para calcular antigüedad.
 
 ---
 
