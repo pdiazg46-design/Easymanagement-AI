@@ -1192,7 +1192,7 @@ export default function Home() {
                         {lang === 'es' ? 'CERRAR SESIÓN' : 'LOG OUT'}
                       </button>
 
-                      {email?.toLowerCase() === 'pdiazg46@gmail.com' && (
+                      {email?.toLowerCase().trim() === 'pdiazg46@gmail.com' && (
                         <button 
                           onClick={() => setShowMobilePanel(true)}
                           className="w-full text-corporate-purple font-bold py-3 px-4 text-xs flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors uppercase tracking-wider border border-corporate-purple/20 bg-corporate-purple/5 rounded-xl whitespace-nowrap shadow-sm"
@@ -1207,7 +1207,7 @@ export default function Home() {
               )}
 
               {/* PANEL DERECHO: ADMIN DE USUARIOS (SOLO PATRICIO O PRO) */}
-              {email?.toLowerCase() === 'pdiazg46@gmail.com' && showMobilePanel && (
+              {email?.toLowerCase().trim() === 'pdiazg46@gmail.com' && showMobilePanel && (
                   <div className="flex flex-1 flex-col p-4 md:p-8 lg:p-12 items-center justify-start overflow-y-auto relative bg-[#F8FAFC]">
                      <div className="w-full max-w-5xl flex flex-col mx-auto">
                          <button onClick={() => setShowMobilePanel(false)} className="mb-6 flex items-center gap-2 text-slate-500 font-bold self-start bg-white px-5 py-2.5 rounded-full text-xs shadow-sm border border-slate-200 hover:bg-slate-50 transition-colors">
