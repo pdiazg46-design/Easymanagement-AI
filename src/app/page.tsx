@@ -1561,6 +1561,10 @@ export default function Home() {
                              const todayLocalStr = `${YYYY}-${MM}-${DD}`;
 
                              const feedTasks = todayTasks.filter(t => {
+                                // 1. Si no está terminada, mostrarla siempre para que no se pierda en el olvido
+                                if (!t.completed) return true;
+                                
+                                // 2. Si ya está completada, sólo mostrarla si se creó hoy o si era un compromiso para hoy
                                 const cD = new Date(t.createdAt || Date.now());
                                 const cStr = `${cD.getFullYear()}-${String(cD.getMonth() + 1).padStart(2, '0')}-${String(cD.getDate()).padStart(2, '0')}`;
                                 return cStr === todayLocalStr || t.date === todayLocalStr;
