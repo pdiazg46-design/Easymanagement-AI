@@ -2374,6 +2374,21 @@ export default function Home() {
                                                 </p>
                                              </div>
                                           </div>
+                                          <div className="flex justify-end mt-3 mb-1">
+                                             <button 
+                                                onClick={(e) => {
+                                                   e.stopPropagation();
+                                                   setEditingTask(item); 
+                                                   setDraftActivity(item.content || ""); 
+                                                   setDraftAction(item.title || ""); 
+                                                   setDraftDate(item.date || ""); 
+                                                   setShowActionModal(true);
+                                                }}
+                                                className="px-4 py-2 bg-slate-100 text-[#1E3A8A] text-[10px] uppercase font-bold tracking-widest rounded-xl hover:bg-[#1E3A8A] hover:text-white flex items-center gap-1.5 transition-all border border-slate-200 active:scale-95"
+                                             >
+                                                <Edit2 size={12}/> {lang === 'es' ? 'Editar / Borrar' : 'Edit / Delete'}
+                                             </button>
+                                          </div>
                                        </motion.div>
                                     )}
                                  </AnimatePresence>
@@ -2551,8 +2566,11 @@ export default function Home() {
                     if (draftLower.includes('lector') || draftLower.includes('scanner')) {
                        ragMatches.push({ name: 'Lector Omnidireccional Bartech BS-7120', price: 115.00, stock: 'Stock Local' });
                     }
-                    if (draftLower.includes('kiosco') || draftLower.includes('autoatención') || draftLower.includes('pantalla')) {
-                       ragMatches.push({ name: 'Kiosco Interactivo Bartech 32"', price: 1250.00, stock: 'Bajo Pedido' });
+                    if (draftLower.includes('kiosco') || draftLower.includes('autoatención') || draftLower.includes('pantalla') || draftLower.includes('multipropósito')) {
+                       ragMatches.push({ name: 'Kiosco Interactivo Bartech 32" (Pared)', price: 1250.00, stock: 'Bajo Pedido' });
+                       ragMatches.push({ name: 'Kiosco Multipropósito 21" (Pedestal)', price: 850.00, stock: 'Stock Local' });
+                       ragMatches.push({ name: 'Kiosco Pago Autoservicio 15"', price: 1100.00, stock: 'Limitado' });
+                       ragMatches.push({ name: 'Kiosco Outdoor 43" (Antivandálico)', price: 2150.00, stock: 'Bajo Pedido' });
                     }
                     if (draftLower.includes('gaveta') || draftLower.includes('dinero') || draftLower.includes('pos')) {
                        ragMatches.push({ name: 'Terminal POS Bartech All-In-One 15"', price: 850.00, stock: 'Limitado' });
@@ -2574,22 +2592,31 @@ export default function Home() {
                           </div>
                           <div className="space-y-3 mx-1">
                              {ragMatches.map((item, idx) => (
-                                <div key={idx} className="bg-slate-50 border border-slate-200 rounded-2xl p-3 sm:px-4 flex justify-between items-center transition-colors hover:border-[#009EE3]/30">
-                                   <div className="flex flex-col w-[65%]">
-                                      <span className="text-[11px] sm:text-[12px] font-bold text-slate-700 leading-tight">{item.name}</span>
-                                      <span className={`text-[9px] font-black uppercase tracking-widest mt-1 w-max px-1.5 py-0.5 rounded-sm ${item.stock === 'Stock Local' ? 'bg-emerald-100/50 text-emerald-600' : item.stock === 'Bajo Pedido' ? 'bg-amber-100/50 text-amber-600' : 'bg-red-100/50 text-red-600'}`}>
-                                         {item.stock}
-                                      </span>
+                                <div key={idx} className="bg-slate-50 border border-slate-200 rounded-2xl p-3 flex justify-between items-center transition-colors hover:border-[#009EE3]/30">
+                                   <div className="flex flex-col flex-1 pl-1">
+                                      <span className="text-[11px] sm:text-[12px] font-bold text-slate-700 leading-tight pr-2">{item.name}</span>
+                                      <div className="flex items-center gap-2 mt-1.5">
+                                         <span className={`text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-sm ${item.stock === 'Stock Local' ? 'bg-emerald-100/50 text-emerald-600' : item.stock === 'Bajo Pedido' ? 'bg-amber-100/50 text-amber-600' : 'bg-red-100/50 text-red-600'}`}>
+                                            {item.stock}
+                                         </span>
+                                         <span className="text-[11px] font-black text-emerald-600 border-l border-slate-200 pl-2 opacity-80">${item.price.toFixed(2)} USD</span>
+                                      </div>
                                    </div>
-                                   <div className="text-right w-[35%] flex flex-col items-end">
-                                      <span className="text-[14px] sm:text-[15px] font-black text-emerald-600 leading-none">${item.price.toFixed(2)}</span>
-                                      <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400 block mt-0.5">USD / Unit</span>
-                                   </div>
+                                   <button 
+                                      onClick={(e) => { 
+                                         e.preventDefault(); 
+                                         setDraftAction(prev => {
+                                            const base = prev ? prev + ' + ' : 'Cotizar equipo: ';
+                                            return base + item.name;
+                                         }); 
+                                      }}
+                                      className="w-10 h-10 shrink-0 bg-blue-50/80 border border-blue-100 text-[#009EE3] rounded-xl flex items-center justify-center shadow-sm active:scale-90 hover:bg-[#009EE3] hover:text-white transition-all"
+                                      title={lang==='es' ? 'Añadir al Plan de Acción' : 'Add to Action Plan'}
+                                   >
+                                      <span className="font-black text-xl leading-none -mt-0.5">+</span>
+                                   </button>
                                 </div>
                              ))}
-                             <button onClick={(e) => { e.preventDefault(); setDraftAction(prev => prev ? prev + ' + Envío de Cotización' : 'Cotizar los siguientes equipos: ' + ragMatches.map(r=>r.name).join(', ')); }} className="w-full mt-1.5 py-2.5 bg-blue-50/50 border border-dashed border-[#009EE3]/30 text-[#009EE3] rounded-2xl text-[10px] font-extrabold uppercase tracking-widest hover:bg-[#009EE3]/10 hover:border-[#009EE3]/60 flex items-center justify-center gap-2 transition-all active:scale-[0.98]">
-                                 <Sparkles size={13} /> {lang === 'es' ? 'Auto-Completar Plan de Acción' : 'Auto-Fill Action Plan'}
-                             </button>
                           </div>
                        </motion.div>
                     );
