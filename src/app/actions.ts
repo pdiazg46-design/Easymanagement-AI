@@ -232,6 +232,20 @@ export async function updateOpportunityConfidence(id: string, confidenceLevel: s
   return opp;
 }
 
+export async function updateOpportunityDetails(id: string, title?: string, amountUsd?: number) {
+  const { tenant } = await getOrCreateMockSession();
+  const data: any = {};
+  if (title) data.title = title;
+  if (amountUsd !== undefined) data.amountUsd = amountUsd;
+  
+  const opp = await prisma.opportunity.update({
+    where: { id, tenantId: tenant.id },
+    data
+  });
+  revalidatePath("/");
+  return opp;
+}
+
 // SUPER-ADMIN: Get All Users
 export async function getAllUsers() {
    const users = await prisma.user.findMany({

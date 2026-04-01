@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Mic, Trash2, Keyboard, Edit2, Signal, Mail, Lock, Fingerprint, UploadCloud, Link as LinkIcon, ArrowRight, Eye, EyeOff, Map as MapIcon, List, Maximize2, Minimize2, X, Calendar, Navigation, MapPin, ChevronLeft, ChevronRight, ChevronDown, Share2, FileText, CreditCard, ShieldCheck, Check, LogOut, Sparkles, Database } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from "react-simple-maps";
-import { getActivities, createActivity, toggleActivityCompletion, getOpportunities, createOpportunity, updateOpportunityStatus, getClients, createClient, deleteActivity, updateActivity, updateOpportunityConfidence, deleteOpportunity, getAllUsers, toggleUserProStatus } from './actions';
+import { getActivities, createActivity, toggleActivityCompletion, getOpportunities, createOpportunity, updateOpportunityStatus, getClients, createClient, deleteActivity, updateActivity, updateOpportunityConfidence, deleteOpportunity, updateOpportunityDetails, getAllUsers, toggleUserProStatus } from './actions';
 
 export default function Home() {
   const [lang, setLang] = useState<'es'|'en'>('es');
@@ -2210,19 +2210,39 @@ export default function Home() {
                                    <span className="text-[17px] font-black text-emerald-600 leading-none">${opp.amountUsd.toLocaleString('en-US')}</span>
                                    <div className="text-[10px] uppercase font-bold text-slate-400 mt-1 mb-1">USD</div>
                                    {opp.status === 'PROSPECTO' && (
-                                     <button 
-                                        onClick={async (e) => {
-                                          e.stopPropagation();
-                                          if (confirm(lang === 'es' ? '¿Eliminar permanentemente este proyecto y sus bitácoras?' : 'Permanently delete this project and its timeline?')) {
-                                            setOpportunities(prev => prev.filter(o => o.id !== opp.id));
-                                            try { await deleteOpportunity(opp.id); } catch(err){ console.error(err) }
-                                          }
-                                        }}
-                                        className="p-1 px-1.5 text-slate-300 hover:text-red-500 bg-slate-50 hover:bg-red-50 border border-transparent hover:border-red-100 rounded transition-colors"
-                                        title={lang === 'es' ? 'Eliminar Oportunidad' : 'Delete Opportunity'}
-                                     >
-                                        <Trash2 size={13} />
-                                     </button>
+                                     <div className="flex items-center gap-1 mt-1">
+                                       <button 
+                                          onClick={async (e) => {
+                                            e.stopPropagation();
+                                            const newTitle = window.prompt(lang === 'es' ? '✏️ Nuevo Nombre del Proyecto:' : '✏️ New Project Name:', opp.title);
+                                            if (newTitle === null) return;
+                                            const newAmtStr = window.prompt(lang === 'es' ? '💰 Nuevo Monto USD:' : '💰 New USD Amount:', opp.amountUsd.toString());
+                                            if (newAmtStr === null) return;
+                                            const parsedAmt = parseInt(newAmtStr.replace(/\D/g, ""), 10);
+                                            if (!isNaN(parsedAmt) && newTitle.trim() !== '') {
+                                               setOpportunities(prev => prev.map(o => o.id === opp.id ? { ...o, title: newTitle, amountUsd: parsedAmt } : o));
+                                               try { await updateOpportunityDetails(opp.id, newTitle, parsedAmt); } catch(err){ console.error(err) }
+                                            }
+                                          }}
+                                          className="p-1 px-1.5 text-slate-300 hover:text-blue-500 bg-slate-50 hover:bg-blue-50 border border-transparent hover:border-blue-100 rounded transition-colors"
+                                          title={lang === 'es' ? 'Editar Oportunidad' : 'Edit Opportunity'}
+                                       >
+                                          <Edit2 size={13} />
+                                       </button>
+                                       <button 
+                                          onClick={async (e) => {
+                                            e.stopPropagation();
+                                            if (confirm(lang === 'es' ? '¿Eliminar permanentemente este proyecto y sus bitácoras?' : 'Permanently delete this project and its timeline?')) {
+                                              setOpportunities(prev => prev.filter(o => o.id !== opp.id));
+                                              try { await deleteOpportunity(opp.id); } catch(err){ console.error(err) }
+                                            }
+                                          }}
+                                          className="p-1 px-1.5 text-slate-300 hover:text-red-500 bg-slate-50 hover:bg-red-50 border border-transparent hover:border-red-100 rounded transition-colors"
+                                          title={lang === 'es' ? 'Eliminar Oportunidad' : 'Delete Opportunity'}
+                                       >
+                                          <Trash2 size={13} />
+                                       </button>
+                                     </div>
                                    )}
                                 </div>
                              </div>
