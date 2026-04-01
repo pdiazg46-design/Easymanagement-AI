@@ -955,7 +955,7 @@ export default function Home() {
                                 {/* Lista de oportunidades */}
                                 <div className="flex flex-col gap-2 mt-2">
                                   {(() => {
-                                      const clientOppsFiltered = opportunities.filter(o => o.clientId === client.id).filter(o => o.status === 'PROSPECTO' || o.status === 'COTIZADO');
+                                      const clientOppsFiltered = opportunities.filter(o => o.clientId === client.id).filter(o => { if (activeTab === 'historial') { return o.status === (marketOppFilter === 'PERDIDOS' ? 'PERDIDO' : 'GANADO') && isDateInTimeframe(o.statusUpdatedAt, historialTimeframe); } else { return o.status === 'PROSPECTO' || o.status === 'COTIZADO'; } });
                                       if (clientOppsFiltered.length === 0) return <p className="text-[10px] text-slate-400 font-medium italic">{lang === 'es' ? 'Sin oportunidades en esta vista.' : 'No opportunities in this view.'}</p>;
                                       return clientOppsFiltered.map(opp => (
                                           <div key={opp.id} onClick={() => { setSelectedClient(client); setSelectedOpportunity({id: opp.id, title: opp.title, amount: opp.amountUsd.toString()}); }} className="bg-slate-50 p-3 rounded-[12px] border border-slate-200/60 transition-all hover:bg-slate-100 hover:border-corporate-purple/40 hover:shadow-md cursor-pointer active:scale-95">
