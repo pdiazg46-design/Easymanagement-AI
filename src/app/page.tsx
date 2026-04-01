@@ -1,8 +1,9 @@
 "use client";
 import { useState, useEffect, useRef } from 'react';
-import { Mic, Trash2, Keyboard, Edit2, Signal, Mail, Lock, Fingerprint, UploadCloud, Link as LinkIcon, ArrowRight, Eye, EyeOff, Map as MapIcon, List, Maximize2, Minimize2, X, Calendar, Navigation, MapPin, ChevronLeft, ChevronRight, ChevronDown, Share2, FileText, CreditCard, ShieldCheck, Check, LogOut, Sparkles, Database } from 'lucide-react';
+import { Mic, Trash2, Keyboard, Edit2, Signal, Mail, Lock, Fingerprint, UploadCloud, Link as LinkIcon, ArrowRight, Eye, EyeOff, Map as MapIcon, List, Maximize2, Minimize2, X, Calendar, Navigation, MapPin, ChevronLeft, ChevronRight, ChevronDown, Share2, FileText, CreditCard, ShieldCheck, Check, LogOut, Sparkles, Database, QrCode } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from "react-simple-maps";
+import { QRCodeSVG } from 'qrcode.react';
 import { getActivities, createActivity, toggleActivityCompletion, getOpportunities, createOpportunity, updateOpportunityStatus, getClients, createClient, deleteActivity, updateActivity, updateOpportunityConfidence, deleteOpportunity, updateOpportunityDetails, getAllUsers, toggleUserProStatus } from './actions';
 
 export default function Home() {
@@ -280,6 +281,7 @@ export default function Home() {
   const [inlineEditAmount, setInlineEditAmount] = useState("");
   const [showMobilePanel, setShowMobilePanel] = useState(false);
   const [clientFilterMode, setClientFilterMode] = useState<'ACTIVOS' | 'INACTIVOS'>('ACTIVOS');
+  const [showQRModal, setShowQRModal] = useState(false);
 
   const refreshOpportunities = async () => {
       const opps = await getOpportunities();
@@ -794,23 +796,36 @@ export default function Home() {
             <div key={`day-${day}`} className={`h-[96px] sm:h-[110px] border border-slate-100 p-1 relative flex flex-col ${isToday ? 'bg-blue-50/50' : 'bg-white'}`}>
                 <span className={`text-[10px] font-bold mx-auto mb-1 flex items-center shrink-0 justify-center ${isToday ? 'text-white w-5 h-5 bg-[#1E3A8A] rounded-full shadow-sm' : 'text-slate-500'}`}>{day}</span>
                 <div className="flex-1 overflow-y-auto flex gap-1 flex-col content-start hide-scrollbar pb-2">
-                    {dayTasks.map(task => (
-                        <div key={task.id} 
-                             onClick={(e) => {
-                               e.stopPropagation();
-                               setShowCalendarModal(false);
-                               setEditingTask(task);
-                               setDraftAction(task.title || "");
-                               setDraftActivity(task.content || "");
-                               setDraftDate(task.date || "");
-                               setShowActionModal(true);
-                             }}
-                             className={`w-full truncate text-[8px] sm:text-[9px] font-bold tracking-wider text-white px-1.5 py-1 rounded cursor-pointer transition-colors shadow-sm ${task.completed ? 'bg-emerald-500/90 hover:bg-emerald-600 border border-emerald-600 border-dashed' : 'bg-[#F59E0B] hover:bg-amber-600'}`}
-                             title={task.title}
-                        >
-                            {task.title || 'Compromiso'}
-                        </div>
-                    ))}
+                    {dayTasks.map(task => {
+                        const opp = opportunities.find((o: any) => o.id === task.opportunityId);
+                        const status = opp?.status || 'PROSPECTO';
+                        let colorClass = 'bg-[#F59E0B] hover:bg-amber-600 text-white';
+                        if (status === 'COTIZADO') colorClass = 'bg-blue-500 hover:bg-blue-600 text-white';
+                        if (status === 'GANADO') colorClass = 'bg-emerald-500 hover:bg-emerald-600 text-white';
+                        if (status === 'PERDIDO') colorClass = 'bg-red-500 hover:bg-red-600 text-white';
+                        
+                        if (task.completed) {
+                            colorClass += ' opacity-75 border-2 border-white/40 border-dashed';
+                        }
+
+                        return (
+                            <div key={task.id} 
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   setShowCalendarModal(false);
+                                   setEditingTask(task);
+                                   setDraftAction(task.title || "");
+                                   setDraftActivity(task.content || "");
+                                   setDraftDate(task.date || "");
+                                   setShowActionModal(true);
+                                 }}
+                                 className={`w-full truncate text-[8px] sm:text-[9px] font-bold tracking-wider px-1.5 py-1 rounded cursor-pointer transition-colors shadow-sm ${colorClass}`}
+                                 title={task.title}
+                            >
+                                {task.title || 'Compromiso'}
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
         );
@@ -842,6 +857,12 @@ export default function Home() {
             </div>
             <div className="grid grid-cols-7 overflow-y-auto bg-slate-100 gap-[1px]">
                 {cells}
+            </div>
+            <div className="bg-slate-50 border-t border-slate-100 p-3 flex flex-wrap gap-4 items-center justify-center text-[8px] sm:text-[9px] font-bold uppercase tracking-widest text-slate-500 shrink-0">
+               <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-[#F59E0B] shadow-sm"></div> PROSPECTO</span>
+               <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-blue-500 shadow-sm"></div> COTIZADO</span>
+               <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-emerald-500 shadow-sm"></div> GANADO</span>
+               <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-red-500 shadow-sm"></div> PERDIDO</span>
             </div>
         </div>
     );
@@ -1244,7 +1265,7 @@ export default function Home() {
 
                  <div className="space-y-5">
                     {/* Input Foto de Perfil */}
-                    <div className="flex flex-col items-center justify-center pb-2">
+                    <div className="flex justify-center items-center pb-2 relative w-fit mx-auto">
                        <label className="relative w-20 h-20 bg-slate-50 border-2 border-dashed border-slate-200 rounded-full flex flex-col items-center justify-center cursor-pointer hover:bg-slate-100 transition-colors group shadow-sm z-10 overflow-hidden">
                           <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
                           {avatarUrl ? (
@@ -1261,6 +1282,15 @@ export default function Home() {
                              </>
                           )}
                        </label>
+                       
+                       {/* Share QR Button */}
+                       <button 
+                          onClick={() => setShowQRModal(true)} 
+                          className="absolute -right-12 bottom-0 w-10 h-10 bg-white border border-slate-200 shadow-sm rounded-full flex items-center justify-center text-slate-500 hover:text-corporate-purple hover:bg-slate-50 transition-colors"
+                          title={lang === 'es' ? 'Compartir App' : 'Share App'}
+                       >
+                          <QrCode size={18} />
+                       </button>
                     </div>
 
                     {/* Input País Residencia */}
@@ -3221,6 +3251,54 @@ export default function Home() {
                          )
                      )}
                   </div>
+               </motion.div>
+            </motion.div>
+          )}
+
+          {/* VIRTUAL QR MODAL TO SHARE APP */}
+          {showQRModal && (
+            <motion.div 
+               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+               className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm"
+               onClick={() => setShowQRModal(false)}
+            >
+               <motion.div 
+                 initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+                 className="bg-white rounded-[32px] p-8 max-w-sm w-full shadow-2xl flex flex-col items-center justify-center relative border border-slate-100"
+                 onClick={e => e.stopPropagation()}
+               >
+                 <button 
+                    onClick={() => setShowQRModal(false)}
+                    className="absolute top-4 right-4 p-2 bg-slate-100 rounded-full hover:bg-slate-200 text-slate-500 transition-colors cursor-pointer"
+                 >
+                    <X size={20} />
+                 </button>
+                 
+                 <div className="w-12 h-12 bg-corporate-purple/10 rounded-full flex items-center justify-center mb-4">
+                    <QrCode size={24} className="text-corporate-purple" />
+                 </div>
+                 
+                 <h3 className="text-lg font-black text-[#1E3A8A] uppercase tracking-wider mb-2 text-center">
+                    {lang === 'es' ? 'Compartir App' : 'Share App'}
+                 </h3>
+                 <p className="text-[11px] text-slate-500 text-center font-medium leading-relaxed mb-6 px-4">
+                    {lang === 'es' ? 'Escanea este código para abrir EasyManagement en otro dispositivo.' : 'Scan this code to open EasyManagement on another device.'}
+                 </p>
+                 
+                 <div className="bg-white p-4 rounded-2xl border-2 border-slate-100 shadow-inner mb-6 flex items-center justify-center w-full aspect-square relative">
+                    <QRCodeSVG 
+                       value={typeof window !== 'undefined' ? window.location.origin : 'https://easymanagement-three.vercel.app'} 
+                       size={220} 
+                       level="H"
+                       fgColor="#1E3A8A"
+                    />
+                 </div>
+                 
+                 <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 w-full text-center flex items-center justify-center break-all shadow-sm">
+                    <span className="text-[10px] font-bold tracking-widest text-[#1E3A8A] uppercase">
+                       {typeof window !== 'undefined' ? window.location.host : 'easymanagement-three.vercel.app'}
+                    </span>
+                 </div>
                </motion.div>
             </motion.div>
           )}
