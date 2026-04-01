@@ -887,7 +887,7 @@ export default function Home() {
   return (
     <div className={`min-h-[100dvh] w-full font-sans relative flex overflow-hidden bg-slate-100`}>
         {/* CONTENEDOR DE VISTAS */}
-        <div className={`flex-1 relative overflow-hidden flex ${currentView === 'onboarding' && showMobilePanel ? 'w-full max-w-none flex-row bg-slate-900 justify-center items-center sm:gap-4 lg:gap-8 px-0 sm:px-4 lg:px-8' : 'flex-col max-w-md mx-auto bg-white shadow-2xl'}`}>
+        <div className={`flex-1 relative overflow-hidden flex ${currentView === 'onboarding' && showMobilePanel ? 'w-full max-w-none flex-row bg-slate-900 items-start justify-start p-0' : 'flex-col max-w-md mx-auto bg-white shadow-2xl'}`}>
           <AnimatePresence mode="wait">
 
             {/* VISTA 1: CREAR CUENTA / LOGIN */}
@@ -1012,8 +1012,8 @@ export default function Home() {
                 initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }}
                 className={`absolute inset-0 flex flex-row px-0 pt-0 bg-transparent overflow-hidden`}
               >
-                  {/* PANEL IZQUIERDO: CONFIGURACIÓN MÓVIL (SIEMPRE VISIBLE EN PC O COMO UNICA VISTA EN MOVIL) */}
-                  <div className={`w-full ${showMobilePanel ? 'hidden sm:flex sm:max-w-md sm:h-[850px] sm:rounded-[40px]' : 'h-full max-w-md'} bg-white relative shrink-0 flex flex-col overflow-y-auto no-scrollbar pt-12 pb-10 px-7 mx-auto shadow-2xl transition-all`}>
+                  {/* PANEL IZQUIERDO: CONFIGURACIÓN MÓVIL (PEGADO A LA IZQUIERDA) */}
+                  <div className={`w-full ${showMobilePanel ? 'hidden sm:flex sm:max-w-md sm:h-[100dvh] sm:rounded-none sm:border-r border-slate-200' : 'h-full max-w-md mx-auto'} bg-white relative shrink-0 flex flex-col overflow-y-auto no-scrollbar pt-12 pb-10 px-7 shadow-2xl transition-all z-50`}>
                      <div className="mb-6">
                    <div className="w-12 h-1 bg-corporate-purple rounded-full mb-6 relative">
                       <button onClick={() => setLang(lang === 'es' ? 'en' : 'es')} className="absolute -right-60 -top-2 bg-slate-100 text-[#1E3A8A] px-2 py-1 rounded-full text-[10px] font-bold shadow-sm border border-slate-200 uppercase flex items-center gap-1">
@@ -1210,7 +1210,7 @@ export default function Home() {
               {email?.toLowerCase().trim() === 'pdiazg46@gmail.com' && showMobilePanel && (
                   <motion.div 
                      initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
-                     className="fixed inset-0 sm:static sm:flex sm:flex-1 sm:max-w-[700px] flex-col p-4 md:p-8 lg:p-12 items-center justify-start overflow-y-auto relative bg-[#F8FAFC] z-[100] sm:z-auto sm:h-[850px] sm:rounded-[40px] shadow-2xl"
+                     className="fixed inset-0 sm:static sm:flex sm:flex-1 w-full flex-col p-4 md:p-8 lg:p-12 items-center justify-start overflow-y-auto relative bg-[#F8FAFC] z-[100] sm:z-auto sm:h-[100dvh] sm:rounded-none shadow-inner"
                   >
                      <div className="w-full flex flex-col mx-auto">
                          <button onClick={() => setShowMobilePanel(false)} className="mb-6 flex items-center gap-2 text-slate-500 font-bold self-start bg-white px-5 py-2.5 rounded-full text-xs shadow-sm border border-slate-200 hover:bg-slate-50 transition-colors">
