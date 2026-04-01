@@ -253,6 +253,7 @@ export default function Home() {
   const [expandedTimelineItems, setExpandedTimelineItems] = useState<string[]>([]);
   const [performanceScope, setPerformanceScope] = useState<string>('regional');
   const [newCountryTimelineItems, setNewCountryTimelineItems] = useState<any[]>([]);
+  const [isOpeningMarket, setIsOpeningMarket] = useState(false);
   const [uploadedCatalogs, setUploadedCatalogs] = useState<{name: string, size: string}[]>([]);
   
   // Estados para simular Inputs del Formulario Action Modal
@@ -263,6 +264,10 @@ export default function Home() {
 
   const [opportunities, setOpportunities] = useState<any[]>([]);
   const [draftOppTitle, setDraftOppTitle] = useState("");
+  
+  useEffect(() => {
+     if (selectedCountry) setIsOpeningMarket(false);
+  }, [selectedCountry]);
   const [draftOppAmount, setDraftOppAmount] = useState("");
   
   const [clients, setClients] = useState<any[]>([]);
@@ -1666,7 +1671,7 @@ export default function Home() {
                                  onChange={(e) => setPerformanceScope(e.target.value)}
                                >
                                   <option value="regional">{lang === 'es' ? 'DESEMPEÑO REGIONAL (TODOS)' : 'REGIONAL PERFORMANCE (ALL)'}</option>
-                                  {Array.from(new Set([getCountryName(userCountry), ...clients.map(c => c.country)])).filter(Boolean).map(countryName => (
+                                  {Array.from(new Map([getCountryName(userCountry), ...clients.map(c => c.country)].filter(Boolean).map(c => [c.trim().toLowerCase(), c.trim()])).values()).map(countryName => (
                                      <option key={countryName} value={countryName}>
                                         {(lang === 'es' ? 'DESEMPEÑO LOCAL • ' : 'LOCAL VIEW • ') + countryName}
                                      </option>
