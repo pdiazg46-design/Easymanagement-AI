@@ -289,10 +289,9 @@ export default function Home() {
   // Function to format money globally
   const formatCurrency = (val: number | string) => {
      const n = typeof val === 'string' ? parseFloat(val.replace(/[^\d.-]/g, '')) : Number(val);
-     if (isNaN(n)) return '$0';
-     return userCurrency === 'USD' 
-        ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n) + ' USD'
-        : new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n);
+     if (isNaN(n)) return userCurrency === 'USD' ? 'USD 0' : '$ 0';
+     const formattedNumber = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 0 }).format(n);
+     return userCurrency === 'USD' ? `USD ${formattedNumber}` : `$ ${formattedNumber}`;
   };
 
   const refreshOpportunities = async () => {
@@ -998,10 +997,10 @@ export default function Home() {
                                               onChange={e => setDraftOppTitle(e.target.value)}
                                             />
                                             <div className="relative">
-                                              <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-xs">$</span>
+                                              <span className={`absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-xs ${userCurrency === 'USD' ? 'text-[9px]' : ''}`}>{userCurrency === 'USD' ? 'USD' : '$'}</span>
                                               <input 
                                                 type="text" 
-                                                placeholder={lang === 'es' ? 'Monto USD' : 'USD Amount'}
+                                                placeholder={lang === 'es' ? 'Monto' : 'Amount'}
                                                 className="w-full bg-white border border-slate-200 text-xs px-6 py-2 rounded-lg font-medium outline-none text-[#1E3A8A]"
                                                 value={draftOppAmount}
                                                 onFocus={e => e.target.select()}
@@ -1042,7 +1041,7 @@ export default function Home() {
                                           <div key={opp.id} onClick={() => { setSelectedClient(client); setSelectedOpportunity({id: opp.id, title: opp.title, amount: opp.amountUsd.toString()}); }} className="bg-slate-50 p-3 rounded-[12px] border border-slate-200/60 transition-all hover:bg-slate-100 hover:border-corporate-purple/40 hover:shadow-md cursor-pointer active:scale-95">
                                              <div className="flex justify-between items-start mb-2 pointer-events-none">
                                                 <span className="font-extrabold text-[#1E3A8A] text-[11px] leading-tight flex-1 pr-2">{opp.title}</span>
-                                                <span className="font-bold text-corporate-purple text-[12px]">${opp.amountUsd.toLocaleString('en-US')}</span>
+                                                <span className="font-bold text-corporate-purple text-[12px]">{formatCurrency(opp.amountUsd)}</span>
                                              </div>
                                              <div className="flex gap-1 bg-white p-1 rounded-full border border-slate-100 shadow-sm" onClick={e => e.stopPropagation()}>
                                                {['PROSPECTO', 'COTIZADO', 'GANADO', 'PERDIDO'].map(status => (
@@ -1740,7 +1739,7 @@ export default function Home() {
                     <div className="flex items-center w-full">
                       <div className="w-[75%] pr-3 text-left overflow-hidden">
                         <p className="text-white/80 text-[10px] sm:text-xs font-medium uppercase tracking-wider mb-1 truncate">{activeTab === 'historial' ? getHistorialTitle() : t[lang].pipeline}</p>
-                        <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight flex items-baseline gap-1.5 truncate">${totalPipeline.toLocaleString('en-US')} <span className="text-sm font-bold opacity-80">USD</span></h2>
+                        <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight flex items-baseline gap-1.5 truncate">{formatCurrency(totalPipeline)}</h2>
                       </div>
                       <div className="w-px h-12 bg-white/20 shrink-0"></div>
                       <div className="w-[25%] text-center pl-2 flex flex-col justify-center items-center shrink-0">
@@ -1815,7 +1814,7 @@ export default function Home() {
                                           <span className="text-sm font-bold text-[#1E3A8A] flex items-center gap-2">
                                              <MapPin size={14} className="text-corporate-purple" /> {c.name}
                                           </span>
-                                          <span className="text-[13px] font-black text-emerald-600">${c.totalValueUsd.toLocaleString('en-US')}</span>
+                                          <span className="text-[13px] font-black text-emerald-600">{formatCurrency(c.totalValueUsd)}</span>
                                        </div>
                                        <div className="flex items-center justify-between">
                                           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{c.totalProjects} {lang === 'es' ? 'Proyectos' : 'Projects'}</span>
@@ -1935,20 +1934,20 @@ export default function Home() {
                                           setShowActionModal(true);
                                         }}
                                         initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                                        className={`flex flex-col gap-1 p-3 rounded-2xl border shadow-sm cursor-pointer hover:border-[#1E3A8A]/30 hover:shadow-md transition-all active:scale-[0.98] ${task.completed ? 'bg-emerald-50/40 border-emerald-200' : 'bg-[#F8FAFC] border-slate-200'}`}
+                                        className={`flex flex-col gap-0 px-3 py-2 rounded-lg border shadow-sm cursor-pointer hover:border-[#1E3A8A]/30 hover:shadow-md transition-all active:scale-[0.98] ${task.completed ? 'bg-emerald-50/40 border-emerald-200' : 'bg-[#F8FAFC] border-slate-200'}`}
                                       >
-                                         <div className="flex justify-between items-start mb-0.5">
+                                         <div className="flex justify-between items-center">
                                             <div className="flex flex-col">
-                                               <span className={`text-[10px] font-black uppercase tracking-widest mb-1 flex items-center gap-1.5 ${task.completed ? 'text-emerald-500' : 'text-[#F59E0B]'}`}><Navigation size={12}/> {task.completed ? 'COMPLETADO' : 'COMPROMISO'}: {task.date ? task.date.split('-').reverse().join('/') : 'Por definir'}</span>
-                                               <span className={`font-black text-base leading-tight mb-1 ${task.completed ? 'text-emerald-700 line-through decoration-emerald-400 opacity-60' : 'text-[#1E3A8A]'}`}>{task.title}</span>
-                                               <span className="text-[9px] text-slate-500 uppercase tracking-widest font-bold flex items-center gap-1.5"><Lock size={10}/> Registrado: {new Date(task.createdAt || Date.now()).toLocaleDateString(lang === 'es' ? 'es-CL' : 'en-US')} {new Date(task.createdAt || Date.now()).toLocaleTimeString(lang === 'es' ? 'es-CL' : 'en-US', { hour: '2-digit', minute: '2-digit' })}</span>
+                                               <span className={`text-[8px] font-black uppercase tracking-widest flex items-center gap-1 mb-0.5 ${task.completed ? 'text-emerald-500' : 'text-[#F59E0B]'}`}><Navigation size={12}/> {task.completed ? 'COMPLETADO' : 'COMPROMISO'}: {task.date ? task.date.split('-').reverse().join('/') : 'Por definir'}</span>
+                                               <span className={`font-black text-sm leading-tight mb-0.5 ${task.completed ? 'text-emerald-700 line-through decoration-emerald-400 opacity-60' : 'text-[#1E3A8A]'}`}>{task.title}</span>
+                                               <span className="text-[8px] text-slate-500 uppercase tracking-widest font-bold flex items-center gap-1"><Lock size={10}/> Registrado: {new Date(task.createdAt || Date.now()).toLocaleDateString(lang === 'es' ? 'es-CL' : 'en-US')} {new Date(task.createdAt || Date.now()).toLocaleTimeString(lang === 'es' ? 'es-CL' : 'en-US', { hour: '2-digit', minute: '2-digit' })}</span>
                                                {(() => {
                                                   const client = clients.find(c => c.id === task.clientId || (opp && c.id === opp.clientId));
                                                   const clientName = client ? client.name : null;
                                                   return (clientName || oppName) ? (
-                                                     <div className="flex flex-col gap-1 mt-1.5">
+                                                     <div className="flex flex-row flex-wrap gap-1 mt-1">
                                                         {clientName && (
-                                                           <span className="text-[9px] text-blue-600 uppercase tracking-widest font-black flex items-center gap-1 bg-blue-100/50 px-1.5 py-0.5 rounded shrink-0 max-w-fit flex-wrap border border-blue-200/50">
+                                                           <span className="text-[8px] text-blue-600 uppercase tracking-widest font-black flex items-center gap-0.5 bg-blue-100/50 px-1.5 py-0.5 rounded shrink-0 max-w-fit flex-wrap border border-blue-200/50">
                                                               👤 CLIENTE: {clientName}
                                                            </span>
                                                         )}
@@ -1958,7 +1957,7 @@ export default function Home() {
                                                            </span>
                                                         )}
                                                         {opp && opp.status && (
-                                                           <span className={`text-[9px] uppercase tracking-widest font-black flex items-center gap-1 px-1.5 py-0.5 rounded shrink-0 max-w-fit flex-wrap border ${opp.status === 'GANADO' ? 'text-emerald-700 bg-emerald-100/50 border-emerald-200' : opp.status === 'PERDIDO' ? 'text-red-700 bg-red-100/50 border-red-200' : opp.status === 'COTIZADO' ? 'text-blue-700 bg-blue-100/50 border-blue-200' : 'text-[#F59E0B] bg-amber-100/50 border-amber-200'}`}>
+                                                           <span className={`text-[8px] uppercase tracking-widest font-black flex items-center gap-0.5 px-1.5 py-0.5 rounded shrink-0 max-w-fit flex-wrap border ${opp.status === 'GANADO' ? 'text-emerald-700 bg-emerald-100/50 border-emerald-200' : opp.status === 'PERDIDO' ? 'text-red-700 bg-red-100/50 border-red-200' : opp.status === 'COTIZADO' ? 'text-blue-700 bg-blue-100/50 border-blue-200' : 'text-[#F59E0B] bg-amber-100/50 border-amber-200'}`}>
                                                               📌 ESTADO: {opp.status}
                                                            </span>
                                                         )}
@@ -1975,9 +1974,9 @@ export default function Home() {
                                                 await toggleActivityCompletion(task.id, newCompleted);
                                             }
                                           }}
-                                          className={`w-8 h-8 rounded-full border-[2px] bg-white shrink-0 ml-3 transition-colors flex items-center justify-center group shadow-inner hover:border-emerald-500 hover:bg-emerald-50 ${task.completed ? 'border-emerald-500' : 'border-slate-300'}`}
+                                          className={`w-6 h-6 rounded-full border-[2px] bg-white shrink-0 ml-2 transition-colors flex items-center justify-center group shadow-inner hover:border-emerald-500 hover:bg-emerald-50 ${task.completed ? 'border-emerald-500' : 'border-slate-300'}`}
                                         >
-                                           <div className={`w-4 h-4 rounded-full bg-emerald-500 transition-opacity flex items-center justify-center ${task.completed ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                                           <div className={`w-3 h-3 rounded-full bg-emerald-500 transition-opacity flex items-center justify-center ${task.completed ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                                               {task.completed && <Check size={10} className="text-white" strokeWidth={4} />}
                                            </div>
                                         </button>
@@ -2046,7 +2045,7 @@ export default function Home() {
                                           <span className="text-sm font-bold text-[#1E3A8A] flex items-center gap-2">
                                              <MapPin size={14} className="text-[#1E3A8A]" /> {c.name}
                                           </span>
-                                          <span className="text-[13px] font-black text-[#1E3A8A] border border-[#1E3A8A]/20 bg-[#1E3A8A]/5 px-2 py-0.5 rounded-lg">${c.totalValueUsd.toLocaleString('en-US')}</span>
+                                          <span className="text-[13px] font-black text-[#1E3A8A] border border-[#1E3A8A]/20 bg-[#1E3A8A]/5 px-2 py-0.5 rounded-lg">{formatCurrency(c.totalValueUsd)}</span>
                                        </div>
                                        <div className="flex items-center justify-between">
                                           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{c.totalProjects} {lang === 'es' ? 'Proyectos' : 'Projects'}</span>
@@ -2319,9 +2318,9 @@ export default function Home() {
                                      </div>
                                      <div className="flex items-center gap-3">
                                         <div className="flex flex-col flex-1 gap-1">
-                                           <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Monto USD</label>
+                                           <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Monto</label>
                                            <div className="relative">
-                                              <span className="absolute left-3 top-1/2 -translate-y-1/2 font-black text-[#1E3A8A] opacity-50">$</span>
+                                              <span className={`absolute left-3 top-1/2 -translate-y-1/2 font-black text-[#1E3A8A] opacity-50 ${userCurrency === 'USD' ? 'text-[9px]' : ''}`}>{userCurrency === 'USD' ? 'USD' : '$'}</span>
                                               <input 
                                                  type="text" 
                                                  value={inlineEditAmount} 
@@ -2391,8 +2390,7 @@ export default function Home() {
                                        </div>
                                     </div>
                                     <div className="text-right shrink-0 flex flex-col items-end gap-1">
-                                       <span className="text-[17px] font-black text-emerald-600 leading-none">${opp.amountUsd.toLocaleString('en-US')}</span>
-                                       <div className="text-[10px] uppercase font-bold text-slate-400 mt-1 mb-1">USD</div>
+                                       <span className="text-[17px] font-black text-emerald-600 leading-none">{formatCurrency(opp.amountUsd)}</span>
                                        {opp.status === 'PROSPECTO' && (
                                          <div className="flex items-center gap-1 mt-1">
                                            <button 
@@ -2511,7 +2509,7 @@ export default function Home() {
                                      </select>
                                    </div>
                                    <div className="text-right">
-                                      <span className="text-[18px] sm:text-[20px] font-black text-emerald-600 leading-none">${oppDetails.amountUsd?.toLocaleString('en-US') || 0}</span>
+                                      <span className="text-[18px] sm:text-[20px] font-black text-emerald-600 leading-none">{formatCurrency(oppDetails.amountUsd || 0)}</span>
                                       <div className="text-[10px] uppercase font-bold text-slate-400 mt-1">USD</div>
                                    </div>
                                 </div>
@@ -2606,7 +2604,7 @@ export default function Home() {
                )}
 
                {/* Botón flotante de Grabación Consciente del Contexto */}
-               <div className="absolute bottom-10 right-6 z-20 flex flex-col items-end">
+               <div className="absolute bottom-[90px] sm:bottom-[70px] right-6 z-20 flex flex-col items-end">
                   <div className="mb-2 w-max text-right">
                      <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full shadow-sm text-white border border-white/20 ${selectedOpportunity ? 'bg-amber-600' : 'bg-corporate-purple'}`}>
                         {selectedOpportunity ? 'Nota Oportunidad' : 'Nota Cliente'}
@@ -2824,7 +2822,7 @@ export default function Home() {
                                          <span className={`text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-sm ${item.stock === 'Stock Local' ? 'bg-emerald-100/50 text-emerald-600' : item.stock === 'Bajo Pedido' ? 'bg-amber-100/50 text-amber-600' : 'bg-red-100/50 text-red-600'}`}>
                                             {item.stock}
                                          </span>
-                                         <span className="text-[11px] font-black text-emerald-600 border-l border-slate-200 pl-2 opacity-80">${item.price.toFixed(2)} USD</span>
+                                         <span className="text-[11px] font-black text-emerald-600 border-l border-slate-200 pl-2 opacity-80">{formatCurrency(item.price)}</span>
                                       </div>
                                    </div>
                                    <button 
@@ -2953,7 +2951,7 @@ export default function Home() {
                        <div className="p-6 space-y-6">
                           <div className="text-center">
                              <h3 className="text-4xl font-black text-slate-800 tracking-tight">
-                                $29 <span className="text-lg text-slate-400 font-bold uppercase">USD / {lang === 'es' ? 'Mes' : 'Month'}</span>
+                                {formatCurrency(29)} <span className="text-lg text-slate-400 font-bold uppercase">USD / {lang === 'es' ? 'Mes' : 'Month'}</span>
                              </h3>
                              <p className="text-xs text-slate-500 font-semibold mt-1 bg-slate-50 px-3 py-1.5 rounded-full inline-block">
                                 {lang === 'es' ? 'Facturación mensual canjeable localmente.' : 'Monthly billing locally exchangeable.'}
@@ -3053,7 +3051,7 @@ export default function Home() {
                            <MapIcon size={120} />
                         </div>
                         <p className="text-white/80 text-[10px] uppercase tracking-widest font-bold mb-1">Total Pipeline Latam</p>
-                        <h3 className="text-4xl font-extrabold tracking-tight mb-4">${globalTotalUsd.toLocaleString('en-US')}<span className="text-xl"> USD</span></h3>
+                        <h3 className="text-4xl font-extrabold tracking-tight mb-4">{formatCurrency(globalTotalUsd)}</h3>
                         <div className="flex items-center gap-2 bg-white/20 px-3 py-1.5 rounded-full w-max text-xs font-semibold backdrop-blur-sm">
                           <Navigation size={12} className="text-slate-300"/> {globalTotalProjects} {lang === 'es' ? 'Proyectos Activos' : 'Active Projects'}
                         </div>
@@ -3099,7 +3097,7 @@ export default function Home() {
                                                  <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{c.totalProjects} {lang === 'es' ? 'proyectos' : 'projects'}</div>
                                               </div>
                                            </div>
-                                           <div className="text-sm font-black text-emerald-600">${c.totalValueUsd.toLocaleString('en-US')}</div>
+                                           <div className="text-sm font-black text-emerald-600">{formatCurrency(c.totalValueUsd)}</div>
                                         </div>
                                         {/* Cascada de Proyectos */}
                                         <div className="bg-slate-50/50 p-2.5 flex flex-col gap-2">
@@ -3110,7 +3108,7 @@ export default function Home() {
                                                     {opp.title}
                                                  </div>
                                                  <div className="text-[11px] font-bold text-emerald-600/90 shrink-0">
-                                                    ${opp.amountUsd.toLocaleString('en-US')}
+                                                    {formatCurrency(opp.amountUsd)}
                                                  </div>
                                               </div>
                                            ))}
@@ -3121,7 +3119,7 @@ export default function Home() {
                            
                            <div className="pt-5 mt-4 border-t border-slate-200 flex justify-between items-center">
                               <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Total Calculado</span>
-                              <span className="text-lg font-black text-slate-800">${globalTotalUsd.toLocaleString('en-US')} USD</span>
+                              <span className="text-lg font-black text-slate-800">{formatCurrency(globalTotalUsd)}</span>
                            </div>
                         </div>
                      </div>
@@ -3274,14 +3272,14 @@ export default function Home() {
                                    setDraftDate(task.date || "");
                                    setShowActionModal(true);
                                  }}
-                                 className={`flex flex-col gap-3 p-5 bg-white rounded-2xl border-2 shadow-sm cursor-pointer hover:border-[#1E3A8A]/30 hover:shadow-md transition-all active:scale-[0.98] ${task.completed ? 'border-emerald-200 opacity-80 bg-emerald-50/20' : 'border-slate-100'}`}
+                                 className={`flex flex-col gap-0 px-3 py-2 bg-white rounded-xl border shadow-sm cursor-pointer hover:border-[#1E3A8A]/30 transition-all active:scale-[0.98] ${task.completed ? 'border-emerald-200 opacity-80 bg-emerald-50/20' : 'border-slate-200'}`}
                                >
-                                  <div className="flex justify-between items-start w-full gap-3">
-                                      <div className={`flex flex-col items-start rounded-xl px-4 py-2 border self-start ${task.completed ? 'bg-emerald-50/80 border-emerald-100' : 'bg-amber-50/80 border-amber-100'}`}>
-                                        <span className={`text-[11px] font-black uppercase tracking-widest flex items-center gap-1.5 mb-0.5 ${task.completed ? 'text-emerald-600' : 'text-[#F59E0B]'}`}>
+                                  <div className="flex justify-between items-center w-full min-h-[40px] gap-2">
+                                      <div className={`flex flex-col items-start rounded-md px-2 py-1 border ${task.completed ? 'bg-emerald-50/80 border-emerald-100' : 'bg-amber-50/80 border-amber-100'}`}>
+                                        <span className={`text-[8px] font-black uppercase tracking-widest flex items-center gap-1 mb-0.5 ${task.completed ? 'text-emerald-600' : 'text-[#F59E0B]'}`}>
                                            <Navigation size={12}/> {task.completed ? 'COMPLETADO' : 'COMPROMISO'}:
                                         </span>
-                                        <span className={`font-black text-xl tracking-tight ${task.completed ? 'text-emerald-700' : 'text-[#D97706]'}`}>
+                                        <span className={`font-black text-xs tracking-tight ${task.completed ? 'text-emerald-700' : 'text-[#D97706]'}`}>
                                            {task.date ? task.date.split('-').reverse().join('/') : 'Por definir'}
                                         </span>
                                       </div>
@@ -3295,9 +3293,9 @@ export default function Home() {
                                               await toggleActivityCompletion(task.id, newCompleted);
                                           }
                                         }}
-                                        className={`w-10 h-10 rounded-full border-[3px] bg-white shrink-0 transition-colors flex items-center justify-center group shadow-inner hover:border-emerald-500 hover:bg-emerald-50 ${task.completed ? 'border-emerald-500' : 'border-slate-300'}`}
+                                        className={`w-6 h-6 rounded-full border-[2px] bg-white shrink-0 transition-colors flex items-center justify-center group shadow-inner hover:border-emerald-500 hover:bg-emerald-50 ${task.completed ? 'border-emerald-500' : 'border-slate-300'}`}
                                       >
-                                         <div className={`w-5 h-5 rounded-full bg-emerald-500 transition-opacity flex items-center justify-center ${task.completed ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                                         <div className={`w-3 h-3 rounded-full bg-emerald-500 transition-opacity flex items-center justify-center ${task.completed ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                                             {task.completed && <Check size={12} className="text-white" strokeWidth={4} />}
                                          </div>
                                       </button>
