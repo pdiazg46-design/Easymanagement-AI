@@ -1,6 +1,14 @@
 # Easy Management App - Project Handoff & Architecture Log
-**Last Updated:** 31 de Marzo, 2026 (Comprobación de Webhook de Vercel)
-**Status:** Producción (Vercel) + Frontend Activo + PostgreSql Database (Neon) Conectada.
+**Última actualización:** 01 de Abril 2026, 02:40 AM (CLT)
+**Status:** Producción (Vercel) + Frontend Activo (Formato Móvil Estricto Restaurado)
+
+---
+
+### 🚨 ALERTAS CRÍTICAS Y BLOQUEOS ACTUALES
+
+*   **PWA Cache / Persistencia:** Mantener estricta vigilancia sobre la PWA. El usuario debe refrescar si ve la "pantalla antigua".
+*   **Contenedor Responsivo:** Se ha forzado una "Carcasa de Emulación Móvil" a nivel de `layout.tsx` (`max-w-md` y `ring-black`) para navegadores en PC. ESTO SOLUCIONA la queja del usuario: `"has sacado mi pantalla del formato móvil"`.
+*   **Super Admin:** La lógica case-insensitive del correo de Super Admin y el botón 'VER USUARIOS' fueron restaurados y movidos correctamente bajo 'CERRAR SESIÓN'.
 
 > [!WARNING]
 > **ALERTA CRÍTICA DE DESARROLLO (Vercel Deployments):**

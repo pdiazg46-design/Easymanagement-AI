@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     }
 
     // [SUPER ADMIN OVERRIDE] Ensure Patricio Diaz is always PRO
-    if (user.email === 'pdiazg46@gmail.com' && !user.isPro) {
+    if (user.email.toLowerCase() === 'pdiazg46@gmail.com' && !user.isPro) {
       await prisma.user.update({
         where: { id: user.id },
         data: { isPro: true }
