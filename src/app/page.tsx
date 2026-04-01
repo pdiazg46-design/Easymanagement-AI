@@ -279,6 +279,7 @@ export default function Home() {
   const [inlineEditTitle, setInlineEditTitle] = useState("");
   const [inlineEditAmount, setInlineEditAmount] = useState("");
   const [showMobilePanel, setShowMobilePanel] = useState(false);
+  const [clientFilterMode, setClientFilterMode] = useState<'ACTIVOS' | 'INACTIVOS'>('ACTIVOS');
 
   const refreshOpportunities = async () => {
       const opps = await getOpportunities();
@@ -849,11 +850,41 @@ export default function Home() {
   // Helper renderizador de clientes (Reutilizado en Vista Local y Vista País)
   const renderClientsForCountry = (targetCountry: string | null) => {
      if (!targetCountry) return null;
+
+     const clientIsActive = (clientId: string) => {
+        const opps = opportunities.filter(o => o.clientId === clientId);
+        if (opps.length === 0) return true; // Nuevos clientes de inmediato a Activos
+        return opps.some(o => o.status === 'PROSPECTO' || o.status === 'COTIZADO');
+     };
+
+     const countryClients = clients.filter((c: any) => c.country === targetCountry);
+     const filteredClients = countryClients.filter((c: any) => 
+        clientFilterMode === 'ACTIVOS' ? clientIsActive(c.id) : !clientIsActive(c.id)
+     );
+
      return (
                      <div>
                        <div className="flex justify-between items-center mb-4 pr-1 mt-2">
-                          <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest pl-1">{lang === 'es' ? 'Canales / Distribuidores' : 'Channels / Distributors'}</h3>
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-col gap-1.5">
+                             <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest pl-1">{lang === 'es' ? 'Canales / Distribuidores' : 'Channels / Distributors'}</h3>
+                             {countryClients.length > 0 && (
+                               <div className="flex bg-slate-100/80 p-0.5 w-max rounded-[10px] shadow-inner ml-1">
+                                  <button 
+                                    onClick={() => setClientFilterMode('ACTIVOS')}
+                                    className={`px-3 py-1.5 text-[10px] font-bold uppercase rounded-md transition-all ${clientFilterMode === 'ACTIVOS' ? 'bg-white shadow-sm text-emerald-600' : 'text-slate-400 hover:text-slate-600'}`}
+                                  >
+                                    {lang === 'es' ? 'Activos' : 'Active'}
+                                  </button>
+                                  <button 
+                                    onClick={() => setClientFilterMode('INACTIVOS')}
+                                    className={`px-3 py-1.5 text-[10px] font-bold uppercase rounded-md transition-all ${clientFilterMode === 'INACTIVOS' ? 'bg-white shadow-sm text-slate-700' : 'text-slate-400 hover:text-slate-600'}`}
+                                  >
+                                    {lang === 'es' ? 'Inactivos' : 'Inactive'}
+                                  </button>
+                               </div>
+                             )}
+                          </div>
+                          <div className="flex items-center gap-2 self-start mt-1">
                              <button 
                                onClick={() => setShowClientForm(!showClientForm)}
                                className="bg-corporate-purple text-white text-[10px] px-3 py-1.5 rounded-full font-bold shadow-sm"
@@ -895,12 +926,16 @@ export default function Home() {
                        </AnimatePresence>
 
                        <div className="space-y-4">
-                         {clients.filter((c: any) => c.country === targetCountry).length === 0 ? (
+                         {countryClients.length === 0 ? (
                            <p className="text-[11px] text-slate-400 font-medium italic tracking-wide px-1">
                              {lang === 'es' ? 'No hay clientes registrados en este país.' : 'No clients registered in this country.'}
                            </p>
+                         ) : filteredClients.length === 0 ? (
+                           <p className="text-[11px] text-slate-400 font-medium italic tracking-wide px-1">
+                             {lang === 'es' ? `No hay clientes ${clientFilterMode.toLowerCase()}.` : `No ${clientFilterMode.toLowerCase()} clients.`}
+                           </p>
                          ) : (
-                           clients.filter((c: any) => c.country === targetCountry).map((client: any) => (
+                           filteredClients.map((client: any) => (
                              <div key={client.id} className="bg-white p-4 rounded-[20px] border border-slate-100 shadow-[0_2px_10px_rgb(0,0,0,0.03)] text-left flex flex-col gap-3 group">
                                 <div className="flex justify-between items-center mb-1">
                                   <h4 className="font-extrabold text-[#1E3A8A] text-[15px] cursor-pointer hover:text-corporate-purple transition-colors active:scale-95" onClick={() => setSelectedClient(client)}>{client.name}</h4>
