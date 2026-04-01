@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from 'react';
-import { Mic, Trash2, Keyboard, Edit2, Signal, Mail, Lock, Fingerprint, UploadCloud, Link as LinkIcon, ArrowRight, Eye, EyeOff, Map as MapIcon, List, Maximize2, Minimize2, X, Calendar, Navigation, MapPin, ChevronLeft, ChevronRight, ChevronDown, Share2, FileText, CreditCard, ShieldCheck, Check, LogOut, Sparkles, Database, QrCode } from 'lucide-react';
+import { Mic, Trash2, Keyboard, Edit2, Signal, Mail, Lock, Fingerprint, UploadCloud, Link as LinkIcon, ArrowRight, Eye, EyeOff, Map as MapIcon, List, Maximize2, Minimize2, X, Calendar, Navigation, MapPin, ChevronLeft, ChevronRight, ChevronDown, Share2, FileText, CreditCard, ShieldCheck, Check, LogOut, Sparkles, Database, QrCode, HelpCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from "react-simple-maps";
 import { QRCodeSVG } from 'qrcode.react';
@@ -278,10 +278,22 @@ export default function Home() {
   const [adminUsers, setAdminUsers] = useState<any[]>([]);
   const [editingOppId, setEditingOppId] = useState<string | null>(null);
   const [inlineEditTitle, setInlineEditTitle] = useState("");
-  const [inlineEditAmount, setInlineEditAmount] = useState("");
   const [showMobilePanel, setShowMobilePanel] = useState(false);
   const [clientFilterMode, setClientFilterMode] = useState<'ACTIVOS' | 'INACTIVOS'>('ACTIVOS');
   const [showQRModal, setShowQRModal] = useState(false);
+  const [showDayTasksModal, setShowDayTasksModal] = useState(false);
+  const [showVoiceHelpModal, setShowVoiceHelpModal] = useState(false);
+  const [userCurrency, setUserCurrency] = useState<'USD' | 'LOCAL'>('USD');
+  const [selectedDayTasks, setSelectedDayTasks] = useState<any[]>([]);
+
+  // Function to format money globally
+  const formatCurrency = (val: number | string) => {
+     const n = typeof val === 'string' ? parseFloat(val.replace(/[^\d.-]/g, '')) : Number(val);
+     if (isNaN(n)) return '$0';
+     return userCurrency === 'USD' 
+        ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n) + ' USD'
+        : new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n);
+  };
 
   const refreshOpportunities = async () => {
       const opps = await getOpportunities();
@@ -793,9 +805,18 @@ export default function Home() {
         const isToday = day === today.getDate();
         
         cells.push(
-            <div key={`day-${day}`} className={`h-[96px] sm:h-[110px] border border-slate-100 p-1 relative flex flex-col ${isToday ? 'bg-blue-50/50' : 'bg-white'}`}>
+            <div 
+                key={`day-${day}`} 
+                onClick={() => {
+                   if (dayTasks.length > 0) {
+                      setSelectedDayTasks(dayTasks);
+                      setShowDayTasksModal(true);
+                   }
+                }}
+                className={`h-[96px] sm:h-[110px] border border-slate-100 p-1 relative flex flex-col ${dayTasks.length > 0 ? 'cursor-pointer hover:bg-slate-50 transition-colors' : ''} ${isToday ? 'bg-blue-50/50' : 'bg-white'}`}
+            >
                 <span className={`text-[10px] font-bold mx-auto mb-1 flex items-center shrink-0 justify-center ${isToday ? 'text-white w-5 h-5 bg-[#1E3A8A] rounded-full shadow-sm' : 'text-slate-500'}`}>{day}</span>
-                <div className="flex-1 overflow-y-auto flex gap-1 flex-col content-start hide-scrollbar pb-2">
+                <div className="flex-1 overflow-y-auto flex gap-1 flex-col content-start hide-scrollbar pb-2 pointer-events-none sm:pointer-events-auto">
                     {dayTasks.map(task => {
                         const opp = opportunities.find((o: any) => o.id === task.opportunityId);
                         const status = opp?.status || 'PROSPECTO';
@@ -1124,7 +1145,7 @@ export default function Home() {
   };
 
   return (
-    <div className={`min-h-[100dvh] w-full font-sans relative flex overflow-hidden bg-slate-100`}>
+    <div className={`h-[100dvh] w-full font-sans relative flex overflow-hidden bg-slate-100`}>
         {/* CONTENEDOR DE VISTAS */}
         <div className={`flex-1 relative overflow-hidden flex ${currentView === 'onboarding' && showMobilePanel ? 'w-full max-w-none flex-row bg-slate-900 items-start justify-start p-0' : 'flex-col max-w-md mx-auto bg-white shadow-2xl'}`}>
           <AnimatePresence mode="wait">
@@ -1307,6 +1328,26 @@ export default function Home() {
                            <option value="co">Colombia</option>
                            <option value="ec">Ecuador</option>
                            <option value="mx">México</option>
+                         </select>
+                         <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 text-xs">
+                           ▼
+                         </div>
+                       </div>
+                    </div>
+
+                    <div className="space-y-2">
+                       <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-2">{lang === 'es' ? 'Moneda Local' : 'Local Currency'}</label>
+                       <div className="relative">
+                         <select 
+                           value={userCurrency}
+                           onChange={(e) => { 
+                             setUserCurrency(e.target.value as 'USD'|'LOCAL'); 
+                             if (typeof window !== 'undefined') localStorage.setItem('easy_currency', e.target.value); 
+                           }}
+                           className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 pl-5 pr-10 text-sm font-semibold text-slate-800 transition-all focus:outline-none focus:border-corporate-purple shadow-sm appearance-none cursor-pointer"
+                         >
+                           <option value="USD">USD ($ Dólares)</option>
+                           <option value="LOCAL">LOCAL ($ Pesos)</option>
                          </select>
                          <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 text-xs">
                            ▼
@@ -1894,26 +1935,31 @@ export default function Home() {
                                           setShowActionModal(true);
                                         }}
                                         initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                                        className={`flex flex-col gap-1.5 p-4 rounded-2xl border shadow-sm cursor-pointer hover:border-[#1E3A8A]/30 hover:shadow-md transition-all active:scale-[0.98] ${task.completed ? 'bg-emerald-50/40 border-emerald-200' : 'bg-[#F8FAFC] border-slate-200'}`}
+                                        className={`flex flex-col gap-1 p-3 rounded-2xl border shadow-sm cursor-pointer hover:border-[#1E3A8A]/30 hover:shadow-md transition-all active:scale-[0.98] ${task.completed ? 'bg-emerald-50/40 border-emerald-200' : 'bg-[#F8FAFC] border-slate-200'}`}
                                       >
-                                         <div className="flex justify-between items-start mb-1">
+                                         <div className="flex justify-between items-start mb-0.5">
                                             <div className="flex flex-col">
-                                               <span className={`text-[13px] font-black uppercase tracking-widest mb-2 flex items-center gap-1.5 ${task.completed ? 'text-emerald-500' : 'text-[#F59E0B]'}`}><Navigation size={14}/> {task.completed ? 'COMPLETADO' : 'COMPROMISO'}: {task.date ? task.date.split('-').reverse().join('/') : 'Por definir'}</span>
-                                               <span className={`font-black text-xl leading-tight mb-2 ${task.completed ? 'text-emerald-700 line-through decoration-emerald-400 opacity-60' : 'text-[#1E3A8A]'}`}>{task.title}</span>
-                                               <span className="text-[11px] text-slate-500 uppercase tracking-widest font-bold flex items-center gap-1.5"><Lock size={12}/> Registrado: {new Date(task.createdAt || Date.now()).toLocaleDateString(lang === 'es' ? 'es-CL' : 'en-US')} {new Date(task.createdAt || Date.now()).toLocaleTimeString(lang === 'es' ? 'es-CL' : 'en-US', { hour: '2-digit', minute: '2-digit' })}</span>
+                                               <span className={`text-[10px] font-black uppercase tracking-widest mb-1 flex items-center gap-1.5 ${task.completed ? 'text-emerald-500' : 'text-[#F59E0B]'}`}><Navigation size={12}/> {task.completed ? 'COMPLETADO' : 'COMPROMISO'}: {task.date ? task.date.split('-').reverse().join('/') : 'Por definir'}</span>
+                                               <span className={`font-black text-base leading-tight mb-1 ${task.completed ? 'text-emerald-700 line-through decoration-emerald-400 opacity-60' : 'text-[#1E3A8A]'}`}>{task.title}</span>
+                                               <span className="text-[9px] text-slate-500 uppercase tracking-widest font-bold flex items-center gap-1.5"><Lock size={10}/> Registrado: {new Date(task.createdAt || Date.now()).toLocaleDateString(lang === 'es' ? 'es-CL' : 'en-US')} {new Date(task.createdAt || Date.now()).toLocaleTimeString(lang === 'es' ? 'es-CL' : 'en-US', { hour: '2-digit', minute: '2-digit' })}</span>
                                                {(() => {
                                                   const client = clients.find(c => c.id === task.clientId || (opp && c.id === opp.clientId));
                                                   const clientName = client ? client.name : null;
                                                   return (clientName || oppName) ? (
-                                                     <div className="flex flex-col gap-1 mt-2">
+                                                     <div className="flex flex-col gap-1 mt-1.5">
                                                         {clientName && (
-                                                           <span className="text-[10px] text-blue-600 uppercase tracking-widest font-black flex items-center gap-1.5 bg-blue-100/50 px-2 py-0.5 rounded shrink-0 max-w-fit flex-wrap border border-blue-200/50">
+                                                           <span className="text-[9px] text-blue-600 uppercase tracking-widest font-black flex items-center gap-1 bg-blue-100/50 px-1.5 py-0.5 rounded shrink-0 max-w-fit flex-wrap border border-blue-200/50">
                                                               👤 CLIENTE: {clientName}
                                                            </span>
                                                         )}
                                                         {oppName && (
-                                                           <span className="text-[10px] text-corporate-purple uppercase tracking-widest font-black flex items-center gap-1.5 bg-corporate-purple/10 px-2 py-0.5 rounded shrink-0 max-w-fit flex-wrap border border-corporate-purple/20">
+                                                           <span className="text-[9px] text-corporate-purple uppercase tracking-widest font-black flex items-center gap-1 bg-corporate-purple/10 px-1.5 py-0.5 rounded shrink-0 max-w-fit flex-wrap border border-corporate-purple/20">
                                                               📁 PROYECTO: {oppName}
+                                                           </span>
+                                                        )}
+                                                        {opp && opp.status && (
+                                                           <span className={`text-[9px] uppercase tracking-widest font-black flex items-center gap-1 px-1.5 py-0.5 rounded shrink-0 max-w-fit flex-wrap border ${opp.status === 'GANADO' ? 'text-emerald-700 bg-emerald-100/50 border-emerald-200' : opp.status === 'PERDIDO' ? 'text-red-700 bg-red-100/50 border-red-200' : opp.status === 'COTIZADO' ? 'text-blue-700 bg-blue-100/50 border-blue-200' : 'text-[#F59E0B] bg-amber-100/50 border-amber-200'}`}>
+                                                              📌 ESTADO: {opp.status}
                                                            </span>
                                                         )}
                                                      </div>
@@ -1929,10 +1975,10 @@ export default function Home() {
                                                 await toggleActivityCompletion(task.id, newCompleted);
                                             }
                                           }}
-                                          className={`w-10 h-10 rounded-full border-[3px] bg-white shrink-0 ml-4 transition-colors flex items-center justify-center group shadow-inner hover:border-emerald-500 hover:bg-emerald-50 ${task.completed ? 'border-emerald-500' : 'border-slate-300'}`}
+                                          className={`w-8 h-8 rounded-full border-[2px] bg-white shrink-0 ml-3 transition-colors flex items-center justify-center group shadow-inner hover:border-emerald-500 hover:bg-emerald-50 ${task.completed ? 'border-emerald-500' : 'border-slate-300'}`}
                                         >
-                                           <div className={`w-5 h-5 rounded-full bg-emerald-500 transition-opacity flex items-center justify-center ${task.completed ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
-                                              {task.completed && <Check size={12} className="text-white" strokeWidth={4} />}
+                                           <div className={`w-4 h-4 rounded-full bg-emerald-500 transition-opacity flex items-center justify-center ${task.completed ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                                              {task.completed && <Check size={10} className="text-white" strokeWidth={4} />}
                                            </div>
                                         </button>
                                      </div>
@@ -2034,8 +2080,18 @@ export default function Home() {
                 </div>
 
                 {/* FOOTER CREADOR DE ACTIVIDAD */}
-                <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-white via-white/95 to-transparent pt-12 pb-4 sm:pb-6 px-4 flex flex-col items-center pointer-events-none z-20">
-                   <div className="pointer-events-auto flex items-end justify-center relative mb-2">
+                <div className="absolute bottom-8 sm:bottom-6 left-0 w-full bg-gradient-to-t from-white via-white/95 to-transparent pt-12 pb-4 sm:pb-6 px-4 flex flex-col items-center pointer-events-none z-20">
+                   <div className="pointer-events-auto flex items-end justify-center relative mb-2 gap-4">
+                      
+                      <motion.button 
+                        onClick={() => setShowVoiceHelpModal(true)}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="w-10 h-10 sm:w-11 sm:h-11 bg-white border border-slate-200 text-slate-500 rounded-full flex items-center justify-center shadow-lg hover:bg-slate-50 z-10"
+                      >
+                         <HelpCircle size={18} className="sm:w-5 sm:h-5" />
+                      </motion.button>
+                      
                       <motion.button 
                         onClick={() => handleMicClick('activity')}
                         whileHover={{ scale: 1.05 }}
@@ -2550,20 +2606,30 @@ export default function Home() {
                )}
 
                {/* Botón flotante de Grabación Consciente del Contexto */}
-               <div className="absolute bottom-6 right-6 z-20 flex flex-col items-end">
-                  <div className="mb-2 w-max">
+               <div className="absolute bottom-10 right-6 z-20 flex flex-col items-end">
+                  <div className="mb-2 w-max text-right">
                      <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full shadow-sm text-white border border-white/20 ${selectedOpportunity ? 'bg-amber-600' : 'bg-corporate-purple'}`}>
                         {selectedOpportunity ? 'Nota Oportunidad' : 'Nota Cliente'}
                      </span>
                   </div>
-                  <motion.button 
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => handleMicClick('activity')}
-                    className={`w-[68px] h-[68px] text-white rounded-full flex items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.2)] border-[5px] border-slate-50 transition-colors ${selectedOpportunity ? 'bg-gradient-to-br from-[#F59E0B] to-[#D97706]' : 'bg-gradient-to-br from-[#7C3AED] to-[#5B21B6]'} ${recordingField === 'activity' ? 'animate-pulse' : ''}`}
-                  >
-                     <Mic size={30} />
-                  </motion.button>
+                  <div className="flex items-center gap-3">
+                     <motion.button 
+                        onClick={() => setShowVoiceHelpModal(true)}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className={`w-10 h-10 sm:w-11 sm:h-11 bg-white border text-slate-500 rounded-full flex items-center justify-center shadow-lg hover:bg-slate-50 transition-colors ${selectedOpportunity ? 'border-amber-200 text-amber-600 hover:bg-amber-50' : 'border-slate-200'}`}
+                     >
+                        <HelpCircle size={18} className="sm:w-5 sm:h-5" />
+                     </motion.button>
+                     <motion.button 
+                       whileHover={{ scale: 1.05 }}
+                       whileTap={{ scale: 0.95 }}
+                       onClick={() => handleMicClick('activity')}
+                       className={`w-[68px] h-[68px] text-white rounded-full flex items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.2)] border-[5px] border-slate-50 transition-colors ${selectedOpportunity ? 'bg-gradient-to-br from-[#F59E0B] to-[#D97706]' : 'bg-gradient-to-br from-[#7C3AED] to-[#5B21B6]'} ${recordingField === 'activity' ? 'animate-pulse' : ''}`}
+                     >
+                        <Mic size={30} />
+                     </motion.button>
+                  </div>
                </div>
             </motion.div>
           )}
@@ -3251,6 +3317,52 @@ export default function Home() {
                          )
                      )}
                   </div>
+               </motion.div>
+            </motion.div>
+          )}
+
+          {/* VOICE HELP MODAL */}
+          {showVoiceHelpModal && (
+            <motion.div 
+               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+               className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm"
+               onClick={() => setShowVoiceHelpModal(false)}
+            >
+               <motion.div 
+                 initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+                 className="bg-white rounded-[24px] p-6 max-w-sm w-full shadow-2xl flex flex-col relative border border-slate-100"
+                 onClick={e => e.stopPropagation()}
+               >
+                 <button 
+                    onClick={() => setShowVoiceHelpModal(false)}
+                    className="absolute top-4 right-4 p-2 bg-slate-100 rounded-full hover:bg-slate-200 text-slate-500 transition-colors cursor-pointer"
+                 >
+                    <X size={18} />
+                 </button>
+                 
+                 <div className="w-10 h-10 bg-corporate-purple/10 rounded-full flex items-center justify-center mb-4">
+                    <Mic size={20} className="text-corporate-purple" />
+                 </div>
+                 
+                 <h3 className="text-[17px] font-black text-[#1E3A8A] uppercase tracking-wider mb-2">
+                    {lang === 'es' ? 'Comandos de Voz' : 'Voice Commands'}
+                 </h3>
+                 <p className="text-[12px] text-slate-500 font-medium leading-relaxed mb-6">
+                    {lang === 'es' 
+                       ? 'Usa el micrófono para agilizar tus tareas. El sistema identificará clientes, fechas e intenciones automáticamente. Ejemplos:'
+                       : 'Use the microphone to speed up your workflow. The system detects clients, dates, and intent automatically. Examples:'}
+                 </p>
+
+                 <div className="space-y-3">
+                    <div className="bg-slate-50 border border-slate-200 p-3 rounded-xl shadow-sm relative overflow-hidden group">
+                       <span className="text-[10px] text-corporate-purple font-black uppercase tracking-widest block mb-1">📅 Agendar Cita</span>
+                       <p className="text-[13px] font-bold text-slate-700 italic">"Reunión con Transportes JM el próximo martes al mediodía para revisar cotización."</p>
+                    </div>
+                    <div className="bg-slate-50 border border-slate-200 p-3 rounded-xl shadow-sm relative overflow-hidden group">
+                       <span className="text-[10px] text-emerald-600 font-black uppercase tracking-widest block mb-1">📝 Registrar Actividad</span>
+                       <p className="text-[13px] font-bold text-slate-700 italic">"Visité la bodega central. Me pidieron enviar detalles del kioso 21 pulgadas mañana."</p>
+                    </div>
+                 </div>
                </motion.div>
             </motion.div>
           )}
