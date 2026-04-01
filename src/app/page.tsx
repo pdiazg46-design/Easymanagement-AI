@@ -2546,8 +2546,8 @@ export default function Home() {
                className="absolute inset-0 bg-[#F8FAFC] z-[100] flex flex-col overflow-y-auto pb-24"
             >
                {/* Header Registro */}
-               <div className="pt-12 pb-4 px-6 flex justify-between items-center bg-white shadow-sm shrink-0 sticky top-0 z-20">
-                 <div className="flex flex-col">
+               <div className="pt-12 pb-4 px-6 flex justify-between items-start bg-white shadow-sm shrink-0 sticky top-0 z-20">
+                 <div className="flex flex-col flex-1 min-w-0 pr-4">
                    <h2 className="text-xl font-bold text-[#1E3A8A] tracking-wider uppercase mb-1">
                       {editingTask ? (lang === 'es' ? 'Editar Registro' : 'Edit Record') : (lang === 'es' ? 'Nuevo Registro' : 'New Record')}
                    </h2>
@@ -2562,29 +2562,29 @@ export default function Home() {
                       const countryName = client ? client.country : selectedCountry;
 
                       return (
-                         <div className="flex flex-col gap-1 mt-1">
+                         <div className="flex flex-col gap-1.5 mt-1 items-start">
                             {countryName && (
-                               <span className="text-[9px] text-slate-500 bg-slate-100 uppercase tracking-widest font-black px-2 py-0.5 rounded-md inline-flex items-center gap-1 border border-slate-200 max-w-full truncate w-fit">
-                                  🌎 PAÍS: {countryName}
+                               <span className="text-[9px] text-slate-500 bg-slate-100 uppercase tracking-widest font-black px-2 py-0.5 rounded-md inline-flex items-center gap-1 border border-slate-200 max-w-full">
+                                  <span className="shrink-0">🌎 PAÍS:</span> <span className="truncate">{countryName}</span>
                                </span>
                             )}
                             {clientName && (
-                               <span className="text-[9px] text-blue-600 bg-blue-100/50 uppercase tracking-widest font-black px-2 py-0.5 rounded-md inline-flex items-center gap-1 border border-blue-200/50 max-w-full truncate w-fit">
-                                  👤 CLIENTE: {clientName}
+                               <span className="text-[9px] text-blue-600 bg-blue-100/50 uppercase tracking-widest font-black px-2 py-0.5 rounded-md inline-flex items-center gap-1 border border-blue-200/50 max-w-full">
+                                  <span className="shrink-0">👤 CLIENTE:</span> <span className="truncate">{clientName}</span>
                                </span>
                             )}
                             {oppName && (
-                               <div className="flex gap-2">
-                                  <span className="text-[9px] text-corporate-purple bg-corporate-purple/10 uppercase tracking-widest font-black px-2 py-0.5 rounded-md inline-flex items-center gap-1 border border-corporate-purple/20 max-w-full truncate w-fit">
-                                     📁 PROYECTO: {oppName}
+                               <div className="flex flex-col gap-1.5 items-start max-w-full">
+                                  <span className="text-[9px] text-corporate-purple bg-corporate-purple/10 uppercase tracking-widest font-black px-2 py-1 rounded-md inline-flex items-start gap-1 border border-corporate-purple/20 max-w-full leading-relaxed">
+                                     <span className="shrink-0 mt-[1px]">📁 PROYECTO:</span> <span className="break-words">{oppName}</span>
                                   </span>
                                   {opp?.status && (
-                                     <span className={`text-[9px] uppercase tracking-widest font-black px-2 py-0.5 rounded-md inline-flex items-center gap-1 border ${
+                                     <span className={`text-[9px] uppercase tracking-widest font-black px-2 py-0.5 rounded-md inline-block border ${
                                         opp.status === 'GANADO' ? 'text-emerald-700 bg-emerald-100 border-emerald-200' :
                                         opp.status === 'PERDIDO' ? 'text-red-700 bg-red-100 border-red-200' :
                                         opp.status === 'COTIZADO' ? 'text-blue-700 bg-blue-100 border-blue-200' :
                                         'text-amber-700 bg-amber-100 border-amber-200'
-                                     } max-w-full truncate w-fit`}>
+                                     } max-w-full truncate`}>
                                         {opp.status}
                                      </span>
                                   )}
