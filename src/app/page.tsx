@@ -2303,13 +2303,23 @@ export default function Home() {
             >
                {/* Header Registro */}
                <div className="pt-12 pb-4 px-6 flex justify-between items-center bg-white shadow-sm shrink-0 sticky top-0 z-20">
-                 <div>
+                 <div className="flex flex-col">
                    <h2 className="text-xl font-bold text-[#1E3A8A] tracking-wider uppercase mb-1">
                       {editingTask ? (lang === 'es' ? 'Editar Registro' : 'Edit Record') : (lang === 'es' ? 'Nuevo Registro' : 'New Record')}
                    </h2>
-                   <p className={`text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 whitespace-nowrap ${editingTask ? 'text-slate-500' : 'text-corporate-purple'}`}>
+                   <p className={`text-[10px] sm:text-[11px] font-bold uppercase tracking-widest flex items-center gap-1.5 whitespace-nowrap ${editingTask ? 'text-slate-400' : 'text-corporate-purple'} mb-2`}>
                       {editingTask ? <><Edit2 size={12}/> {lang === 'es' ? 'Edición Manual' : 'Manual Edit'}</> : <><Mic size={12}/> {lang === 'es' ? 'Entrada por Voz' : 'Voice Input'}</>}
                    </p>
+                   {(() => {
+                      const opp = editingTask ? opportunities.find(o => o.id === editingTask.opportunityId) : selectedOpportunity;
+                      const oppName = opp ? (opp.title || opp.name) : null;
+                      if (!oppName) return null;
+                      return (
+                         <span className="text-[10px] text-corporate-purple bg-corporate-purple/10 uppercase tracking-widest font-black px-2 py-0.5 rounded-md inline-flex items-center gap-1 border border-corporate-purple/20 max-w-full truncate">
+                            📁 {oppName}
+                         </span>
+                      );
+                   })()}
                  </div>
                  <button 
                    onClick={(e) => {
