@@ -3278,26 +3278,32 @@ export default function Home() {
                     <QrCode size={24} className="text-corporate-purple" />
                  </div>
                  
-                 <h3 className="text-lg font-black text-[#1E3A8A] uppercase tracking-wider mb-2 text-center">
-                    {lang === 'es' ? 'Compartir App' : 'Share App'}
+                 <h3 className="text-xl font-black text-[#1E3A8A] uppercase tracking-wider mb-2 text-center">
+                    Easy Management AI
                  </h3>
-                 <p className="text-[11px] text-slate-500 text-center font-medium leading-relaxed mb-6 px-4">
-                    {lang === 'es' ? 'Escanea este código para abrir EasyManagement en otro dispositivo.' : 'Scan this code to open EasyManagement on another device.'}
+                 <p className="text-[11px] text-slate-500 text-center font-medium leading-relaxed mb-6 px-1">
+                    {lang === 'es' ? 'Escanea para instalar nuestra App oficial. Plataforma conectada bajo entorno 100% seguro.' : 'Scan to install our official App. Connected platform under a 100% secure environment.'}
                  </p>
                  
                  <div className="bg-white p-4 rounded-2xl border-2 border-slate-100 shadow-inner mb-6 flex items-center justify-center w-full aspect-square relative">
                     <QRCodeSVG 
-                       value={typeof window !== 'undefined' ? window.location.origin : 'https://easymanagement-three.vercel.app'} 
+                       value={typeof window !== 'undefined' ? window.location.href : 'https://easymanagement-three.vercel.app'} 
                        size={220} 
                        level="H"
                        fgColor="#1E3A8A"
                     />
                  </div>
                  
-                 <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 w-full text-center flex items-center justify-center break-all shadow-sm">
-                    <span className="text-[10px] font-bold tracking-widest text-[#1E3A8A] uppercase">
-                       {typeof window !== 'undefined' ? window.location.host : 'easymanagement-three.vercel.app'}
-                    </span>
+                 <div className="flex flex-col items-center gap-1.5 w-full">
+                    <div className="flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md mb-1 shrink-0">
+                       <ShieldCheck size={12} />
+                       <span className="text-[9px] font-black uppercase tracking-widest">{lang === 'es' ? 'Conexión Segura' : 'Secure Connection'}</span>
+                    </div>
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 w-full text-center flex items-center justify-center overflow-x-auto shadow-sm hide-scrollbar">
+                       <span className="text-[11px] font-bold text-[#1E3A8A] lowercase tracking-wide whitespace-nowrap">
+                          {typeof window !== 'undefined' ? window.location.href : 'https://easymanagement-three.vercel.app'}
+                       </span>
+                    </div>
                  </div>
                </motion.div>
             </motion.div>
