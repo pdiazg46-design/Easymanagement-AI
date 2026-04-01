@@ -1595,11 +1595,24 @@ export default function Home() {
                                                <span className={`text-[13px] font-black uppercase tracking-widest mb-2 flex items-center gap-1.5 ${task.completed ? 'text-emerald-500' : 'text-[#F59E0B]'}`}><Navigation size={14}/> {task.completed ? 'COMPLETADO' : 'COMPROMISO'}: {task.date ? task.date.split('-').reverse().join('/') : 'Por definir'}</span>
                                                <span className={`font-black text-xl leading-tight mb-2 ${task.completed ? 'text-emerald-700 line-through decoration-emerald-400 opacity-60' : 'text-[#1E3A8A]'}`}>{task.title}</span>
                                                <span className="text-[11px] text-slate-500 uppercase tracking-widest font-bold flex items-center gap-1.5"><Lock size={12}/> Registrado: {new Date(task.createdAt || Date.now()).toLocaleDateString(lang === 'es' ? 'es-CL' : 'en-US')} {new Date(task.createdAt || Date.now()).toLocaleTimeString(lang === 'es' ? 'es-CL' : 'en-US', { hour: '2-digit', minute: '2-digit' })}</span>
-                                               {oppName && (
-                                                  <span className="text-[10px] text-corporate-purple uppercase tracking-widest font-black flex items-center gap-1.5 mt-1.5 bg-corporate-purple/10 px-2 py-0.5 rounded shrink-0 max-w-fit flex-wrap">
-                                                     📁 PROYECTO: {oppName}
-                                                  </span>
-                                               )}
+                                               {(() => {
+                                                  const client = clients.find(c => c.id === task.clientId || (opp && c.id === opp.clientId));
+                                                  const clientName = client ? client.name : null;
+                                                  return (clientName || oppName) ? (
+                                                     <div className="flex flex-col gap-1 mt-2">
+                                                        {clientName && (
+                                                           <span className="text-[10px] text-blue-600 uppercase tracking-widest font-black flex items-center gap-1.5 bg-blue-100/50 px-2 py-0.5 rounded shrink-0 max-w-fit flex-wrap border border-blue-200/50">
+                                                              👤 CLIENTE: {clientName}
+                                                           </span>
+                                                        )}
+                                                        {oppName && (
+                                                           <span className="text-[10px] text-corporate-purple uppercase tracking-widest font-black flex items-center gap-1.5 bg-corporate-purple/10 px-2 py-0.5 rounded shrink-0 max-w-fit flex-wrap border border-corporate-purple/20">
+                                                              📁 PROYECTO: {oppName}
+                                                           </span>
+                                                        )}
+                                                     </div>
+                                                  ) : null;
+                                               })()}
                                             </div>
                                         <button 
                                           onClick={async (e) => {
@@ -1969,17 +1982,7 @@ export default function Home() {
                        </div>
                      </div>
                   </div>
-                  {/* Botón flotante para Registro General de País (Regional) */}
-                  <div className="absolute bottom-6 right-6 z-20">
-                    <motion.button 
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={handleMicClick}
-                      className="w-[66px] h-[66px] bg-gradient-to-br from-[#1E3A8A] to-[#1e40af] text-white rounded-full flex items-center justify-center shadow-[0_8px_30px_rgb(30,58,138,0.4)] border-[5px] border-slate-50"
-                    >
-                       <Mic size={28} />
-                    </motion.button>
-                  </div>
+                  {/* Botón flotante removido por instrucción de que las notas solo deban existir bajo Cliente u Oportunidad */}
                </motion.div>
             </motion.div>
           )}
@@ -2259,6 +2262,14 @@ export default function Home() {
                                  <p className="text-[13px] text-slate-600 font-medium leading-relaxed mb-4">
                                    {item.content}
                                  </p>
+                                 <div className="flex flex-col gap-1.5 mb-4">
+                                    <span className="text-[10px] text-blue-600 uppercase tracking-widest font-black flex items-center gap-1.5 bg-blue-100/50 px-2 py-0.5 rounded shrink-0 max-w-fit flex-wrap border border-blue-200/50">
+                                       👤 CLIENTE: {selectedClient.name}
+                                    </span>
+                                    <span className="text-[10px] text-corporate-purple uppercase tracking-widest font-black flex items-center gap-1.5 bg-corporate-purple/10 px-2 py-0.5 rounded shrink-0 max-w-fit flex-wrap border border-corporate-purple/20">
+                                       📁 PROYECTO: {selectedOpportunity.title}
+                                    </span>
+                                 </div>
                                  <div className="bg-slate-50 rounded-xl p-3 border border-slate-200/60 flex flex-col gap-1.5">
                                     <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 flex items-center gap-1.5 opacity-90">
                                       <Edit2 size={11} strokeWidth={3} /> {lang === 'es' ? 'Nota:' : 'Note:'}
@@ -2279,7 +2290,7 @@ export default function Home() {
                <div className="absolute bottom-6 right-6 z-20 flex flex-col items-end">
                   <div className="mb-2 w-max">
                      <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full shadow-sm text-white border border-white/20 ${selectedOpportunity ? 'bg-amber-600' : 'bg-corporate-purple'}`}>
-                        {selectedOpportunity ? 'Nota Oportunidad' : 'Nota de Cuenta'}
+                        {selectedOpportunity ? 'Nota Oportunidad' : 'Nota Cliente'}
                      </span>
                   </div>
                   <motion.button 
