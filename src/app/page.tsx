@@ -251,7 +251,7 @@ export default function Home() {
   const [pendingLostOpp, setPendingLostOpp] = useState<any>(null);
   const [newTimelineItems, setNewTimelineItems] = useState<any[]>([]);
   const [expandedTimelineItems, setExpandedTimelineItems] = useState<string[]>([]);
-  const [performanceScope, setPerformanceScope] = useState<'regional'|'local'>('regional');
+  const [performanceScope, setPerformanceScope] = useState<string>('regional');
   const [newCountryTimelineItems, setNewCountryTimelineItems] = useState<any[]>([]);
   const [uploadedCatalogs, setUploadedCatalogs] = useState<{name: string, size: string}[]>([]);
   
@@ -1659,14 +1659,18 @@ export default function Home() {
                       >
                         <div className="bg-white rounded-[24px] p-4 sm:p-5 shadow-[0_4px_25px_rgb(0,0,0,0.04)] border border-slate-100 relative">
                           <div className="flex justify-between items-center mb-4 border-b border-slate-100 pb-3">
-                             <div className="relative group cursor-pointer">
+                             <div className="relative group cursor-pointer flex-1 mr-2 max-w-xs">
                                <select 
-                                 className="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-[#1E3A8A] text-[11px] sm:text-[13px] font-extrabold uppercase tracking-widest outline-none cursor-pointer appearance-none rounded-xl py-2 pl-3 pr-8 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)] transition-all active:scale-[0.98]"
+                                 className="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-[#1E3A8A] text-[11px] sm:text-[12px] font-extrabold uppercase tracking-wider outline-none cursor-pointer appearance-none rounded-xl py-2 pl-3 pr-8 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)] transition-all active:scale-[0.98]"
                                  value={performanceScope}
-                                 onChange={(e) => setPerformanceScope(e.target.value as 'regional' | 'local')}
+                                 onChange={(e) => setPerformanceScope(e.target.value)}
                                >
-                                  <option value="regional">{t[lang].performance}</option>
-                                  <option value="local">{(lang === 'es' ? 'DESEMPEÑO LOCAL • ' : 'LOCAL VIEW • ') + getCountryName(userCountry)}</option>
+                                  <option value="regional">{lang === 'es' ? 'DESEMPEÑO REGIONAL (TODOS)' : 'REGIONAL PERFORMANCE (ALL)'}</option>
+                                  {Array.from(new Set([getCountryName(userCountry), ...clients.map(c => c.country)])).filter(Boolean).map(countryName => (
+                                     <option key={countryName} value={countryName}>
+                                        {(lang === 'es' ? 'DESEMPEÑO LOCAL • ' : 'LOCAL VIEW • ') + countryName}
+                                     </option>
+                                  ))}
                                </select>
                                <ChevronDown size={16} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#1E3A8A] pointer-events-none opacity-70 group-hover:opacity-100 transition-opacity" />
                              </div>
@@ -1681,9 +1685,9 @@ export default function Home() {
                             )}
                           </div>
                           
-                          {performanceScope === 'local' ? (
+                          {performanceScope !== 'regional' ? (
                              <div className="mt-2 animate-in fade-in zoom-in-95 duration-300">
-                                {renderClientsForCountry(getCountryName(userCountry))}
+                                {renderClientsForCountry(performanceScope)}
                              </div>
                           ) : regionalViewMode === 'list' ? (
                             <div className="space-y-3">
