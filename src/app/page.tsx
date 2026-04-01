@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from 'react';
-import { Mic, Trash2, Keyboard, Edit2, Signal, Mail, Lock, Fingerprint, UploadCloud, Link as LinkIcon, ArrowRight, Eye, EyeOff, Map as MapIcon, List, Maximize2, Minimize2, X, Calendar, Navigation, MapPin, ChevronLeft, ChevronRight, Share2, FileText, CreditCard, ShieldCheck, Check, LogOut } from 'lucide-react';
+import { Mic, Trash2, Keyboard, Edit2, Signal, Mail, Lock, Fingerprint, UploadCloud, Link as LinkIcon, ArrowRight, Eye, EyeOff, Map as MapIcon, List, Maximize2, Minimize2, X, Calendar, Navigation, MapPin, ChevronLeft, ChevronRight, ChevronDown, Share2, FileText, CreditCard, ShieldCheck, Check, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from "react-simple-maps";
 import { getActivities, createActivity, toggleActivityCompletion, getOpportunities, createOpportunity, updateOpportunityStatus, getClients, createClient, deleteActivity, updateActivity, updateOpportunityConfidence, deleteOpportunity, getAllUsers, toggleUserProStatus } from './actions';
@@ -1658,15 +1658,18 @@ export default function Home() {
                         className="flex flex-col gap-6"
                       >
                         <div className="bg-white rounded-[24px] p-4 sm:p-5 shadow-[0_4px_25px_rgb(0,0,0,0.04)] border border-slate-100 relative">
-                          <div className="flex justify-between items-center mb-4 border-b border-slate-100 pb-2">
-                             <select 
-                               className="bg-transparent text-[13px] sm:text-sm font-bold text-slate-800 uppercase tracking-wide outline-none cursor-pointer appearance-none border-0 group max-w-full"
-                               value={performanceScope}
-                               onChange={(e) => setPerformanceScope(e.target.value as 'regional' | 'local')}
-                             >
-                                <option value="regional">{t[lang].performance}</option>
-                                <option value="local">{(lang === 'es' ? 'Desempeño Local ' : 'Local Performance ') + getCountryName(userCountry)}</option>
-                             </select>
+                          <div className="flex justify-between items-center mb-4 border-b border-slate-100 pb-3">
+                             <div className="relative group cursor-pointer">
+                               <select 
+                                 className="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-[#1E3A8A] text-[11px] sm:text-[13px] font-extrabold uppercase tracking-widest outline-none cursor-pointer appearance-none rounded-xl py-2 pl-3 pr-8 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)] transition-all active:scale-[0.98]"
+                                 value={performanceScope}
+                                 onChange={(e) => setPerformanceScope(e.target.value as 'regional' | 'local')}
+                               >
+                                  <option value="regional">{t[lang].performance}</option>
+                                  <option value="local">{(lang === 'es' ? 'DESEMPEÑO LOCAL • ' : 'LOCAL VIEW • ') + getCountryName(userCountry)}</option>
+                               </select>
+                               <ChevronDown size={16} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#1E3A8A] pointer-events-none opacity-70 group-hover:opacity-100 transition-opacity" />
+                             </div>
                             
                             {performanceScope === 'regional' && (
                                 <button 
