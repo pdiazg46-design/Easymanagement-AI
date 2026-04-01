@@ -251,6 +251,7 @@ export default function Home() {
   const [pendingLostOpp, setPendingLostOpp] = useState<any>(null);
   const [newTimelineItems, setNewTimelineItems] = useState<any[]>([]);
   const [expandedTimelineItems, setExpandedTimelineItems] = useState<string[]>([]);
+  const [performanceScope, setPerformanceScope] = useState<'regional'|'local'>('regional');
   const [newCountryTimelineItems, setNewCountryTimelineItems] = useState<any[]>([]);
   const [uploadedCatalogs, setUploadedCatalogs] = useState<{name: string, size: string}[]>([]);
   
@@ -834,6 +835,146 @@ export default function Home() {
             </div>
         </div>
     );
+  };
+
+  // Helper renderizador de clientes (Reutilizado en Vista Local y Vista País)
+  const renderClientsForCountry = (targetCountry: string | null) => {
+     if (!targetCountry) return null;
+     return (
+                     <div>
+                       <div className="flex justify-between items-center mb-4 pr-1 mt-2">
+                          <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest pl-1">{lang === 'es' ? 'Canales / Distribuidores' : 'Channels / Distributors'}</h3>
+                          <div className="flex items-center gap-2">
+                             <button 
+                               onClick={() => setShowClientForm(!showClientForm)}
+                               className="bg-corporate-purple text-white text-[10px] px-3 py-1.5 rounded-full font-bold shadow-sm"
+                             >
+                                {showClientForm ? (lang === 'es' ? 'Cancelar' : 'Cancel') : (lang === 'es' ? '+ Nuevo Cliente' : '+ New Client')}
+                             </button>
+                          </div>
+                       </div>
+                       
+                       <AnimatePresence>
+                          {showClientForm && (
+                             <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden mb-4">
+                                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col gap-3">
+                                   <input 
+                                     type="text" 
+                                     placeholder={lang === 'es' ? 'Ej. Telefónica S.A.' : 'E.g. Telefonica Inc.'}
+                                     className="w-full bg-white border border-slate-200 text-sm px-4 py-2.5 rounded-xl font-medium outline-none text-[#1E3A8A]"
+                                     value={draftClientName}
+                                     onChange={e => setDraftClientName(e.target.value)}
+                                   />
+                                   <button 
+                                     className="w-full bg-[#1E3A8A] text-white py-2.5 rounded-xl font-bold uppercase tracking-wider text-[11px] flex items-center justify-center gap-2 mt-1"
+                                     onClick={async () => {
+                                        if(!draftClientName) return;
+                                        await createClient({
+                                            name: draftClientName,
+                                            country: targetCountry
+                                        });
+                                        setDraftClientName("");
+                                        setShowClientForm(false);
+                                        refreshClients();
+                                     }}
+                                   >
+                                      {lang === 'es' ? 'Guardar Cliente' : 'Save Client'}
+                                   </button>
+                                </div>
+                             </motion.div>
+                          )}
+                       </AnimatePresence>
+
+                       <div className="space-y-4">
+                         {clients.filter((c: any) => c.country === targetCountry).length === 0 ? (
+                           <p className="text-[11px] text-slate-400 font-medium italic tracking-wide px-1">
+                             {lang === 'es' ? 'No hay clientes registrados en este país.' : 'No clients registered in this country.'}
+                           </p>
+                         ) : (
+                           clients.filter((c: any) => c.country === targetCountry).map((client: any) => (
+                             <div key={client.id} className="bg-white p-4 rounded-[20px] border border-slate-100 shadow-[0_2px_10px_rgb(0,0,0,0.03)] text-left flex flex-col gap-3 group">
+                                <div className="flex justify-between items-center mb-1">
+                                  <h4 className="font-extrabold text-[#1E3A8A] text-[15px] cursor-pointer hover:text-corporate-purple transition-colors active:scale-95" onClick={() => setSelectedClient(client)}>{client.name}</h4>
+                                  <button onClick={() => setOpenClientFormId(openClientFormId === client.id ? null : client.id)} className="bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-1.5 rounded-[8px] text-[10px] font-bold uppercase tracking-widest shadow-sm flex items-center gap-1 hover:bg-emerald-100 transition-colors">
+                                     + {lang === 'es' ? 'Oportunidad' : 'Opportunity'}
+                                  </button>
+                                </div>
+                                
+                                <AnimatePresence>
+                                   {openClientFormId === client.id && (
+                                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden mb-2">
+                                         <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-col gap-2">
+                                            <input 
+                                              type="text" 
+                                              placeholder={lang === 'es' ? 'Título (Ej. Servidores)' : 'Title (E.g. Servers)'}
+                                              className="w-full bg-white border border-slate-200 text-xs px-3 py-2 rounded-lg font-medium outline-none text-[#1E3A8A]"
+                                              value={draftOppTitle}
+                                              onChange={e => setDraftOppTitle(e.target.value)}
+                                            />
+                                            <div className="relative">
+                                              <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-xs">$</span>
+                                              <input 
+                                                type="text" 
+                                                placeholder={lang === 'es' ? 'Monto USD' : 'USD Amount'}
+                                                className="w-full bg-white border border-slate-200 text-xs px-6 py-2 rounded-lg font-medium outline-none text-[#1E3A8A]"
+                                                value={draftOppAmount}
+                                                onFocus={e => e.target.select()}
+                                                onChange={e => {
+                                                   const val = e.target.value.replace(/\D/g, "");
+                                                   setDraftOppAmount(val ? parseInt(val, 10).toLocaleString("en-US") : "");
+                                                }}
+                                              />
+                                            </div>
+                                            <button 
+                                              className="w-full bg-[#1E3A8A] text-white py-2 rounded-lg font-bold uppercase text-[10px]"
+                                              onClick={async () => {
+                                                 if(!draftOppTitle || !draftOppAmount) return;
+                                                 await createOpportunity({
+                                                     title: draftOppTitle,
+                                                     amountUsd: parseFloat(draftOppAmount.replace(/\D/g, "")),
+                                                     clientId: client.id
+                                                 });
+                                                 setDraftOppTitle("");
+                                                 setDraftOppAmount("");
+                                                 setOpenClientFormId(null);
+                                                 refreshOpportunities();
+                                              }}
+                                            >
+                                               {lang === 'es' ? 'Guardar' : 'Save'}
+                                            </button>
+                                         </div>
+                                      </motion.div>
+                                   )}
+                                </AnimatePresence>
+
+                                {/* Lista de oportunidades */}
+                                <div className="flex flex-col gap-2 mt-2">
+                                  {(() => {
+                                      const clientOppsFiltered = opportunities.filter(o => o.clientId === client.id).filter(o => o.status === 'PROSPECTO' || o.status === 'COTIZADO');
+                                      if (clientOppsFiltered.length === 0) return <p className="text-[10px] text-slate-400 font-medium italic">{lang === 'es' ? 'Sin oportunidades en esta vista.' : 'No opportunities in this view.'}</p>;
+                                      return clientOppsFiltered.map(opp => (
+                                          <div key={opp.id} onClick={() => { setSelectedClient(client); setSelectedOpportunity({id: opp.id, title: opp.title, amount: opp.amountUsd.toString()}); }} className="bg-slate-50 p-3 rounded-[12px] border border-slate-200/60 transition-all hover:bg-slate-100 hover:border-corporate-purple/40 hover:shadow-md cursor-pointer active:scale-95">
+                                             <div className="flex justify-between items-start mb-2 pointer-events-none">
+                                                <span className="font-extrabold text-[#1E3A8A] text-[11px] leading-tight flex-1 pr-2">{opp.title}</span>
+                                                <span className="font-bold text-corporate-purple text-[12px]">${opp.amountUsd.toLocaleString('en-US')}</span>
+                                             </div>
+                                             <div className="flex gap-1 bg-white p-1 rounded-full border border-slate-100 shadow-sm" onClick={e => e.stopPropagation()}>
+                                               {['PROSPECTO', 'COTIZADO', 'GANADO', 'PERDIDO'].map(status => (
+                                                  <div key={status} className={`flex-1 flex justify-center py-1 rounded-full transition-all text-[8px] sm:text-[9px] font-bold ${opp.status === status ? (status === 'GANADO' ? 'bg-emerald-500 text-white shadow-sm' : status === 'PERDIDO' ? 'bg-rose-500 text-white shadow-sm' : 'bg-[#1E3A8A] text-white shadow-sm') : 'text-slate-300'}`}>
+                                                     {status.substring(0,3)}
+                                                  </div>
+                                               ))}
+                                             </div>
+                                          </div>
+                                      ));
+                                  })()}
+                                </div>
+                             </div>
+                           ))
+                         )}
+                       </div>
+                     </div>
+     );
   };
 
   // Lógica reutilizable del Mapa Geográfico
@@ -1517,17 +1658,31 @@ export default function Home() {
                         className="flex flex-col gap-6"
                       >
                         <div className="bg-white rounded-[24px] p-4 sm:p-5 shadow-[0_4px_25px_rgb(0,0,0,0.04)] border border-slate-100 relative">
-                          <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide">{t[lang].performance}</h3>
-                            <button 
-                              onClick={() => setRegionalViewMode(prev => prev === 'list' ? 'map' : 'list')}
-                              className="text-slate-400 hover:text-corporate-purple transition-colors p-1"
-                            >
-                              {regionalViewMode === 'list' ? <MapIcon size={18} /> : <List size={18} />}
-                            </button>
+                          <div className="flex justify-between items-center mb-4 border-b border-slate-100 pb-2">
+                             <select 
+                               className="bg-transparent text-[13px] sm:text-sm font-bold text-slate-800 uppercase tracking-wide outline-none cursor-pointer appearance-none border-0 group max-w-full"
+                               value={performanceScope}
+                               onChange={(e) => setPerformanceScope(e.target.value as 'regional' | 'local')}
+                             >
+                                <option value="regional">{t[lang].performance}</option>
+                                <option value="local">{(lang === 'es' ? 'Desempeño Local ' : 'Local Performance ') + getCountryName(userCountry)}</option>
+                             </select>
+                            
+                            {performanceScope === 'regional' && (
+                                <button 
+                                  onClick={() => setRegionalViewMode(prev => prev === 'list' ? 'map' : 'list')}
+                                  className="text-slate-400 hover:text-corporate-purple transition-colors p-1"
+                                >
+                                  {regionalViewMode === 'list' ? <MapIcon size={18} /> : <List size={18} />}
+                                </button>
+                            )}
                           </div>
                           
-                          {regionalViewMode === 'list' ? (
+                          {performanceScope === 'local' ? (
+                             <div className="mt-2 animate-in fade-in zoom-in-95 duration-300">
+                                {renderClientsForCountry(getCountryName(userCountry))}
+                             </div>
+                          ) : regionalViewMode === 'list' ? (
                             <div className="space-y-3">
                               {activeCountriesMetrics.length === 0 ? (
                                  <p className="text-[11px] text-slate-400 font-medium italic tracking-wide text-center py-4">{lang === 'es' ? 'No hay países con métricas activas' : 'No countries with active metrics'}</p>
@@ -1871,152 +2026,7 @@ export default function Home() {
                      )}
 
                      {/* Distribuidores y Clientes */}
-                     <div>
-                       <div className="flex justify-between items-center mb-4 pr-1">
-                          <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest pl-1">{lang === 'es' ? 'Canales / Distribuidores' : 'Channels / Distributors'}</h3>
-                          <div className="flex items-center gap-2">
-                             <button 
-                               onClick={() => setShowClientForm(!showClientForm)}
-                               className="bg-corporate-purple text-white text-[10px] px-3 py-1.5 rounded-full font-bold shadow-sm"
-                             >
-                                {showClientForm ? (lang === 'es' ? 'Cancelar' : 'Cancel') : (lang === 'es' ? '+ Nuevo Cliente' : '+ New Client')}
-                             </button>
-                          </div>
-                       </div>
-                       
-                       <AnimatePresence>
-                          {showClientForm && (
-                             <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden mb-4">
-                                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col gap-3">
-                                   <input 
-                                     type="text" 
-                                     placeholder={lang === 'es' ? 'Ej. Telefónica S.A.' : 'E.g. Telefonica Inc.'}
-                                     className="w-full bg-white border border-slate-200 text-sm px-4 py-2.5 rounded-xl font-medium outline-none text-[#1E3A8A]"
-                                     value={draftClientName}
-                                     onChange={e => setDraftClientName(e.target.value)}
-                                   />
-                                   <button 
-                                     className="w-full bg-[#1E3A8A] text-white py-2.5 rounded-xl font-bold uppercase tracking-wider text-[11px] flex items-center justify-center gap-2 mt-1"
-                                     onClick={async () => {
-                                        if(!draftClientName) return;
-                                        await createClient({
-                                            name: draftClientName,
-                                            country: selectedCountry
-                                        });
-                                        setDraftClientName("");
-                                        setShowClientForm(false);
-                                        refreshClients();
-                                     }}
-                                   >
-                                      {lang === 'es' ? 'Guardar Cliente' : 'Save Client'}
-                                   </button>
-                                </div>
-                             </motion.div>
-                          )}
-                       </AnimatePresence>
-
-                       <div className="space-y-4">
-                         {clients.filter(c => c.country === selectedCountry).length === 0 ? (
-                           <p className="text-[11px] text-slate-400 font-medium italic tracking-wide px-1">
-                             {lang === 'es' ? 'No hay clientes registrados en este país.' : 'No clients registered in this country.'}
-                           </p>
-                         ) : (
-                           clients.filter(c => c.country === selectedCountry).map((client: any) => (
-                             <div key={client.id} className="bg-white p-4 rounded-[20px] border border-slate-100 shadow-[0_2px_10px_rgb(0,0,0,0.03)] text-left flex flex-col gap-3 group">
-                                <div className="flex justify-between items-center mb-1">
-                                  <h4 className="font-extrabold text-[#1E3A8A] text-[15px] cursor-pointer hover:text-corporate-purple transition-colors active:scale-95" onClick={() => setSelectedClient(client)}>{client.name}</h4>
-                                  <button onClick={() => setOpenClientFormId(openClientFormId === client.id ? null : client.id)} className="bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-1.5 rounded-[8px] text-[10px] font-bold uppercase tracking-widest shadow-sm flex items-center gap-1 hover:bg-emerald-100 transition-colors">
-                                     + {lang === 'es' ? 'Oportunidad' : 'Opportunity'}
-                                  </button>
-                                </div>
-                                
-                                <AnimatePresence>
-                                   {openClientFormId === client.id && (
-                                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden mb-2">
-                                         <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-col gap-2">
-                                            <input 
-                                              type="text" 
-                                              placeholder={lang === 'es' ? 'Título (Ej. Servidores)' : 'Title (E.g. Servers)'}
-                                              className="w-full bg-white border border-slate-200 text-xs px-3 py-2 rounded-lg font-medium outline-none text-[#1E3A8A]"
-                                              value={draftOppTitle}
-                                              onChange={e => setDraftOppTitle(e.target.value)}
-                                            />
-                                            <div className="relative">
-                                              <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-xs">$</span>
-                                              <input 
-                                                type="text" 
-                                                placeholder={lang === 'es' ? 'Monto USD' : 'USD Amount'}
-                                                className="w-full bg-white border border-slate-200 text-xs px-6 py-2 rounded-lg font-medium outline-none text-[#1E3A8A]"
-                                                value={draftOppAmount}
-                                                onFocus={e => e.target.select()}
-                                                onChange={e => {
-                                                   const val = e.target.value.replace(/\D/g, "");
-                                                   setDraftOppAmount(val ? parseInt(val, 10).toLocaleString("en-US") : "");
-                                                }}
-                                              />
-                                            </div>
-                                            <button 
-                                              className="w-full bg-[#1E3A8A] text-white py-2 rounded-lg font-bold uppercase text-[10px]"
-                                              onClick={async () => {
-                                                 if(!draftOppTitle || !draftOppAmount) return;
-                                                 await createOpportunity({
-                                                     title: draftOppTitle,
-                                                     amountUsd: parseFloat(draftOppAmount.replace(/\D/g, "")),
-                                                     clientId: client.id
-                                                 });
-                                                 setDraftOppTitle("");
-                                                 setDraftOppAmount("");
-                                                 setOpenClientFormId(null);
-                                                 refreshOpportunities();
-                                              }}
-                                            >
-                                               {lang === 'es' ? 'Guardar' : 'Save'}
-                                            </button>
-                                         </div>
-                                      </motion.div>
-                                   )}
-                                </AnimatePresence>
-
-                                {/* Lista de oportunidades atadas a este cliente */}
-                                <div className="flex flex-col gap-2 mt-2">
-                                  {(() => {
-                                      const clientOppsFiltered = opportunities.filter(o => o.clientId === client.id).filter(o => {
-                                         return o.status === 'PROSPECTO' || o.status === 'COTIZADO';
-                                      });
-
-                                      if (clientOppsFiltered.length === 0) {
-                                         return <p className="text-[10px] text-slate-400 font-medium italic">{lang === 'es' ? 'Sin oportunidades en esta vista.' : 'No opportunities in this view.'}</p>;
-                                      }
-
-                                      return clientOppsFiltered.map(opp => (
-                                          <div key={opp.id} onClick={() => { setSelectedClient(client); setSelectedOpportunity({id: opp.id, title: opp.title, amount: opp.amountUsd.toString()}); }} className="bg-slate-50 p-3 rounded-[12px] border border-slate-200/60 transition-all hover:bg-slate-100 hover:border-corporate-purple/40 hover:shadow-md cursor-pointer active:scale-95">
-                                             <div className="flex justify-between items-start mb-2 pointer-events-none">
-                                                <span className="font-extrabold text-[#1E3A8A] text-[11px] leading-tight flex-1 pr-2">{opp.title}</span>
-                                                <span className="font-bold text-corporate-purple text-[12px]">${opp.amountUsd.toLocaleString('en-US')}</span>
-                                             </div>
-                                             <div className="flex gap-1 bg-white p-1 rounded-full border border-slate-100 shadow-sm" onClick={e => e.stopPropagation()}>
-                                               {['PROSPECTO', 'COTIZADO', 'GANADO', 'PERDIDO'].map(status => (
-                                                  <div 
-                                                    key={status}
-                                                    className={`flex-1 flex justify-center py-1 rounded-full transition-all text-[8px] sm:text-[9px] font-bold ${opp.status === status ? 
-                                                       (status === 'GANADO' ? 'bg-emerald-500 text-white shadow-sm' : 
-                                                        status === 'PERDIDO' ? 'bg-rose-500 text-white shadow-sm' : 
-                                                        'bg-[#1E3A8A] text-white shadow-sm') 
-                                                        : 'text-slate-300'}`}
-                                                  >
-                                                     {status.substring(0,3)}
-                                                  </div>
-                                               ))}
-                                             </div>
-                                          </div>
-                                      ));
-                                  })()}
-                                </div>
-                             </div>
-                           ))
-                         )}
-                       </div>
-                     </div>
+                     {renderClientsForCountry(selectedCountry)}
                   </div>
                   {/* Botón flotante removido por instrucción de que las notas solo deban existir bajo Cliente u Oportunidad */}
                </motion.div>
