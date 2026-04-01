@@ -1553,29 +1553,50 @@ export default function Home() {
                             <button onClick={() => setShowCalendarModal(true)} className="text-[10px] sm:text-xs whitespace-nowrap font-semibold px-2.5 sm:px-3 py-1.5 shrink-0 bg-slate-50 text-[#1E3A8A] rounded-full border border-slate-200 shadow-sm transition-colors hover:bg-slate-100">{lang === 'es' ? 'VER CALENDARIO' : 'VIEW CALENDAR'}</button>
                           </div>
                           
-                          {todayTasks.length === 0 ? (
-                            <p className="text-sm text-slate-400 italic text-center py-2">{lang === 'es' ? 'No hay compromisos pendientes para hoy.' : 'No pending tasks for today.'}</p>
-                          ) : (
-                            <div className="space-y-3">
-                               {todayTasks.map((task) => (
-                                  <motion.div 
-                                    key={task.id} 
-                                    onClick={() => {
-                                      setEditingTask(task);
-                                      setDraftAction(task.title || "");
-                                      setDraftActivity(task.content || "");
-                                      setDraftDate(task.date || "");
-                                      setShowActionModal(true);
-                                    }}
-                                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                                    className={`flex flex-col gap-1.5 p-4 rounded-2xl border shadow-sm cursor-pointer hover:border-[#1E3A8A]/30 hover:shadow-md transition-all active:scale-[0.98] ${task.completed ? 'bg-emerald-50/40 border-emerald-200' : 'bg-[#F8FAFC] border-slate-200'}`}
-                                  >
-                                     <div className="flex justify-between items-start mb-1">
-                                        <div className="flex flex-col">
-                                           <span className={`text-[13px] font-black uppercase tracking-widest mb-2 flex items-center gap-1.5 ${task.completed ? 'text-emerald-500' : 'text-[#F59E0B]'}`}><Navigation size={14}/> {task.completed ? 'COMPLETADO' : 'COMPROMISO'}: {task.date ? task.date.split('-').reverse().join('/') : 'Por definir'}</span>
-                                           <span className={`font-black text-xl leading-tight mb-2 ${task.completed ? 'text-emerald-700 line-through decoration-emerald-400 opacity-60' : 'text-[#1E3A8A]'}`}>{task.title}</span>
-                                           <span className="text-[11px] text-slate-500 uppercase tracking-widest font-bold flex items-center gap-1.5"><Lock size={12}/> Registrado: {new Date(task.createdAt || Date.now()).toLocaleDateString(lang === 'es' ? 'es-CL' : 'en-US')} {new Date(task.createdAt || Date.now()).toLocaleTimeString(lang === 'es' ? 'es-CL' : 'en-US', { hour: '2-digit', minute: '2-digit' })}</span>
-                                        </div>
+                          {(() => {
+                             const now = new Date();
+                             const YYYY = now.getFullYear();
+                             const MM = String(now.getMonth() + 1).padStart(2, '0');
+                             const DD = String(now.getDate()).padStart(2, '0');
+                             const todayLocalStr = `${YYYY}-${MM}-${DD}`;
+
+                             const feedTasks = todayTasks.filter(t => {
+                                const cD = new Date(t.createdAt || Date.now());
+                                const cStr = `${cD.getFullYear()}-${String(cD.getMonth() + 1).padStart(2, '0')}-${String(cD.getDate()).padStart(2, '0')}`;
+                                return cStr === todayLocalStr || t.date === todayLocalStr;
+                             });
+
+                             return feedTasks.length === 0 ? (
+                                <p className="text-sm text-slate-400 italic text-center py-2">{lang === 'es' ? 'No hay compromisos pendientes para hoy.' : 'No pending tasks for today.'}</p>
+                             ) : (
+                                <div className="space-y-3">
+                                   {feedTasks.map((task) => {
+                                      const opp = opportunities.find(o => o.id === task.opportunityId);
+                                      const oppName = opp ? (opp.title || opp.name) : null;
+                                      return (
+                                      <motion.div 
+                                        key={task.id} 
+                                        onClick={() => {
+                                          setEditingTask(task);
+                                          setDraftAction(task.title || "");
+                                          setDraftActivity(task.content || "");
+                                          setDraftDate(task.date || "");
+                                          setShowActionModal(true);
+                                        }}
+                                        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                                        className={`flex flex-col gap-1.5 p-4 rounded-2xl border shadow-sm cursor-pointer hover:border-[#1E3A8A]/30 hover:shadow-md transition-all active:scale-[0.98] ${task.completed ? 'bg-emerald-50/40 border-emerald-200' : 'bg-[#F8FAFC] border-slate-200'}`}
+                                      >
+                                         <div className="flex justify-between items-start mb-1">
+                                            <div className="flex flex-col">
+                                               <span className={`text-[13px] font-black uppercase tracking-widest mb-2 flex items-center gap-1.5 ${task.completed ? 'text-emerald-500' : 'text-[#F59E0B]'}`}><Navigation size={14}/> {task.completed ? 'COMPLETADO' : 'COMPROMISO'}: {task.date ? task.date.split('-').reverse().join('/') : 'Por definir'}</span>
+                                               <span className={`font-black text-xl leading-tight mb-2 ${task.completed ? 'text-emerald-700 line-through decoration-emerald-400 opacity-60' : 'text-[#1E3A8A]'}`}>{task.title}</span>
+                                               <span className="text-[11px] text-slate-500 uppercase tracking-widest font-bold flex items-center gap-1.5"><Lock size={12}/> Registrado: {new Date(task.createdAt || Date.now()).toLocaleDateString(lang === 'es' ? 'es-CL' : 'en-US')} {new Date(task.createdAt || Date.now()).toLocaleTimeString(lang === 'es' ? 'es-CL' : 'en-US', { hour: '2-digit', minute: '2-digit' })}</span>
+                                               {oppName && (
+                                                  <span className="text-[10px] text-corporate-purple uppercase tracking-widest font-black flex items-center gap-1.5 mt-1.5 bg-corporate-purple/10 px-2 py-0.5 rounded shrink-0 max-w-fit flex-wrap">
+                                                     📁 PROYECTO: {oppName}
+                                                  </span>
+                                               )}
+                                            </div>
                                         <button 
                                           onClick={async (e) => {
                                             e.stopPropagation();
@@ -1593,9 +1614,11 @@ export default function Home() {
                                         </button>
                                      </div>
                                   </motion.div>
-                               ))}
-                            </div>
-                          )}
+                                   )
+                                 })}
+                              </div>
+                           );
+                          })()}
                         </div>
                       </motion.div>
                     ) : (
@@ -1704,7 +1727,6 @@ export default function Home() {
             )}
 
           </AnimatePresence>
-        </div>
 
         {/* MODALS GLOBALES DEL DASHBOARD */}
         <AnimatePresence>
@@ -2846,5 +2868,6 @@ export default function Home() {
 
         </AnimatePresence>
       </div>
+    </div>
   );
 }
