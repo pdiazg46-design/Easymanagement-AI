@@ -275,6 +275,9 @@ export default function Home() {
   const [draftClientName, setDraftClientName] = useState("");
   const [openClientFormId, setOpenClientFormId] = useState<string | null>(null);
   const [adminUsers, setAdminUsers] = useState<any[]>([]);
+  const [editingOppId, setEditingOppId] = useState<string | null>(null);
+  const [inlineEditTitle, setInlineEditTitle] = useState("");
+  const [inlineEditAmount, setInlineEditAmount] = useState("");
   const [showMobilePanel, setShowMobilePanel] = useState(false);
 
   const refreshOpportunities = async () => {
@@ -2171,80 +2174,135 @@ export default function Home() {
                            return activeOpps.map(opp => (
                              <div 
                                 key={opp.id} 
-                                onClick={() => setSelectedOpportunity({id: opp.id, title: opp.title, amount: opp.amountUsd.toString()})}
-                                className="bg-white p-5 rounded-[20px] border border-slate-200 shadow-sm flex justify-between items-center cursor-pointer hover:border-corporate-purple/40 hover:shadow-md transition-all active:scale-[0.98]"
+                                onClick={() => {
+                                   if (editingOppId !== opp.id) {
+                                      setSelectedOpportunity({id: opp.id, title: opp.title, amount: opp.amountUsd.toString()});
+                                   }
+                                }}
+                                className={`bg-white p-5 rounded-[20px] border shadow-sm transition-all ${editingOppId === opp.id ? 'border-corporate-purple/60 shadow-md ring-2 ring-corporate-purple/10' : 'border-slate-200 flex justify-between items-center cursor-pointer hover:border-corporate-purple/40 hover:shadow-md active:scale-[0.98]'}`}
                              >
-                                <div>
-                                   <h4 className="font-extrabold text-[#1E3A8A] text-[15px] mb-1.5">{opp.title}</h4>
-                                   <div className="flex items-center gap-2">
-                                      {/* Status Selector */}
-                                      {/* Status Display Only */}
-                                      <span 
-                                        className={`text-[9px] uppercase font-bold px-2 py-1 rounded-md border text-center shadow-sm shrink-0 ${
-                                          opp.status === 'PROSPECTO' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                                          'bg-blue-50 text-blue-700 border-blue-200'
-                                        }`}
-                                      >
-                                         {opp.status}
-                                      </span>
-
-                                      {/* Confidence Display Only */}
-                                      <span 
-                                        className={`text-[9px] uppercase font-bold px-2 py-1 rounded-md border text-center shadow-sm ${
-                                          opp.confidenceLevel === 'ALTA' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                                          opp.confidenceLevel === 'BAJA' ? 'bg-red-50 text-red-700 border-red-200' :
-                                          'bg-amber-50 text-amber-700 border-amber-200'
-                                        }`}
-                                      >
-                                         {opp.confidenceLevel === 'ALTA' ? '💚 ALTA' :
-                                          opp.confidenceLevel === 'BAJA' ? '❤️ BAJA' : '💛 MEDIA'}
-                                      </span>
-                                   </div>
-                                   <div className="mt-2 text-[9px] text-slate-400 font-medium">
-                                      <span>Creada: {opp.createdAt ? new Date(opp.createdAt).toLocaleDateString() : 'N/A'}</span>
-                                      <span className="mx-1.5">•</span>
-                                      <span>Estado: {opp.statusUpdatedAt ? new Date(opp.statusUpdatedAt).toLocaleDateString() : (opp.updatedAt ? new Date(opp.updatedAt).toLocaleDateString() : 'N/A')}</span>
-                                   </div>
-                                </div>
-                                <div className="text-right shrink-0 flex flex-col items-end gap-1">
-                                   <span className="text-[17px] font-black text-emerald-600 leading-none">${opp.amountUsd.toLocaleString('en-US')}</span>
-                                   <div className="text-[10px] uppercase font-bold text-slate-400 mt-1 mb-1">USD</div>
-                                   {opp.status === 'PROSPECTO' && (
-                                     <div className="flex items-center gap-1 mt-1">
-                                       <button 
-                                          onClick={async (e) => {
-                                            e.stopPropagation();
-                                            const newTitle = window.prompt(lang === 'es' ? '✏️ Nuevo Nombre del Proyecto:' : '✏️ New Project Name:', opp.title);
-                                            if (newTitle === null) return;
-                                            const newAmtStr = window.prompt(lang === 'es' ? '💰 Nuevo Monto USD:' : '💰 New USD Amount:', opp.amountUsd.toString());
-                                            if (newAmtStr === null) return;
-                                            const parsedAmt = parseInt(newAmtStr.replace(/\D/g, ""), 10);
-                                            if (!isNaN(parsedAmt) && newTitle.trim() !== '') {
-                                               setOpportunities(prev => prev.map(o => o.id === opp.id ? { ...o, title: newTitle, amountUsd: parsedAmt } : o));
-                                               try { await updateOpportunityDetails(opp.id, newTitle, parsedAmt); } catch(err){ console.error(err) }
-                                            }
-                                          }}
-                                          className="p-1 px-1.5 text-slate-300 hover:text-blue-500 bg-slate-50 hover:bg-blue-50 border border-transparent hover:border-blue-100 rounded transition-colors"
-                                          title={lang === 'es' ? 'Editar Oportunidad' : 'Edit Opportunity'}
-                                       >
-                                          <Edit2 size={13} />
-                                       </button>
-                                       <button 
-                                          onClick={async (e) => {
-                                            e.stopPropagation();
-                                            if (confirm(lang === 'es' ? '¿Eliminar permanentemente este proyecto y sus bitácoras?' : 'Permanently delete this project and its timeline?')) {
-                                              setOpportunities(prev => prev.filter(o => o.id !== opp.id));
-                                              try { await deleteOpportunity(opp.id); } catch(err){ console.error(err) }
-                                            }
-                                          }}
-                                          className="p-1 px-1.5 text-slate-300 hover:text-red-500 bg-slate-50 hover:bg-red-50 border border-transparent hover:border-red-100 rounded transition-colors"
-                                          title={lang === 'es' ? 'Eliminar Oportunidad' : 'Delete Opportunity'}
-                                       >
-                                          <Trash2 size={13} />
-                                       </button>
+                                {editingOppId === opp.id ? (
+                                  <div className="flex flex-col w-full gap-3 cursor-default" onClick={e => e.stopPropagation()}>
+                                     <div className="flex items-center gap-2">
+                                        <div className="flex flex-col w-full gap-1">
+                                          <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Nombre del Proyecto</label>
+                                          <input 
+                                             type="text" 
+                                             value={inlineEditTitle} 
+                                             onChange={(e) => setInlineEditTitle(e.target.value)} 
+                                             className="w-full bg-slate-50 border border-slate-200 text-sm px-3 py-2.5 rounded-xl font-bold text-[#1E3A8A] outline-none focus:border-corporate-purple/50 focus:bg-white"
+                                             autoFocus
+                                          />
+                                        </div>
                                      </div>
-                                   )}
-                                </div>
+                                     <div className="flex items-center gap-3">
+                                        <div className="flex flex-col flex-1 gap-1">
+                                           <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Monto USD</label>
+                                           <div className="relative">
+                                              <span className="absolute left-3 top-1/2 -translate-y-1/2 font-black text-[#1E3A8A] opacity-50">$</span>
+                                              <input 
+                                                 type="text" 
+                                                 value={inlineEditAmount} 
+                                                 onChange={(e) => {
+                                                    const val = e.target.value.replace(/\D/g, "");
+                                                    setInlineEditAmount(val ? parseInt(val, 10).toLocaleString("en-US") : "");
+                                                 }} 
+                                                 className="w-full bg-slate-50 border border-slate-200 text-sm px-7 py-2.5 rounded-xl font-black text-emerald-600 outline-none focus:border-emerald-500/50 focus:bg-white tracking-widest"
+                                              />
+                                           </div>
+                                        </div>
+                                        <div className="flex items-end gap-1.5 pb-0.5 mt-[22px]">
+                                           <button 
+                                              onClick={() => setEditingOppId(null)}
+                                              className="bg-slate-100 text-slate-500 border border-slate-200 px-3 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider hover:bg-slate-200 transition-colors flex items-center gap-1 shadow-sm"
+                                           >
+                                              <X size={14} /> Cancelar
+                                           </button>
+                                           <button 
+                                              onClick={async () => {
+                                                 const newAmt = parseInt(inlineEditAmount.replace(/\D/g, ""), 10);
+                                                 if (!isNaN(newAmt) && inlineEditTitle.trim() !== '') {
+                                                    setOpportunities(prev => prev.map(o => o.id === opp.id ? { ...o, title: inlineEditTitle, amountUsd: newAmt } : o));
+                                                    setEditingOppId(null);
+                                                    try { await updateOpportunityDetails(opp.id, inlineEditTitle, newAmt); } catch(err){ console.error(err) }
+                                                 }
+                                              }}
+                                              className="bg-[#1E3A8A] text-white border border-[#1E3A8A] px-4 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider hover:bg-[#152e73] transition-colors flex items-center gap-1 shadow-sm"
+                                           >
+                                              <Check size={14} /> Guardar
+                                           </button>
+                                        </div>
+                                     </div>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <div>
+                                       <h4 className="font-extrabold text-[#1E3A8A] text-[15px] mb-1.5">{opp.title}</h4>
+                                       <div className="flex items-center gap-2">
+                                          {/* Status Selector */}
+                                          {/* Status Display Only */}
+                                          <span 
+                                            className={`text-[9px] uppercase font-bold px-2 py-1 rounded-md border text-center shadow-sm shrink-0 ${
+                                              opp.status === 'PROSPECTO' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                              'bg-blue-50 text-blue-700 border-blue-200'
+                                            }`}
+                                          >
+                                             {opp.status}
+                                          </span>
+
+                                          {/* Confidence Display Only */}
+                                          <span 
+                                            className={`text-[9px] uppercase font-bold px-2 py-1 rounded-md border text-center shadow-sm ${
+                                              opp.confidenceLevel === 'ALTA' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                              opp.confidenceLevel === 'BAJA' ? 'bg-red-50 text-red-700 border-red-200' :
+                                              'bg-amber-50 text-amber-700 border-amber-200'
+                                            }`}
+                                          >
+                                             {opp.confidenceLevel === 'ALTA' ? '💚 ALTA' :
+                                              opp.confidenceLevel === 'BAJA' ? '❤️ BAJA' : '💛 MEDIA'}
+                                          </span>
+                                       </div>
+                                       <div className="mt-2 text-[9px] text-slate-400 font-medium">
+                                          <span>Creada: {opp.createdAt ? new Date(opp.createdAt).toLocaleDateString() : 'N/A'}</span>
+                                          <span className="mx-1.5">•</span>
+                                          <span>Estado: {opp.statusUpdatedAt ? new Date(opp.statusUpdatedAt).toLocaleDateString() : (opp.updatedAt ? new Date(opp.updatedAt).toLocaleDateString() : 'N/A')}</span>
+                                       </div>
+                                    </div>
+                                    <div className="text-right shrink-0 flex flex-col items-end gap-1">
+                                       <span className="text-[17px] font-black text-emerald-600 leading-none">${opp.amountUsd.toLocaleString('en-US')}</span>
+                                       <div className="text-[10px] uppercase font-bold text-slate-400 mt-1 mb-1">USD</div>
+                                       {opp.status === 'PROSPECTO' && (
+                                         <div className="flex items-center gap-1 mt-1">
+                                           <button 
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setInlineEditTitle(opp.title);
+                                                setInlineEditAmount(opp.amountUsd.toLocaleString("en-US"));
+                                                setEditingOppId(opp.id);
+                                              }}
+                                              className="p-1 px-1.5 text-slate-300 hover:text-blue-500 bg-slate-50 hover:bg-blue-50 border border-transparent hover:border-blue-100 rounded transition-colors"
+                                              title={lang === 'es' ? 'Editar Oportunidad' : 'Edit Opportunity'}
+                                           >
+                                              <Edit2 size={13} />
+                                           </button>
+                                           <button 
+                                              onClick={async (e) => {
+                                                e.stopPropagation();
+                                                if (confirm(lang === 'es' ? '¿Eliminar permanentemente este proyecto y sus bitácoras?' : 'Permanently delete this project and its timeline?')) {
+                                                  setOpportunities(prev => prev.filter(o => o.id !== opp.id));
+                                                  try { await deleteOpportunity(opp.id); } catch(err){ console.error(err) }
+                                                }
+                                              }}
+                                              className="p-1 px-1.5 text-slate-300 hover:text-red-500 bg-slate-50 hover:bg-red-50 border border-transparent hover:border-red-100 rounded transition-colors"
+                                              title={lang === 'es' ? 'Eliminar Oportunidad' : 'Delete Opportunity'}
+                                           >
+                                              <Trash2 size={13} />
+                                           </button>
+                                         </div>
+                                       )}
+                                    </div>
+                                  </>
+                                )}
                              </div>
                            ));
                         })()}
