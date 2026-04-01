@@ -3029,7 +3029,7 @@ export default function Home() {
                      <div className="flex justify-between items-start">
                         <div>
                            <div className="flex items-center gap-2 mb-1.5">
-                              <span className="text-[9px] font-black text-white bg-corporate-purple uppercase tracking-widest px-2 py-0.5 rounded-sm shadow-sm">CONFIDENCIAL</span>
+                              <span className="text-[9px] font-black text-white bg-corporate-purple uppercase tracking-widest px-2 py-0.5 rounded-sm shadow-sm">CONFIDENCIAL V2</span>
                               <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Corte al {new Date().toLocaleDateString()}</span>
                            </div>
                            <h2 className="text-2xl font-black text-[#1E3A8A] leading-tight flex items-center gap-2 tracking-tight">
