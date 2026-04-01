@@ -1581,10 +1581,15 @@ export default function Home() {
                              const todayLocalStr = `${YYYY}-${MM}-${DD}`;
 
                              const feedTasks = todayTasks.filter(t => {
-                                // 1. Si no está terminada, mostrarla siempre para que no se pierda en el olvido
+                                const isFutureDate = t.date && t.date > todayLocalStr;
+                                
+                                // Si tiene fecha futura, se esconde del listado de HOY (se verá en el calendario)
+                                if (isFutureDate && !t.completed) return false;
+
+                                // 1. Si no está terminada y es para hoy, atrasada o no tiene fecha (por definir), la mostramos.
                                 if (!t.completed) return true;
                                 
-                                // 2. Si ya está completada, sólo mostrarla si se creó hoy o si era un compromiso para hoy
+                                // 2. Si ya está completada, sólo mostrarla si se completó/creó hoy o si era un compromiso para hoy
                                 const cD = new Date(t.createdAt || Date.now());
                                 const cStr = `${cD.getFullYear()}-${String(cD.getMonth() + 1).padStart(2, '0')}-${String(cD.getDate()).padStart(2, '0')}`;
                                 return cStr === todayLocalStr || t.date === todayLocalStr;
@@ -1741,7 +1746,7 @@ export default function Home() {
                 <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-white via-white/95 to-transparent pt-12 pb-4 sm:pb-6 px-4 flex flex-col items-center pointer-events-none z-20">
                    <div className="pointer-events-auto flex items-end justify-center relative mb-2">
                       <motion.button 
-                        onClick={handleMicClick}
+                        onClick={() => handleMicClick('activity')}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         className="w-[64px] h-[64px] sm:w-[72px] sm:h-[72px] bg-corporate-purple text-white rounded-full flex items-center justify-center shadow-[0_8px_25px_rgb(124,58,237,0.4)] z-10"
@@ -2344,11 +2349,28 @@ export default function Home() {
                    {(() => {
                       const opp = editingTask ? opportunities.find(o => o.id === editingTask.opportunityId) : selectedOpportunity;
                       const oppName = opp ? (opp.title || opp.name) : null;
-                      if (!oppName) return null;
+                      const client = editingTask ? clients.find(c => c.id === editingTask.clientId || (opp && c.id === opp.clientId)) : selectedClient;
+                      const clientName = client ? client.name : null;
+                      const countryName = client ? client.country : selectedCountry;
+
                       return (
-                         <span className="text-[10px] text-corporate-purple bg-corporate-purple/10 uppercase tracking-widest font-black px-2 py-0.5 rounded-md inline-flex items-center gap-1 border border-corporate-purple/20 max-w-full truncate">
-                            📁 {oppName}
-                         </span>
+                         <div className="flex flex-col gap-1 mt-1">
+                            {countryName && (
+                               <span className="text-[9px] text-slate-500 bg-slate-100 uppercase tracking-widest font-black px-2 py-0.5 rounded-md inline-flex items-center gap-1 border border-slate-200 max-w-full truncate w-fit">
+                                  🌎 PAÍS: {countryName}
+                               </span>
+                            )}
+                            {clientName && (
+                               <span className="text-[9px] text-blue-600 bg-blue-100/50 uppercase tracking-widest font-black px-2 py-0.5 rounded-md inline-flex items-center gap-1 border border-blue-200/50 max-w-full truncate w-fit">
+                                  👤 CLIENTE: {clientName}
+                               </span>
+                            )}
+                            {oppName && (
+                               <span className="text-[9px] text-corporate-purple bg-corporate-purple/10 uppercase tracking-widest font-black px-2 py-0.5 rounded-md inline-flex items-center gap-1 border border-corporate-purple/20 max-w-full truncate w-fit">
+                                  📁 PROYECTO: {oppName}
+                               </span>
+                            )}
+                         </div>
                       );
                    })()}
                  </div>
