@@ -730,6 +730,7 @@ export default function Home() {
       // Hook en grabar si es que estábamos justificando una pérdida
       if (pendingLostOpp) {
           setOpportunities(prev => prev.map(o => o.id === pendingLostOpp.id ? {...o, status: 'PERDIDO', statusUpdatedAt: new Date()} : o));
+          setTodayTasks(prev => prev.map(t => t.opportunityId === pendingLostOpp.id ? { ...t, completed: true } : t));
           try { await updateOpportunityStatus(pendingLostOpp.id, 'PERDIDO'); } catch(err) { console.error(err) }
           setPendingLostOpp(null);
       }
@@ -2350,6 +2351,9 @@ export default function Home() {
                                              return;
                                           }
                                           setOpportunities(prev => prev.map(o => o.id === oppDetails.id ? {...o, status: newStatus, statusUpdatedAt: new Date()} : o));
+                                          if (newStatus === 'GANADO' || newStatus === 'PERDIDO') {
+                                             setTodayTasks(prev => prev.map(t => t.opportunityId === oppDetails.id ? { ...t, completed: true } : t));
+                                          }
                                           try { await updateOpportunityStatus(oppDetails.id, newStatus); } catch(err) { console.error(err) }
                                         }}
                                         value={oppDetails.status}
@@ -3092,7 +3096,6 @@ export default function Home() {
                         </button>
                      </div>
                   </div>
-
                   <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-3 pb-24 bg-[#F8FAFC]">
                      {/* RENDERIZADO CONDICIONAL DE VISTA */}
                      {calendarViewMode === 'grid' ? (
@@ -3104,6 +3107,14 @@ export default function Home() {
                             <div className="text-center py-10 text-slate-400 text-sm font-medium">No hay registros de actividad.</div>
                          ) : (
                             [...todayTasks]
+                            .filter((task) => {
+                                if (!task.completed) return true; // Keep pending
+                                if (!task.date) return false; // Hide completed without date
+                                const d = new Date(task.date + 'T12:00:00');
+                                const today = new Date();
+                                today.setHours(0,0,0,0);
+                                return d >= today; // Keep completed ONLY if they are today or future
+                            })
                             .sort((a,b) => {
                                 const da = a.date ? new Date(a.date).getTime() : Infinity;
                                 const db = b.date ? new Date(b.date).getTime() : Infinity;
@@ -3155,7 +3166,7 @@ export default function Home() {
                                   
                                   <div className="mt-2 w-full pt-3 border-t border-slate-100/60 flex items-center text-left">
                                      <span className="text-[11px] text-slate-400 font-bold whitespace-normal leading-relaxed">
-                                       Generado el {new Date(task.id).toLocaleDateString(lang === 'es' ? 'es-CL' : 'en-US')} a las {new Date(task.id).toLocaleTimeString(lang === 'es' ? 'es-CL' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
+                                       Generado el {task.createdAt ? new Date(task.createdAt).toLocaleDateString(lang === 'es' ? 'es-CL' : 'en-US') : 'N/A'} a las {task.createdAt ? new Date(task.createdAt).toLocaleTimeString(lang === 'es' ? 'es-CL' : 'en-US', { hour: '2-digit', minute: '2-digit' }) : 'N/A'}
                                      </span>
                                   </div>
                                </motion.div>

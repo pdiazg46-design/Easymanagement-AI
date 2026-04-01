@@ -200,6 +200,14 @@ export async function updateOpportunityStatus(id: string, status: any) {
       statusUpdatedAt: new Date()
     }
   });
+
+  if (status === 'GANADO' || status === 'PERDIDO') {
+      await prisma.activityLog.updateMany({
+         where: { opportunityId: id, completed: false },
+         data: { completed: true }
+      });
+  }
+
   revalidatePath("/");
   return opp;
 }
