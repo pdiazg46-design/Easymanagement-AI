@@ -85,6 +85,36 @@ export async function toggleActivityCompletion(id: string, completed: boolean) {
   return activity;
 }
 
+// ACTUALIZAR ACTIVIDAD (EDICION MANUAL)
+export async function updateActivity(id: string, data: { extractedAction: string, commitmentDateStr?: string, rawAudioText?: string }) {
+  const { user } = await getOrCreateMockSession();
+  
+  let commitmentDate: Date | null = undefined as any;
+  if (data.commitmentDateStr !== undefined) {
+     if (data.commitmentDateStr === "") {
+        commitmentDate = null;
+     } else {
+        const [year, month, day] = data.commitmentDateStr.split('-');
+        if (year && month && day) {
+           commitmentDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 12, 0, 0);
+        }
+     }
+  }
+
+  const payload: any = {};
+  if (data.extractedAction !== undefined) payload.extractedAction = data.extractedAction;
+  if (data.rawAudioText !== undefined) payload.rawAudioText = data.rawAudioText;
+  if (commitmentDate !== undefined) payload.commitmentDate = commitmentDate;
+
+  const activity = await prisma.activityLog.update({
+    where: { id, userId: user.id },
+    data: payload
+  });
+
+  revalidatePath("/");
+  return activity;
+}
+
 // ELIMINAR ACTIVIDAD
 export async function deleteActivity(id: string) {
   const { user } = await getOrCreateMockSession();

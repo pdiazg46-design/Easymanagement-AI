@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Mic, Trash2, Keyboard, Edit2, Signal, Mail, Lock, Fingerprint, UploadCloud, Link as LinkIcon, ArrowRight, Eye, EyeOff, Map as MapIcon, List, Maximize2, Minimize2, X, Calendar, Navigation, MapPin, ChevronLeft, ChevronRight, Share2, FileText, CreditCard, ShieldCheck, Check, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from "react-simple-maps";
-import { getActivities, createActivity, toggleActivityCompletion, getOpportunities, createOpportunity, updateOpportunityStatus, getClients, createClient, deleteActivity, updateOpportunityConfidence, deleteOpportunity, getAllUsers, toggleUserProStatus } from './actions';
+import { getActivities, createActivity, toggleActivityCompletion, getOpportunities, createOpportunity, updateOpportunityStatus, getClients, createClient, deleteActivity, updateActivity, updateOpportunityConfidence, deleteOpportunity, getAllUsers, toggleUserProStatus } from './actions';
 
 export default function Home() {
   const [lang, setLang] = useState<'es'|'en'>('es');
@@ -246,10 +246,11 @@ export default function Home() {
   const [editingTask, setEditingTask] = useState<any>(null);
   const [selectedClient, setSelectedClient] = useState<{id?: string, name: string, country: string} | null>(null);
   const [selectedOpportunity, setSelectedOpportunity] = useState<{id: string, title: string, amount: string} | null>(null);
-  const [marketOppFilter, setMarketOppFilter] = useState<'ACTIVOS' | 'GANADOS' | 'PERDIDOS'>('ACTIVOS');
+  const [marketOppFilter, setMarketOppFilter] = useState<'ACTIVOS' | 'GANADOS' | 'PERDIDOS'>('GANADOS');
   const [hoveredMapCountry, setHoveredMapCountry] = useState<string | null>(null);
   const [pendingLostOpp, setPendingLostOpp] = useState<any>(null);
   const [newTimelineItems, setNewTimelineItems] = useState<any[]>([]);
+  const [expandedTimelineItems, setExpandedTimelineItems] = useState<string[]>([]);
   const [newCountryTimelineItems, setNewCountryTimelineItems] = useState<any[]>([]);
   const [uploadedCatalogs, setUploadedCatalogs] = useState<{name: string, size: string}[]>([]);
   
@@ -365,7 +366,7 @@ export default function Home() {
 
    const pipelineOpps = opportunities.filter(o => {
       if (isHistorial) {
-         if (o.status !== 'GANADO') return false;
+         if (o.status !== (marketOppFilter === 'PERDIDOS' ? 'PERDIDO' : 'GANADO')) return false;
          return isDateInTimeframe(o.statusUpdatedAt, historialTimeframe);
       } else {
          return o.status === 'PROSPECTO' || o.status === 'COTIZADO';
@@ -379,7 +380,7 @@ export default function Home() {
       const opps = opportunities.filter(o => {
          if (o.client?.country !== c.name) return false;
          if (isHistorial) {
-            return o.status === 'GANADO' && isDateInTimeframe(o.statusUpdatedAt, historialTimeframe);
+            return o.status === (marketOppFilter === 'PERDIDOS' ? 'PERDIDO' : 'GANADO') && isDateInTimeframe(o.statusUpdatedAt, historialTimeframe);
          } else {
             return o.status === 'PROSPECTO' || o.status === 'COTIZADO';
          }
@@ -400,14 +401,16 @@ export default function Home() {
    const globalTotalProjects = globalActiveOpps.length;
 
    const getHistorialTitle = () => {
+      const typeStrEs = marketOppFilter === 'PERDIDOS' ? 'PERDIDOS' : 'GANADOS';
+      const typeStrEn = marketOppFilter === 'PERDIDOS' ? 'LOST' : 'WON';
       switch (historialTimeframe) {
-         case 'week': return lang === 'es' ? 'GANADOS ESTA SEMANA' : 'WON THIS WEEK';
-         case 'month': return lang === 'es' ? 'GANADOS ESTE MES' : 'WON THIS MONTH';
-         case 'last_month': return lang === 'es' ? 'GANADOS MES ANTERIOR' : 'WON LAST MONTH';
-         case 'year': return lang === 'es' ? 'GANADOS ESTE AÑO' : 'WON THIS YEAR';
-         case 'last_year': return lang === 'es' ? 'GANADOS AÑO ANTERIOR' : 'WON LAST YEAR';
-         case 'all': return lang === 'es' ? 'HISTORIAL COMPLETO' : 'ALL TIME WON';
-         default: return lang === 'es' ? 'PROYECTOS GANADOS' : 'WON PROJECTS';
+         case 'week': return lang === 'es' ? `${typeStrEs} ESTA SEMANA` : `${typeStrEn} THIS WEEK`;
+         case 'month': return lang === 'es' ? `${typeStrEs} ESTE MES` : `${typeStrEn} THIS MONTH`;
+         case 'last_month': return lang === 'es' ? `${typeStrEs} MES ANTERIOR` : `${typeStrEn} LAST MONTH`;
+         case 'year': return lang === 'es' ? `${typeStrEs} ESTE AÑO` : `${typeStrEn} THIS YEAR`;
+         case 'last_year': return lang === 'es' ? `${typeStrEs} AÑO ANTERIOR` : `${typeStrEn} LAST YEAR`;
+         case 'all': return lang === 'es' ? 'HISTORIAL COMPLETO' : 'ALL TIME HISTORICAL';
+         default: return lang === 'es' ? `PROYECTOS ${typeStrEs}` : `${typeStrEn} PROJECTS`;
       }
    };
 
@@ -723,8 +726,18 @@ export default function Home() {
       }
       
     } else {
-      // Update logic (En Fase 2 lo moveremos a server action update)
       setTodayTasks(prev => prev.map(t => t.id === editingTask.id ? { ...t, title: draftAction, content: draftActivity, date: draftDate } : t));
+      if (typeof editingTask.id === 'string') {
+         try {
+            await updateActivity(editingTask.id, {
+               extractedAction: draftAction,
+               rawAudioText: draftActivity,
+               commitmentDateStr: draftDate || ""
+            });
+         } catch(err) {
+            console.error("Error updating activity:", err);
+         }
+      }
       setEditingTask(null);
     }
 
@@ -1672,7 +1685,17 @@ export default function Home() {
                          <div className="bg-white rounded-[24px] p-4 sm:p-5 shadow-[0_4px_25px_rgb(0,0,0,0.04)] border border-slate-100 relative">
                            <div className="flex flex-col gap-3 mb-4">
                              <div className="flex justify-between items-center">
-                               <h3 className="text-sm font-bold text-[#1E3A8A] uppercase tracking-wide">{lang === 'es' ? 'Proyectos Ganados' : 'Won Projects'}</h3>
+                               <h3 className="text-sm font-bold text-[#1E3A8A] uppercase tracking-wide flex items-center gap-2">
+                                  {lang === 'es' ? 'Históricos' : 'Historical Data'}
+                                  <select 
+                                     value={marketOppFilter}
+                                     onChange={e => setMarketOppFilter(e.target.value as any)}
+                                     className="bg-transparent text-[#1E3A8A] border border-[#1E3A8A]/20 bg-[#1E3A8A]/5 text-[10px] sm:text-[11px] px-2 py-0.5 rounded-md font-black uppercase outline-none cursor-pointer"
+                                  >
+                                     <option value="GANADOS">Ganados</option>
+                                     <option value="PERDIDOS">Perdidos</option>
+                                  </select>
+                               </h3>
                                <button 
                                  onClick={() => setHistorialViewMode(prev => prev === 'list' ? 'map' : 'list')}
                                  className="text-slate-400 hover:text-corporate-purple transition-colors p-1"
@@ -1852,15 +1875,6 @@ export default function Home() {
                        <div className="flex justify-between items-center mb-4 pr-1">
                           <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest pl-1">{lang === 'es' ? 'Canales / Distribuidores' : 'Channels / Distributors'}</h3>
                           <div className="flex items-center gap-2">
-                             <select 
-                                value={marketOppFilter}
-                                onChange={e => setMarketOppFilter(e.target.value as any)}
-                                className="bg-white text-slate-500 text-[10px] px-2 py-1.5 rounded-full font-bold uppercase outline-none shadow-sm cursor-pointer border border-slate-200"
-                             >
-                                <option value="ACTIVOS">{lang === 'es' ? 'Activos' : 'Active'}</option>
-                                <option value="GANADOS">{lang === 'es' ? 'Ganados' : 'Won'}</option>
-                                <option value="PERDIDOS">{lang === 'es' ? 'Perdidos' : 'Lost'}</option>
-                             </select>
                              <button 
                                onClick={() => setShowClientForm(!showClientForm)}
                                className="bg-corporate-purple text-white text-[10px] px-3 py-1.5 rounded-full font-bold shadow-sm"
@@ -1967,10 +1981,7 @@ export default function Home() {
                                 <div className="flex flex-col gap-2 mt-2">
                                   {(() => {
                                       const clientOppsFiltered = opportunities.filter(o => o.clientId === client.id).filter(o => {
-                                         if (marketOppFilter === 'ACTIVOS') return o.status === 'PROSPECTO' || o.status === 'COTIZADO';
-                                         if (marketOppFilter === 'GANADOS') return o.status === 'GANADO';
-                                         if (marketOppFilter === 'PERDIDOS') return o.status === 'PERDIDO';
-                                         return true;
+                                         return o.status === 'PROSPECTO' || o.status === 'COTIZADO';
                                       });
 
                                       if (clientOppsFiltered.length === 0) {
@@ -2278,29 +2289,40 @@ export default function Home() {
                                 <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">{item.date ? new Date(item.createdAt).toLocaleDateString(lang === 'es' ? 'es-CL' : 'en-US') : (lang === 'es' ? 'Reciente' : 'Recent')}</p>
                               </div>
                               
-                              <div className="bg-white p-5 rounded-[24px] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.03)] relative overflow-hidden">
+                              <div 
+                                 className="bg-white p-4 sm:p-5 rounded-[24px] border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] relative overflow-hidden cursor-pointer hover:border-corporate-purple/30 transition-all active:scale-[0.99]"
+                                 onClick={(e) => {
+                                    e.stopPropagation();
+                                    setExpandedTimelineItems(prev => prev.includes(item.id) ? prev.filter(id => id !== item.id) : [...prev, item.id]);
+                                 }}
+                              >
                                  <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-500"></div>
-                                 <div className="flex items-start justify-between mb-2">
-                                   <h4 className="font-extrabold text-slate-800 text-[15px] pr-2 leading-tight">{item.title}</h4>
-                                   <span className="text-[11px] font-black text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] border border-emerald-100/50 shrink-0">#{typeof item.id === 'string' ? item.id.substring(item.id.length - 4).toUpperCase() : item.id}</span>
+                                 <div className="flex items-start justify-between">
+                                   <div className="pr-3">
+                                     <h4 className="font-extrabold text-[#1E3A8A] text-[14px] leading-tight mb-1">{item.title || "COMPROMISO"}</h4>
+                                     <p className="text-[11px] text-[#F59E0B] font-bold uppercase tracking-widest flex items-center gap-1.5 mt-1">
+                                        <Calendar size={12} /> {lang === 'es' ? 'Compromiso:' : 'Commitment:'} {item.date ? new Date(`${item.date}T12:00:00`).toLocaleDateString(lang === 'es' ? 'es-CL' : 'en-US', { day: '2-digit', month: 'short', year: 'numeric' }) : (lang === 'es' ? 'POR DEFINIR' : 'TBD')}
+                                     </p>
+                                   </div>
+                                   <span className="text-[10px] font-black text-slate-400 bg-slate-50 px-2 py-0.5 rounded border border-slate-200 shrink-0 flex items-center justify-center">
+                                      {expandedTimelineItems.includes(item.id) ? <ChevronLeft size={16} className="rotate-90"/> : <ChevronLeft size={16} className="-rotate-90"/>}
+                                   </span>
                                  </div>
-                                 <p className="text-[13px] text-slate-600 font-medium leading-relaxed mb-4">
-                                   {item.content}
-                                 </p>
-                                 <div className="flex flex-col gap-1.5 mb-4">
-                                    <span className="text-[10px] text-blue-600 uppercase tracking-widest font-black flex items-center gap-1.5 bg-blue-100/50 px-2 py-0.5 rounded shrink-0 max-w-fit flex-wrap border border-blue-200/50">
-                                       👤 CLIENTE: {selectedClient.name}
-                                    </span>
-                                    <span className="text-[10px] text-corporate-purple uppercase tracking-widest font-black flex items-center gap-1.5 bg-corporate-purple/10 px-2 py-0.5 rounded shrink-0 max-w-fit flex-wrap border border-corporate-purple/20">
-                                       📁 PROYECTO: {selectedOpportunity.title}
-                                    </span>
-                                 </div>
-                                 <div className="bg-slate-50 rounded-xl p-3 border border-slate-200/60 flex flex-col gap-1.5">
-                                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 flex items-center gap-1.5 opacity-90">
-                                      <Edit2 size={11} strokeWidth={3} /> {lang === 'es' ? 'Nota:' : 'Note:'}
-                                    </span>
-                                    <span className="text-[13px] font-bold text-slate-700 leading-tight">{lang === 'es' ? 'Registrado por IA.' : 'Registered by AI.'}</span>
-                                 </div>
+                                 
+                                 <AnimatePresence>
+                                    {expandedTimelineItems.includes(item.id) && (
+                                       <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                                          <div className="pt-4 mt-4 border-t border-slate-100">
+                                             <div className="bg-slate-50/70 p-4 rounded-2xl border border-slate-100 relative">
+                                                <div className="absolute -top-3 left-4 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full text-[9px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1"><Mic size={10}/> {lang === 'es' ? 'Bitácora Original' : 'Original Audio Note'}</div>
+                                                <p className="text-[13px] text-slate-600 font-medium leading-relaxed mt-1 whitespace-pre-wrap">
+                                                  {item.content || (lang === 'es' ? 'Sin audio registrado.' : 'No audio registered.')}
+                                                </p>
+                                             </div>
+                                          </div>
+                                       </motion.div>
+                                    )}
+                                 </AnimatePresence>
                               </div>
                            </motion.div>
                         ));
