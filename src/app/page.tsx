@@ -1720,9 +1720,41 @@ export default function Home() {
                                     </div>
                                  ))
                               )}
+                               
+                               <div className="flex justify-center mt-2 pt-2 border-t border-slate-100 border-dashed">
+                                  <button 
+                                     onClick={() => {
+                                        setRegionalViewMode('map');
+                                        setIsOpeningMarket(true);
+                                     }}
+                                     className="text-[11px] font-extrabold tracking-widest text-[#1E3A8A] uppercase bg-blue-50/80 hover:bg-blue-100 border border-blue-100 px-5 py-3 rounded-2xl w-full flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-sm group"
+                                  >
+                                     <MapPin size={15} className="group-hover:scale-110 transition-transform" /> {lang === 'es' ? '+ ABRIR NUEVO MERCADO' : '+ OPEN NEW MARKET'}
+                                  </button>
+                               </div>
+
                             </div>
                           ) : (
                              <div className="w-full aspect-square bg-slate-50 border border-slate-100 rounded-2xl relative overflow-hidden flex items-center justify-center shadow-inner cursor-pointer group">
+                                
+                                <AnimatePresence>
+                                   {isOpeningMarket && (
+                                      <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -20, opacity: 0 }} className="absolute top-3 left-3 right-3 z-20 pointer-events-none">
+                                         <div className="bg-[#1E3A8A] text-white rounded-[16px] p-3 shadow-xl flex items-center gap-3 border border-blue-400/20 pointer-events-auto">
+                                            <div className="bg-white/10 p-2 rounded-xl shrink-0">
+                                               <MapPin size={18} className="text-blue-200 animate-bounce" />
+                                            </div>
+                                            <p className="text-[11px] font-medium leading-relaxed flex-1 tracking-wide">
+                                               {lang === 'es' ? 'Pincha cualquier país en el mapa para iniciar tu operación.' : 'Tap any country on the map to start your operation.'}
+                                            </p>
+                                            <button onClick={(e) => { e.stopPropagation(); setIsOpeningMarket(false); }} className="text-white/50 hover:text-white shrink-0 p-1.5 bg-black/10 rounded-full transition-colors active:scale-90">
+                                               <X size={14} />
+                                            </button>
+                                         </div>
+                                      </motion.div>
+                                   )}
+                                </AnimatePresence>
+
                                 {/* Botón Expandir a Pantalla Completa */}
                                 <button 
                                    onClick={() => setIsMapFullscreen(true)}
