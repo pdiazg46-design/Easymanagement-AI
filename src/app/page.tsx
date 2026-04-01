@@ -75,6 +75,7 @@ export default function Home() {
           if (data.user.logoUrl) setClientLogo(data.user.logoUrl);
           if (data.user.avatarUrl) setAvatarUrl(data.user.avatarUrl);
           if (data.user.isPro) setIsProUser(true);
+          if (data.user.email) setEmail(data.user.email);
           
           if (data.user.logoUrl && data.user.avatarUrl && currentView === 'onboarding') {
              setCurrentView('dashboard');
@@ -886,7 +887,7 @@ export default function Home() {
   return (
     <div className={`min-h-[100dvh] w-full font-sans relative flex overflow-hidden bg-slate-100`}>
         {/* CONTENEDOR DE VISTAS */}
-        <div className={`flex-1 relative overflow-hidden flex ${currentView === 'onboarding' && showMobilePanel ? 'w-full max-w-none flex-col bg-[#F8FAFC]' : 'flex-col max-w-md mx-auto bg-white shadow-2xl'}`}>
+        <div className={`flex-1 relative overflow-hidden flex ${currentView === 'onboarding' && showMobilePanel ? 'w-full max-w-none flex-row bg-slate-900 justify-center items-center sm:gap-4 lg:gap-8 px-0 sm:px-4 lg:px-8' : 'flex-col max-w-md mx-auto bg-white shadow-2xl'}`}>
           <AnimatePresence mode="wait">
 
             {/* VISTA 1: CREAR CUENTA / LOGIN */}
@@ -1011,9 +1012,8 @@ export default function Home() {
                 initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }}
                 className={`absolute inset-0 flex flex-row px-0 pt-0 bg-transparent overflow-hidden`}
               >
-                  {/* PANEL IZQUIERDO: CONFIGURACIÓN MÓVIL EXACTA */}
-                  {!showMobilePanel && (
-                  <div className="w-full h-full bg-white relative shrink-0 flex flex-col overflow-y-auto no-scrollbar pt-12 pb-10 px-7 mx-auto">
+                  {/* PANEL IZQUIERDO: CONFIGURACIÓN MÓVIL (SIEMPRE VISIBLE EN PC O COMO UNICA VISTA EN MOVIL) */}
+                  <div className={`w-full ${showMobilePanel ? 'hidden sm:flex sm:max-w-md sm:h-[850px] sm:rounded-[40px]' : 'h-full max-w-md'} bg-white relative shrink-0 flex flex-col overflow-y-auto no-scrollbar pt-12 pb-10 px-7 mx-auto shadow-2xl transition-all`}>
                      <div className="mb-6">
                    <div className="w-12 h-1 bg-corporate-purple rounded-full mb-6 relative">
                       <button onClick={() => setLang(lang === 'es' ? 'en' : 'es')} className="absolute -right-60 -top-2 bg-slate-100 text-[#1E3A8A] px-2 py-1 rounded-full text-[10px] font-bold shadow-sm border border-slate-200 uppercase flex items-center gap-1">
@@ -1204,12 +1204,15 @@ export default function Home() {
                     </div>
                  </div>
               </div>
-              )}
 
-              {/* PANEL DERECHO: ADMIN DE USUARIOS (SOLO PATRICIO O PRO) */}
+              {/* PANEL DERECHO: ADMIN DE USUARIOS (SPLIT SCREEN O MODAL EN MOVIL) */}
+              <AnimatePresence>
               {email?.toLowerCase().trim() === 'pdiazg46@gmail.com' && showMobilePanel && (
-                  <div className="flex flex-1 flex-col p-4 md:p-8 lg:p-12 items-center justify-start overflow-y-auto relative bg-[#F8FAFC]">
-                     <div className="w-full max-w-5xl flex flex-col mx-auto">
+                  <motion.div 
+                     initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
+                     className="fixed inset-0 sm:static sm:flex sm:flex-1 sm:max-w-[700px] flex-col p-4 md:p-8 lg:p-12 items-center justify-start overflow-y-auto relative bg-[#F8FAFC] z-[100] sm:z-auto sm:h-[850px] sm:rounded-[40px] shadow-2xl"
+                  >
+                     <div className="w-full flex flex-col mx-auto">
                          <button onClick={() => setShowMobilePanel(false)} className="mb-6 flex items-center gap-2 text-slate-500 font-bold self-start bg-white px-5 py-2.5 rounded-full text-xs shadow-sm border border-slate-200 hover:bg-slate-50 transition-colors">
                             <ChevronLeft size={16} /> {lang === 'es' ? 'Volver a mi perfil' : 'Back to Profile'}
                          </button>
@@ -1240,6 +1243,25 @@ export default function Home() {
                                   const remainingTrials = Math.max(0, 7 - diffDays);
                                   const isLocked = remainingTrials === 0 && !u.isPro;
 
+                                  let yearsTraj = now.getFullYear() - cDate.getFullYear();
+                                  let monthsTraj = now.getMonth() - cDate.getMonth();
+                                  let daysTraj = Math.floor((now.getTime() - cDate.getTime()) / (1000 * 60 * 60 * 24));
+                                     
+                                  if (now.getDate() < cDate.getDate()) monthsTraj -= 1;
+                                  if (monthsTraj < 0) {
+                                      yearsTraj -= 1;
+                                      monthsTraj += 12;
+                                  }
+                                     
+                                  let trajectoryStr = "";
+                                  if (daysTraj <= 30 && monthsTraj === 0 && yearsTraj === 0) {
+                                      trajectoryStr = daysTraj === 0 ? 'Trayectoria: Hoy' : `Trayectoria: ${daysTraj} día${daysTraj === 1 ? '' : 's'}`;
+                                  } else if (yearsTraj === 0) {
+                                      trajectoryStr = `Trayectoria: ${monthsTraj} mes${monthsTraj === 1 ? '' : 'es'}`;
+                                  } else {
+                                      trajectoryStr = `Trayectoria: ${yearsTraj} año${yearsTraj === 1 ? '' : 's'}${monthsTraj > 0 ? ` y ${monthsTraj} mes${monthsTraj === 1 ? '' : 'es'}` : ''}`;
+                                  }
+
                                   let formattedProTime = "Suscripción Activa";
                                   if (u.proSince) {
                                      const proStart = new Date(u.proSince);
@@ -1254,7 +1276,7 @@ export default function Home() {
                                         years -= 1;
                                         months += 12;
                                      }
-                                     
+
                                      if (days <= 30) {
                                         formattedProTime = days === 0 ? 'Pro desde hoy' : `Pro hace ${days} día${days === 1 ? '' : 's'}`;
                                      } else if (years === 0) {
@@ -1269,7 +1291,8 @@ export default function Home() {
                                        <td className="px-5 py-4 text-sm font-bold text-[#1E3A8A] flex flex-col gap-0.5">
                                           {u.name}
                                           <span className="text-[10px] font-medium text-slate-400 leading-none mb-0.5">{u.email}</span>
-                                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Ingresó: {cDate.toLocaleDateString('es-ES')}</span>
+                                          <span className="text-[10px] font-black text-corporate-purple uppercase tracking-widest mt-1">Ingresó: {cDate.toLocaleDateString('es-ES')}</span>
+                                          <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{trajectoryStr}</span>
                                        </td>
                                        <td className="px-5 py-4">
                                           {u.isPro ? (
@@ -1311,9 +1334,10 @@ export default function Home() {
                         </div>
                      </div>
                   </div>
-                 </div>
-              )}
               </motion.div>
+              )}
+              </AnimatePresence>
+            </motion.div>
             )}
 
             {/* VISTA 3: DASHBOARD */}
