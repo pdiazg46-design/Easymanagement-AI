@@ -2574,9 +2574,21 @@ export default function Home() {
                                </span>
                             )}
                             {oppName && (
-                               <span className="text-[9px] text-corporate-purple bg-corporate-purple/10 uppercase tracking-widest font-black px-2 py-0.5 rounded-md inline-flex items-center gap-1 border border-corporate-purple/20 max-w-full truncate w-fit">
-                                  📁 PROYECTO: {oppName}
-                               </span>
+                               <div className="flex gap-2">
+                                  <span className="text-[9px] text-corporate-purple bg-corporate-purple/10 uppercase tracking-widest font-black px-2 py-0.5 rounded-md inline-flex items-center gap-1 border border-corporate-purple/20 max-w-full truncate w-fit">
+                                     📁 PROYECTO: {oppName}
+                                  </span>
+                                  {opp?.status && (
+                                     <span className={`text-[9px] uppercase tracking-widest font-black px-2 py-0.5 rounded-md inline-flex items-center gap-1 border ${
+                                        opp.status === 'GANADO' ? 'text-emerald-700 bg-emerald-100 border-emerald-200' :
+                                        opp.status === 'PERDIDO' ? 'text-red-700 bg-red-100 border-red-200' :
+                                        opp.status === 'COTIZADO' ? 'text-blue-700 bg-blue-100 border-blue-200' :
+                                        'text-amber-700 bg-amber-100 border-amber-200'
+                                     } max-w-full truncate w-fit`}>
+                                        {opp.status}
+                                     </span>
+                                  )}
+                               </div>
                             )}
                          </div>
                       );
@@ -2624,9 +2636,9 @@ export default function Home() {
                        )}
                        <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
                            {editingTask ? 
-                              `${new Date(editingTask.id).toLocaleDateString(lang === 'es' ? 'es-CL' : 'en-US')} ${new Date(editingTask.id).toLocaleTimeString(lang === 'es' ? 'es-CL' : 'en-US', { hour: '2-digit', minute: '2-digit' })} hrs`
-                              : 
-                              (lang === 'es' ? `Hoy, ${new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })} hrs` : `Today, ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} hrs`)
+                               (editingTask.createdAt ? `${new Date(editingTask.createdAt).toLocaleDateString(lang === 'es' ? 'es-CL' : 'en-US')} ${new Date(editingTask.createdAt).toLocaleTimeString(lang === 'es' ? 'es-CL' : 'en-US', { hour: '2-digit', minute: '2-digit' })} hrs` : 'N/A')
+                               : 
+                               (lang === 'es' ? `Hoy, ${new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })} hrs` : `Today, ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} hrs`)
                            }
                        </p>
                     </div>
