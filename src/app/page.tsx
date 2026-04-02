@@ -285,7 +285,7 @@ export default function Home() {
   }, [selectedCountry]);
 
   const [draftOppAmount, setDraftOppAmount] = useState("");
-  const [editingOppId, setEditingOppId] = useState<string | null>(null);
+
   const [draftEditOppTitle, setDraftEditOppTitle] = useState("");
   const [draftEditOppAmount, setDraftEditOppAmount] = useState("");
   
@@ -2202,7 +2202,7 @@ export default function Home() {
                 </div>
 
                 {/* FOOTER CREADOR DE ACTIVIDAD */}
-                <div className="absolute bottom-8 sm:bottom-6 left-0 w-full bg-gradient-to-t from-white via-white/95 to-transparent pt-12 pb-4 sm:pb-6 px-4 flex flex-col items-center pointer-events-none z-20">
+                <div className="fixed bottom-0 left-0 w-full bg-gradient-to-t from-white via-white/95 to-transparent pt-12 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-6 px-4 flex flex-col items-center pointer-events-none z-[100]">
                    <div className="pointer-events-auto flex items-end justify-center relative mb-2 gap-4">
                       
                       <motion.button 
