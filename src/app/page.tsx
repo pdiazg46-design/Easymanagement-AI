@@ -1738,7 +1738,7 @@ export default function Home() {
                 )}
 
                 {/* CONTENIDO PRINCIPAL SCROLLABLE */}
-                <div className="flex-1 overflow-y-auto no-scrollbar px-3 sm:px-5 pb-36 flex flex-col gap-4 sm:gap-6">
+                <div className="flex-1 overflow-y-auto no-scrollbar px-3 sm:px-5 pb-[220px] flex flex-col gap-4 sm:gap-6">
                   
 
 
