@@ -3388,8 +3388,8 @@ export default function Home() {
                                                 .opp-title { font-size: 8px; font-weight: 600; color: #cbd5e1; margin: 0; max-width: 70%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
                                                 .opp-amount { font-size: 8px; font-weight: 800; color: #34d399; margin: 0; }
                                                 .footer { margin-top: 15px; padding-top: 10px; border-top: 1px dashed #334155; text-align: center; }
-                                                .footer-title { font-size: 7px; font-weight: 900; color: #475569; text-transform: uppercase; letter-spacing: 1px; margin: 0; }
-                                                .footer-sub { font-size: 6px; color: #334155; margin-top: 3px; font-weight: 600; text-transform: uppercase;}
+                                                .footer-title { font-size: 7px; font-weight: 900; color: #cbd5e1; text-transform: uppercase; letter-spacing: 1px; margin: 0; }
+                                                .footer-sub { font-size: 6px; color: #94a3b8; margin-top: 3px; font-weight: 600; text-transform: uppercase;}
                                             </style>
                                         </head>
                                         <body>
@@ -3397,7 +3397,7 @@ export default function Home() {
                                                 <div class="header">
                                                     <div>
                                                         <h1 class="title">Informe de Gestión</h1>
-                                                        <p class="date">${reportTitleDetail} <br/><span style="font-size: 7px; color: #475569; letter-spacing: 1px; font-weight: 800;">GENERADO EL ${new Date().toLocaleDateString('es-CL')}</span></p>
+                                                        <p class="date">${reportTitleDetail} <br/><span style="font-size: 7px; color: #94a3b8; letter-spacing: 1px; font-weight: 800;">GENERADO EL ${new Date().toLocaleDateString('es-CL')}</span></p>
                                                     </div>
                                                     ${clientLogo ? `<img src="${clientLogo}" class="logo" />` : ''}
                                                 </div>
