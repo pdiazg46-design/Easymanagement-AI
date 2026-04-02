@@ -19,10 +19,10 @@ La jerarquía estructural pura del sistema es:
 4. **Bitácora (Client Pipeline Feed)**
 
 ### Avances Críticos Logrados (Última Sesión):
-1.  **Formato Monetario Exhaustivo:** Consolidado dinámicamente. Independiente de si el usuario elige Dólares o Moneda Local, el formato y orden ("USD 1.500" o "$ 1.500") es estrictamente respetado en listados, totalizadores y *todos* los modales.
-2.  **Compactación Extrema de Tarjetas:** En el diseño Mobile-First, se modificaron drásticamente las tarjetas de las tareas de la bitácora (`px-3 py-2`, `gap-0`, `text-[8px]`, botones de `24px`) para lograr mayor densidad de información en pantallas pequeñas. Microfono general re-anclado a `bottom-[90px]`.
-3.  **Client-Mapping Eager en Reporte Ejecutivo**: El Informe de Gestión mapea el nombre del cliente directamente desde Prisma (`opp.client?.name`) debajo de las oportunidades de la Cuadratura por Entidades. (Actualmente bloqueado por el Caché del dispositivo).
-4.  **Fallback Inquebrantable de Compartir:** Se implementó una lógica de `clipboard` para la API `navigator.share` en caso de fallos nativos (o el usuario cancelando el share), previniendo pantallazos blancos y copiando el enlace al instante.
+1.  **Optimización UI "Slim/Density" Mobile-First:** Se aplicó una reducción agresiva de márgenes, paddings y radios de borde en todo el dashboard principal, listas de pipeline y modales internos para recuperar espacio vertical clave en celulares.
+2.  **Solución Estructural Responsive de Footers (Micrófono Volador):** Se corrigió la fuga visual de botones anclados en posición Absolute/Fixed. Los "Footers" fijos y botones contextuales de la aplicación fueron restringidos a la unidad `max-w-md` para alineación perfecta con la columna central en vista de Escritorio (resolviendo la fuga derecha de 112px).
+3.  **Unificación del Funnel de Navegación (Drill-Down Constraints):** Se modificó el evento de click (propagación) de las tarjetas de cliente y oportunidades activas. Al clickear en cualquier zona de la tarjeta base siempre dirige al usuario a la vista maestra general del Cliente de forma jerárquica para evitar pérdida de contexto.
+4.  **Normalización Local Case-Insensitive:** Se implementó `.toLowerCase().trim()` en las llaves de base de datos vs selecciones visuales `localStorage` para el Dropout Local por país, previniendo visualizaciones fantasmas de tablas ("No hay clientes") por variaciones sutiles de mayúsculas (CHILE vs Chile).
 
 ---
 
