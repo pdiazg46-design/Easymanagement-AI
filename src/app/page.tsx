@@ -285,6 +285,9 @@ export default function Home() {
   }, [selectedCountry]);
 
   const [draftOppAmount, setDraftOppAmount] = useState("");
+  const [editingOppId, setEditingOppId] = useState<string | null>(null);
+  const [draftEditOppTitle, setDraftEditOppTitle] = useState("");
+  const [draftEditOppAmount, setDraftEditOppAmount] = useState("");
   
   const [clients, setClients] = useState<any[]>([]);
   const [showClientForm, setShowClientForm] = useState(false);
@@ -2571,7 +2574,54 @@ export default function Home() {
 
                              {/* Detalle de Oportunidad (Cabecera) */}
                              <div className="bg-white p-4 sm:p-5 rounded-[20px] border border-slate-200 shadow-sm flex flex-col gap-3">
-                                <h4 className="font-extrabold text-[#1E3A8A] text-[15px] sm:text-[16px] leading-tight">{oppDetails.title}</h4>
+                                {editingOppId === oppDetails.id ? (
+                                  <div className="flex flex-col gap-2">
+                                     <input 
+                                       type="text" 
+                                       value={draftEditOppTitle} 
+                                       onChange={e => setDraftEditOppTitle(e.target.value)}
+                                       className="w-full text-[13px] border-b border-slate-300 py-1 outline-none font-bold text-[#1E3A8A]"
+                                     />
+                                     <div className="flex items-center gap-2">
+                                        <span className="text-[12px] font-bold text-slate-400">USD</span>
+                                        <input 
+                                          type="number" 
+                                          value={draftEditOppAmount} 
+                                          onChange={e => setDraftEditOppAmount(e.target.value)}
+                                          className="w-full text-[13px] border-b border-slate-300 py-1 outline-none font-bold text-emerald-600"
+                                        />
+                                     </div>
+                                     <div className="flex gap-2 justify-end mt-2">
+                                        <button onClick={() => setEditingOppId(null)} className="text-[10px] uppercase font-bold px-3 py-1.5 bg-slate-100 text-slate-500 rounded-lg">Cancelar</button>
+                                        <button onClick={async () => {
+                                           setOpportunities(prev => prev.map(o => o.id === oppDetails.id ? {...o, title: draftEditOppTitle, amountUsd: Number(draftEditOppAmount)} : o));
+                                           setEditingOppId(null);
+                                           try { await updateOpportunityDetails(oppDetails.id, draftEditOppTitle, Number(draftEditOppAmount)); } catch(e){}
+                                        }} className="text-[10px] uppercase font-bold px-3 py-1.5 bg-[#1E3A8A] text-white rounded-lg">Guardar</button>
+                                     </div>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <div className="flex justify-between items-start gap-2">
+                                      <h4 className="font-extrabold text-[#1E3A8A] text-[15px] sm:text-[16px] leading-tight">{oppDetails.title}</h4>
+                                      <div className="flex gap-1 shrink-0">
+                                         <button onClick={() => {
+                                            setDraftEditOppTitle(oppDetails.title);
+                                            setDraftEditOppAmount(oppDetails.amountUsd.toString());
+                                            setEditingOppId(oppDetails.id);
+                                         }} className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors">
+                                            <Edit2 size={14} />
+                                         </button>
+                                         <button onClick={async () => {
+                                            if (!confirm("¿Eliminar oportunidad? Esto borrará también el historial asociado.")) return;
+                                            setOpportunities(prev => prev.filter(o => o.id !== oppDetails.id));
+                                            setSelectedOpportunity(null);
+                                            try { await deleteOpportunity(oppDetails.id); } catch(e){}
+                                         }} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                                            <Trash2 size={14} />
+                                         </button>
+                                      </div>
+                                    </div>
                                 <div className="flex justify-between items-end">
                                    <div className="flex flex-col gap-2">
                                       <select 
@@ -2632,9 +2682,10 @@ export default function Home() {
                                    </div>
                                    <div className="text-right">
                                       <span className="text-[18px] sm:text-[20px] font-black text-emerald-600 leading-none">{formatCurrency(oppDetails.amountUsd || 0)}</span>
-                                      <div className="text-[10px] uppercase font-bold text-slate-400 mt-1">USD</div>
                                    </div>
                                 </div>
+                              </>
+                             )}
                              </div>
                            </div>
                         );
