@@ -2226,7 +2226,7 @@ export default function Home() {
 
               {/* Footer */}
               <div className="mt-8 pt-6 border-t border-slate-200 text-center">
-                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Documento Confidencial V3 (PDF)</p>
+                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Documento Confidencial V4 (PDF)</p>
                  <p className="text-[9px] text-slate-400 mt-1">Generado automáticamente - Sistema Easy Management CRM</p>
               </div>
            </div>
@@ -3145,7 +3145,7 @@ export default function Home() {
                      <div className="flex justify-between items-start">
                         <div>
                            <div className="flex items-center gap-2 mb-1.5">
-                              <span className="text-[9px] font-black text-white bg-corporate-purple uppercase tracking-widest px-2 py-0.5 rounded-sm shadow-sm">CONFIDENCIAL V3 (PDF)</span>
+                              <span className="text-[9px] font-black text-white bg-corporate-purple uppercase tracking-widest px-2 py-0.5 rounded-sm shadow-sm">CONFIDENCIAL V4 (PDF)</span>
                               <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Corte al {new Date().toLocaleDateString()}</span>
                            </div>
                            <h2 className="text-2xl font-black text-[#1E3A8A] leading-tight flex items-center gap-2 tracking-tight">
