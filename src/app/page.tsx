@@ -3303,15 +3303,21 @@ export default function Home() {
                                }
 
                                // Calculate Monthly Stats
-                               const dateInReportMonth = (dateStr: string) => {
-                                  if (!dateStr || reportMonthFilter === "") return true;
-                                  return dateStr.substring(0, 7) === reportMonthFilter;
+                               const dateInReportMonth = (dateRaw: any) => {
+                                  if (!dateRaw || reportMonthFilter === "") return true;
+                                  try {
+                                      const d = new Date(dateRaw);
+                                      if (isNaN(d.getTime())) return true;
+                                      return d.toISOString().substring(0, 7) === reportMonthFilter;
+                                  } catch {
+                                      return true;
+                                  }
                                };
 
                                const monthOpps = opportunities.filter(o => 
                                    (o.status === 'PROSPECTO' || o.status === 'COTIZADO') 
-                                       ? dateInReportMonth(o.createdAt?.toString() || "") 
-                                       : dateInReportMonth(o.statusUpdatedAt?.toString() || "")
+                                       ? dateInReportMonth(o.createdAt || o.statusUpdatedAt) 
+                                       : dateInReportMonth(o.statusUpdatedAt || o.createdAt)
                                );
 
                                const wonMonth = monthOpps.filter(o => o.status === 'GANADO').reduce((a,c)=>a+c.amountUsd,0);
@@ -3384,7 +3390,7 @@ export default function Home() {
                                                 <div class="header">
                                                     <div>
                                                         <h1 class="title">Informe de Gestión</h1>
-                                                        <p class="date">${reportTitleDetail}</p>
+                                                        <p class="date">${reportTitleDetail} <br/><span style="font-size: 9px; color: #94a3b8; letter-spacing: 1px; font-weight: 600;">GENERADO EL ${new Date().toLocaleDateString('es-CL')}</span></p>
                                                     </div>
                                                     ${clientLogo ? `<img src="${clientLogo}" class="logo" />` : ''}
                                                 </div>
