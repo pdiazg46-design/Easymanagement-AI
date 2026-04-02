@@ -2218,7 +2218,7 @@ export default function Home() {
                 </div>
 
                 {/* FOOTER CREADOR DE ACTIVIDAD */}
-                <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-2xl bg-gradient-to-t from-[#F8FAFC] via-[#F8FAFC]/95 to-transparent pt-12 pb-6 sm:pb-8 px-4 flex flex-col items-center pointer-events-none z-40">
+                <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-gradient-to-t from-[#F8FAFC] via-[#F8FAFC]/95 to-transparent pt-12 pb-6 sm:pb-8 px-4 flex flex-col items-center pointer-events-none z-40">
                    <div className="pointer-events-auto flex items-end justify-center relative mb-2 gap-4">
                       
                       <motion.button 
@@ -2745,7 +2745,7 @@ export default function Home() {
                )}
 
                {/* Botón flotante de Grabación Consciente del Contexto */}
-               <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-2xl pointer-events-none z-[60] flex flex-col items-end pb-6 pr-6 sm:pb-8 sm:pr-8">
+               <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md pointer-events-none z-[60] flex flex-col items-end pb-6 pr-6 sm:pb-8 sm:pr-8">
                   <div className="pointer-events-auto flex flex-col items-end">
                      <div className="mb-2 w-max text-right">
                         <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full shadow-sm text-white border border-white/20 ${selectedOpportunity ? 'bg-amber-600' : 'bg-corporate-purple'}`}>
