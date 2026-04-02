@@ -5,11 +5,13 @@ import { SignJWT } from 'jose';
 
 export async function POST(req: Request) {
   try {
-    const { email, password } = await req.json();
+    let { email, password } = await req.json();
 
     if (!email || !password) {
       return NextResponse.json({ error: "Faltan credenciales" }, { status: 400 });
     }
+    
+    email = email.toLowerCase().trim();
 
     const user = await prisma.user.findUnique({
       where: { email },

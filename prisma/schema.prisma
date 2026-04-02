@@ -45,6 +45,7 @@ model User {
   createdAt    DateTime  @default(now())
   
   activities   ActivityLog[]
+  subscriptions PushSubscription[]
 }
 
 // 3. Clientes / Distribuidores (Lo que faltaba para emparejar a "Perú", etc.)
@@ -102,4 +103,15 @@ model ActivityLog {
   user           User     @relation(fields: [userId], references: [id])
   
   createdAt      DateTime @default(now()) // La Hora y Fecha exacta e inmutable del registro
+}
+
+// 6. Push Subscriptions para Notificaciones (VAPID)
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
 }

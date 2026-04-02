@@ -1228,7 +1228,27 @@ export default function Home() {
                   </AnimatePresence>
                 </div>
 
-                <div className="w-full flex justify-end mt-4 mb-3">
+                <div className="w-full flex justify-between mt-4 mb-3 px-2">
+                  <span onClick={async () => {
+                     if (!email) {
+                        setAuthError(lang === 'es' ? "Ingresa tu correo para recuperar." : "Enter email to recover.");
+                        return;
+                     }
+                     setAuthError(lang === 'es' ? "Restaurando y avisando al admin..." : "Resetting & notifying admin...");
+                     try {
+                        const res = await fetch('/api/auth/reset-request', {
+                           method: 'POST',
+                           headers: { 'Content-Type': 'application/json' },
+                           body: JSON.stringify({ email })
+                        });
+                        const data = await res.json();
+                        setAuthError(data.error || data.message || "Listo");
+                     } catch(e) {
+                        setAuthError(lang === 'es' ? "Error de conexión" : "Connection error");
+                     }
+                  }} className="text-[11px] text-slate-400 hover:text-red-500 font-medium cursor-pointer transition-colors">
+                    {lang === 'es' ? '¿Olvidaste tu contraseña?' : 'Forgot password?'}
+                  </span>
                   <span onClick={() => setIsLoginMode(!isLoginMode)} className="text-[11px] text-corporate-purple font-medium cursor-pointer">
                     {isLoginMode ? (lang === 'es' ? 'Crear cuenta nueva' : 'Create an account') : (lang === 'es' ? '¿Deseas iniciar sesión?' : 'Already have an account?')}
                   </span>
@@ -1510,7 +1530,24 @@ export default function Home() {
                               <ShieldCheck size={28} className="text-corporate-purple hidden md:block" /> 
                               Super User Panel
                            </h2>
-                           <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{adminUsers.length} Usuarios Activos</span>
+                           <div className="flex flex-col items-end gap-2">
+                             <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{adminUsers.length} Usuarios Activos</span>
+                             <button onClick={async () => {
+                                 try {
+                                     const registration = await navigator.serviceWorker.register('/sw.js');
+                                     const subscription = await registration.pushManager.subscribe({
+                                         userVisibleOnly: true,
+                                         applicationServerKey: 'BJ_fHpWfbuiig6HwIKNz3X8dGmzCiPMR0DIvu2M'
+                                     });
+                                     await fetch('/api/push/subscribe', {
+                                         method: 'POST',
+                                         body: JSON.stringify(subscription),
+                                         headers: { 'Content-Type': 'application/json' }
+                                     });
+                                     alert("🔔 Alertas de Recuperación activadas exitosamente en este equipo.");
+                                 } catch(e) { console.error(e); alert("Hubo un error al activar notificaciones push."); }
+                             }} className="bg-amber-100 text-amber-700 font-bold text-[9px] px-3 py-1.5 rounded-full uppercase shadow-sm border border-amber-200 hover:bg-amber-200 transition-colors">📡 Activar Alertas</button>
+                           </div>
                         </div>
 
                         <div className="w-full overflow-hidden rounded-2xl border border-slate-100 shadow-sm relative overflow-x-auto">

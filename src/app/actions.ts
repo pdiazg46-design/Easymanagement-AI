@@ -2,39 +2,47 @@
 
 import { PrismaClient } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
+import { jwtVerify } from "jose";
 
 const prisma = new PrismaClient();
 
-// Helper para crear un Tenant y User inicial silo no existen (Mock Auth para Fase 2 Temprana)
-async function getOrCreateMockSession() {
-  let tenant = await prisma.tenant.findFirst();
-  if (!tenant) {
-    tenant = await prisma.tenant.create({
-      data: {
-        name: "My Corporation",
-        annualGoalUsd: 1000000,
-        monthlyGoalUsd: 80000
-      }
-    });
-  }
+async function getSession() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('auth-token')?.value;
 
-  let user = await prisma.user.findFirst({ where: { tenantId: tenant.id } });
-  if (!user) {
-    user = await prisma.user.create({
-      data: {
-        email: "demo@easymanagement.app",
-        name: "Super Ejecutivo",
-        tenantId: tenant.id
-      }
-    });
+  if (!token) {
+     throw new Error("No autorizado: Token faltante.");
   }
+  
+  const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'super-secret-key');
+  try {
+     const { payload } = await jwtVerify(token, secret);
+     
+     const user = await prisma.user.findUnique({
+       where: { id: payload.id as string },
+       include: { tenant: true }
+     });
 
-  return { tenant, user };
+     if (!user) throw new Error("Usuario no encontrado");
+     
+     let tenant = user.tenant;
+     if (!tenant) {
+         tenant = await prisma.tenant.create({
+            data: { name: "Mi Empresa", annualGoalUsd: 1000000, monthlyGoalUsd: 80000 }
+         });
+         await prisma.user.update({ where: { id: user.id }, data: { tenantId: tenant.id } });
+     }
+     
+     return { user, tenant };
+  } catch (err) {
+     throw new Error("No autorizado o sesión expirada");
+  }
 }
 
 // OBTENER ACTIVIDADES
 export async function getActivities() {
-  const { user } = await getOrCreateMockSession();
+  const { user } = await getSession();
   
   const activities = await prisma.activityLog.findMany({
     where: { userId: user.id },
@@ -46,7 +54,7 @@ export async function getActivities() {
 
 // CREAR ACTIVIDAD
 export async function createActivity(data: { extractedAction: string, commitmentDateStr?: string, rawAudioText?: string, clientId?: string, opportunityId?: string }) {
-  const { user } = await getOrCreateMockSession();
+  const { user } = await getSession();
   
   // Parse YYYY-MM-DD to DateTime if possible
   let commitmentDate: Date | null = null;
@@ -74,7 +82,7 @@ export async function createActivity(data: { extractedAction: string, commitment
 
 // MARCAR COMO COMPLETADA
 export async function toggleActivityCompletion(id: string, completed: boolean) {
-  const { user } = await getOrCreateMockSession();
+  const { user } = await getSession();
   
   const activity = await prisma.activityLog.update({
     where: { id, userId: user.id },
@@ -87,7 +95,7 @@ export async function toggleActivityCompletion(id: string, completed: boolean) {
 
 // ACTUALIZAR ACTIVIDAD (EDICION MANUAL)
 export async function updateActivity(id: string, data: { extractedAction: string, commitmentDateStr?: string, rawAudioText?: string }) {
-  const { user } = await getOrCreateMockSession();
+  const { user } = await getSession();
   
   let commitmentDate: Date | null = undefined as any;
   if (data.commitmentDateStr !== undefined) {
@@ -117,7 +125,7 @@ export async function updateActivity(id: string, data: { extractedAction: string
 
 // ELIMINAR ACTIVIDAD
 export async function deleteActivity(id: string) {
-  const { user } = await getOrCreateMockSession();
+  const { user } = await getSession();
   
   await prisma.activityLog.delete({
     where: { id, userId: user.id }
@@ -132,7 +140,7 @@ export async function deleteActivity(id: string) {
 // ============================================
 
 export async function getClients(country?: string) {
-  const { tenant } = await getOrCreateMockSession();
+  const { tenant } = await getSession();
   
   return await prisma.client.findMany({
     where: { 
@@ -145,7 +153,7 @@ export async function getClients(country?: string) {
 }
 
 export async function createClient(data: { name: string, country: string }) {
-  const { tenant } = await getOrCreateMockSession();
+  const { tenant } = await getSession();
   
   const client = await prisma.client.create({
     data: {
@@ -164,7 +172,7 @@ export async function createClient(data: { name: string, country: string }) {
 // ============================================
 
 export async function getOpportunities() {
-  const { tenant } = await getOrCreateMockSession();
+  const { tenant } = await getSession();
   
   return await prisma.opportunity.findMany({
     where: { tenantId: tenant.id },
@@ -174,7 +182,7 @@ export async function getOpportunities() {
 }
 
 export async function createOpportunity(data: { title: string, amountUsd: number, clientId: string }) {
-  const { tenant } = await getOrCreateMockSession();
+  const { tenant } = await getSession();
   
   const opp = await prisma.opportunity.create({
     data: {
@@ -192,7 +200,7 @@ export async function createOpportunity(data: { title: string, amountUsd: number
 }
 
 export async function updateOpportunityStatus(id: string, status: any) {
-  const { tenant } = await getOrCreateMockSession();
+  const { tenant } = await getSession();
   const opp = await prisma.opportunity.update({
     where: { id, tenantId: tenant.id },
     data: { 
@@ -213,7 +221,7 @@ export async function updateOpportunityStatus(id: string, status: any) {
 }
 
 export async function deleteOpportunity(id: string) {
-  const { tenant } = await getOrCreateMockSession();
+  const { tenant } = await getSession();
   
   const oppCheck = await prisma.opportunity.findUnique({
     where: { id, tenantId: tenant.id }
@@ -231,7 +239,7 @@ export async function deleteOpportunity(id: string) {
 }
 
 export async function updateOpportunityConfidence(id: string, confidenceLevel: string) {
-  const { tenant } = await getOrCreateMockSession();
+  const { tenant } = await getSession();
   const opp = await prisma.opportunity.update({
     where: { id, tenantId: tenant.id },
     data: { confidenceLevel }
@@ -241,7 +249,7 @@ export async function updateOpportunityConfidence(id: string, confidenceLevel: s
 }
 
 export async function updateOpportunityDetails(id: string, title?: string, amountUsd?: number) {
-  const { tenant } = await getOrCreateMockSession();
+  const { tenant } = await getSession();
   const data: any = {};
   if (title) data.title = title;
   if (amountUsd !== undefined) data.amountUsd = amountUsd;
