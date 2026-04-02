@@ -1081,7 +1081,7 @@ export default function Home() {
                                               <input 
                                                 type="text" 
                                                 placeholder={lang === 'es' ? 'Monto' : 'Amount'}
-                                                className="w-full bg-white border border-slate-200 text-xs px-6 py-2 rounded-lg font-medium outline-none text-[#1E3A8A]"
+                                                className="w-full bg-white border border-slate-200 text-xs pl-11 pr-3 py-2 rounded-lg font-medium outline-none text-[#1E3A8A]"
                                                 value={draftOppAmount}
                                                 onFocus={e => e.target.select()}
                                                 onChange={e => {
@@ -3377,8 +3377,8 @@ export default function Home() {
                                                 .country-header { display: flex; justify-content: space-between; align-items: center; background: transparent; padding: 2px 0; border-bottom: 1px solid #1e293b; }
                                                 .country-name { font-weight: 800; font-size: 10px; color: #f8fafc; margin: 0; text-transform: uppercase; }
                                                 .country-total { font-weight: 900; font-size: 10px; color: #38bdf8; margin: 0; }
-                                                .country-body { padding: 4px 0; }
-                                                .client-block { margin-bottom: 8px; }
+                                                .country-body { padding: 8px 0 4px 0; column-count: 2; column-gap: 12px; }
+                                                .client-block { margin-bottom: 8px; break-inside: avoid-column; page-break-inside: avoid; }
                                                 .client-block:last-child { margin-bottom: 0; }
                                                 .client-name { font-size: 8px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 4px 0; display: flex; align-items: center; gap: 4px; border-bottom: 1px dashed rgba(255,255,255,0.05); padding-bottom:2px;}
                                                 .dot { width: 4px; height: 4px; background: #a855f7; border-radius: 50%; display: inline-block; }
