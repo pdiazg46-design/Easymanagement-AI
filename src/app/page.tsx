@@ -45,6 +45,7 @@ export default function Home() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [userName, setUserName] = useState('');
   const [authError, setAuthError] = useState('');
   const [isLoginMode, setIsLoginMode] = useState(false);
   const [isProUser, setIsProUser] = useState(false);
@@ -54,7 +55,6 @@ export default function Home() {
   const [clientWebsite, setClientWebsite] = useState('');
   const [clientLogo, setClientLogo] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [userName, setUserName] = useState("");
   const [historialViewMode, setHistorialViewMode] = useState<'list'|'map'>('list');
   const [historialTimeframe, setHistorialTimeframe] = useState('all');
   const [showReportModal, setShowReportModal] = useState(false);
@@ -81,7 +81,7 @@ export default function Home() {
           if (data.user.isPro) setIsProUser(true);
           if (data.user.email) setEmail(data.user.email);
           if (data.user.name) setUserName(data.user.name);
-
+          
           if (data.user.logoUrl && data.user.avatarUrl && currentView === 'onboarding') {
              setCurrentView('dashboard');
           }
@@ -237,13 +237,7 @@ export default function Home() {
   // Dashboard states
   const [activeTab, setActiveTab] = useState('oportunidades');
   const [showPipelineModal, setShowPipelineModal] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState<string | null>(() => {
-      if (typeof window !== 'undefined') {
-          const saved = localStorage.getItem('easy_selectedCountry');
-          return saved === '' ? null : (saved || null);
-      }
-      return null;
-  });
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [regionalViewMode, setRegionalViewMode] = useState<'list' | 'map'>('list');
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   const [showActionModal, setShowActionModal] = useState(false);
@@ -275,13 +269,25 @@ export default function Home() {
 
   const [opportunities, setOpportunities] = useState<any[]>([]);
   const [draftOppTitle, setDraftOppTitle] = useState("");
-  
+  const [hasLoadedSavedCountry, setHasLoadedSavedCountry] = useState(false);
+
   useEffect(() => {
-     if (selectedCountry) setIsOpeningMarket(false);
-     if (typeof window !== 'undefined') {
-         localStorage.setItem('easy_selectedCountry', selectedCountry || '');
+     const savedCountry = localStorage.getItem('easy_selectedCountry');
+     if (savedCountry && savedCountry !== '') {
+         setSelectedCountry(savedCountry);
      }
-  }, [selectedCountry]);
+     setHasLoadedSavedCountry(true);
+  }, []);
+
+  useEffect(() => {
+     if (!hasLoadedSavedCountry) return;
+     if (selectedCountry) setIsOpeningMarket(false);
+     if (selectedCountry !== null) {
+         localStorage.setItem('easy_selectedCountry', selectedCountry);
+     } else {
+         localStorage.setItem('easy_selectedCountry', '');
+     }
+  }, [selectedCountry, hasLoadedSavedCountry]);
 
   const [draftOppAmount, setDraftOppAmount] = useState("");
   
@@ -1081,7 +1087,7 @@ export default function Home() {
                                               <input 
                                                 type="text" 
                                                 placeholder={lang === 'es' ? 'Monto' : 'Amount'}
-                                                className="w-full bg-white border border-slate-200 text-xs pl-11 pr-3 py-2 rounded-lg font-medium outline-none text-[#1E3A8A]"
+                                                className="w-full bg-white border border-slate-200 text-xs px-6 py-2 rounded-lg font-medium outline-none text-[#1E3A8A]"
                                                 value={draftOppAmount}
                                                 onFocus={e => e.target.select()}
                                                 onChange={e => {
@@ -3377,8 +3383,8 @@ export default function Home() {
                                                 .country-header { display: flex; justify-content: space-between; align-items: center; background: transparent; padding: 2px 0; border-bottom: 1px solid #1e293b; }
                                                 .country-name { font-weight: 800; font-size: 10px; color: #f8fafc; margin: 0; text-transform: uppercase; }
                                                 .country-total { font-weight: 900; font-size: 10px; color: #38bdf8; margin: 0; }
-                                                .country-body { padding: 8px 0 4px 0; column-count: 2; column-gap: 12px; }
-                                                .client-block { margin-bottom: 8px; break-inside: avoid-column; page-break-inside: avoid; }
+                                                .country-body { padding: 4px 0; }
+                                                .client-block { margin-bottom: 8px; }
                                                 .client-block:last-child { margin-bottom: 0; }
                                                 .client-name { font-size: 8px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 4px 0; display: flex; align-items: center; gap: 4px; border-bottom: 1px dashed rgba(255,255,255,0.05); padding-bottom:2px;}
                                                 .dot { width: 4px; height: 4px; background: #a855f7; border-radius: 50%; display: inline-block; }
@@ -3396,7 +3402,7 @@ export default function Home() {
                                                 <div class="header">
                                                     <div>
                                                         <h1 class="title">Informe de Gestión</h1>
-                                                        <p class="date">${reportTitleDetail} <br/><span style="font-size: 7px; color: #94a3b8; letter-spacing: 1px; font-weight: 800;">GENERADO EL ${new Date().toLocaleDateString('es-CL')}</span></p>
+                                                        <p class="date">${reportTitleDetail} <br/><span style="font-size: 7px; color: #94a3b8; letter-spacing: 1px; font-weight: 800;">GENERADO EL ${new Date().toLocaleDateString('es-CL')} POR ${userName.toUpperCase() || 'USUARIO'}${email ? ` (${email.toUpperCase()})` : ''}</span></p>
                                                     </div>
                                                     ${clientLogo ? `<img src="${clientLogo}" class="logo" />` : ''}
                                                 </div>
@@ -3482,7 +3488,6 @@ export default function Home() {
                                                 <div class="footer">
                                                     <p class="footer-title">Documento Confidencial</p>
                                                     <p class="footer-sub">Generado automáticamente - por AT-SIT para Sistema: Easy Management AI</p>
-                                                    <p class="footer-sub" style="margin-top:2px;">EMITIDO POR: ${userName || email || 'Usuario Administrador'}</p>
                                                 </div>
                                             </div>
                                         </body>
