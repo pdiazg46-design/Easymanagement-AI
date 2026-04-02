@@ -2215,7 +2215,7 @@ export default function Home() {
                 </div>
 
                 {/* FOOTER CREADOR DE ACTIVIDAD */}
-                <div className="absolute bottom-8 sm:bottom-6 left-0 w-full bg-gradient-to-t from-white via-white/95 to-transparent pt-12 pb-4 sm:pb-6 px-4 flex flex-col items-center pointer-events-none z-20">
+                <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-2xl bg-gradient-to-t from-[#F8FAFC] via-[#F8FAFC]/95 to-transparent pt-12 pb-6 sm:pb-8 px-4 flex flex-col items-center pointer-events-none z-40">
                    <div className="pointer-events-auto flex items-end justify-center relative mb-2 gap-4">
                       
                       <motion.button 
