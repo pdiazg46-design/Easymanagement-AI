@@ -269,19 +269,7 @@ export default function Home() {
 
   const [opportunities, setOpportunities] = useState<any[]>([]);
   const [draftOppTitle, setDraftOppTitle] = useState("");
-  
-  useEffect(() => {
-     if (selectedCountry) setIsOpeningMarket(false);
-     if (selectedCountry !== null) {
-         localStorage.setItem('easy_selectedCountry', selectedCountry);
-     } else {
-         localStorage.setItem('easy_selectedCountry', '');
-     }
-  }, [selectedCountry]);
-  
-  useEffect(() => {
-     localStorage.setItem('easy_performanceScope', performanceScope);
-  }, [performanceScope]);
+  const isFirstLoad = useRef(true);
   
   useEffect(() => {
      const savedCountry = localStorage.getItem('easy_selectedCountry');
@@ -292,7 +280,25 @@ export default function Home() {
      if (savedScope !== null) {
          setPerformanceScope(savedScope);
      }
+     setTimeout(() => {
+         isFirstLoad.current = false;
+     }, 100);
   }, []);
+
+  useEffect(() => {
+     if (isFirstLoad.current) return;
+     if (selectedCountry) setIsOpeningMarket(false);
+     if (selectedCountry !== null) {
+         localStorage.setItem('easy_selectedCountry', selectedCountry);
+     } else {
+         localStorage.setItem('easy_selectedCountry', '');
+     }
+  }, [selectedCountry]);
+  
+  useEffect(() => {
+     if (isFirstLoad.current) return;
+     localStorage.setItem('easy_performanceScope', performanceScope);
+  }, [performanceScope]);
 
   const [draftOppAmount, setDraftOppAmount] = useState("");
   
