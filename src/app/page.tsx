@@ -3212,6 +3212,14 @@ export default function Home() {
                                                     body { background: white; padding: 0; }
                                                     .page { box-shadow: none; padding: 0; max-width: 100%; border-radius: 0; }
                                                 }
+                                                @media (max-width: 600px) {
+                                                    body { padding: 15px; }
+                                                    .page { padding: 25px; }
+                                                    .title { font-size: 24px !important; }
+                                                    .header { flex-direction: column-reverse; align-items: flex-start !important; gap: 15px; }
+                                                    .synthesis { flex-direction: column; gap: 15px; padding: 20px !important; }
+                                                    .synth-val1, .synth-val2 { font-size: 28px !important; text-align: left !important; }
+                                                }
                                                 .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 30px; }
                                                 .title { font-size: 32px; font-weight: 900; color: #1e3a8a; text-transform: uppercase; margin: 0; letter-spacing: -1px; }
                                                 .date { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 2px; margin-top: 5px; }
