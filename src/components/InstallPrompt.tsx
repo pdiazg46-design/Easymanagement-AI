@@ -19,9 +19,10 @@ export default function InstallPrompt() {
     const isStandAloneMatch = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
     setIsStandalone(isStandAloneMatch);
 
-    // Si no está instalada, mostramos el aviso tras 1.5s
-    if (!isStandAloneMatch) {
-       setTimeout(() => setShowPrompt(true), 1500);
+    // Solo mostrar en dispositivos móviles
+    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (!isStandAloneMatch && isMobileDevice) {
+       setTimeout(() => setShowPrompt(true), 2000);
     }
 
     // Android: Capturar evento de instalación nativo
