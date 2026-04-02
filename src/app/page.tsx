@@ -3341,7 +3341,9 @@ export default function Home() {
                                        pdfCountriesMap.set(cName, metrics);
                                    }
                                    metrics.opps.push(opp);
-                                   metrics.totalValueUsd += opp.amountUsd;
+                                   if (opp.status !== 'PERDIDO') {
+                                       metrics.totalValueUsd += opp.amountUsd;
+                                   }
                                });
                                const pdfCountriesMetrics = Array.from(pdfCountriesMap.values()).sort((a,b) => b.totalValueUsd - a.totalValueUsd);
 
@@ -3456,10 +3458,11 @@ export default function Home() {
                                                         <div class="opp-list">
                                                  `;
                                                  (opportunities as any[]).forEach(opp => {
+                                                     const oppColor = opp.status === 'PROSPECTO' ? '#a855f7' : opp.status === 'COTIZADO' ? '#3b82f6' : opp.status === 'GANADO' ? '#10b981' : '#ef4444';
                                                      html += `
                                                             <div class="opp-item">
                                                                 <p class="opp-title">${opp.title}</p>
-                                                                <p class="opp-amount">${formatCurrency(opp.amountUsd)}</p>
+                                                                <p class="opp-amount" style="color: ${oppColor};">${formatCurrency(opp.amountUsd)}</p>
                                                             </div>
                                                      `;
                                                  });
