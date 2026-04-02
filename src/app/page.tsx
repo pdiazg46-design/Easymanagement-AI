@@ -2744,29 +2744,31 @@ export default function Home() {
                )}
 
                {/* Botón flotante de Grabación Consciente del Contexto */}
-               <div className="fixed bottom-6 right-6 z-[60] flex flex-col items-end">
-                  <div className="mb-2 w-max text-right">
-                     <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full shadow-sm text-white border border-white/20 ${selectedOpportunity ? 'bg-amber-600' : 'bg-corporate-purple'}`}>
-                        {selectedOpportunity ? 'Nota Oportunidad' : 'Nota Cliente'}
-                     </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                     <motion.button 
-                        onClick={() => setShowVoiceHelpModal(true)}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className={`w-10 h-10 sm:w-11 sm:h-11 bg-white border text-slate-500 rounded-full flex items-center justify-center shadow-lg hover:bg-slate-50 transition-colors ${selectedOpportunity ? 'border-amber-200 text-amber-600 hover:bg-amber-50' : 'border-slate-200'}`}
-                     >
-                        <HelpCircle size={18} className="sm:w-5 sm:h-5" />
-                     </motion.button>
-                     <motion.button 
-                       whileHover={{ scale: 1.05 }}
-                       whileTap={{ scale: 0.95 }}
-                       onClick={() => handleMicClick('activity')}
-                       className={`w-[68px] h-[68px] text-white rounded-full flex items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.2)] border-[5px] border-slate-50 transition-colors ${selectedOpportunity ? 'bg-gradient-to-br from-[#F59E0B] to-[#D97706]' : 'bg-gradient-to-br from-[#7C3AED] to-[#5B21B6]'} ${recordingField === 'activity' ? 'animate-pulse' : ''}`}
-                     >
-                        <Mic size={30} />
-                     </motion.button>
+               <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-2xl pointer-events-none z-[60] flex flex-col items-end pb-6 pr-6 sm:pb-8 sm:pr-8">
+                  <div className="pointer-events-auto flex flex-col items-end">
+                     <div className="mb-2 w-max text-right">
+                        <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full shadow-sm text-white border border-white/20 ${selectedOpportunity ? 'bg-amber-600' : 'bg-corporate-purple'}`}>
+                           {selectedOpportunity ? 'Nota Oportunidad' : 'Nota Cliente'}
+                        </span>
+                     </div>
+                     <div className="flex items-center gap-3">
+                        <motion.button 
+                           onClick={() => setShowVoiceHelpModal(true)}
+                           whileHover={{ scale: 1.05 }}
+                           whileTap={{ scale: 0.95 }}
+                           className={`w-10 h-10 sm:w-11 sm:h-11 bg-white border text-slate-500 rounded-full flex items-center justify-center shadow-lg hover:bg-slate-50 transition-colors ${selectedOpportunity ? 'border-amber-200 text-amber-600 hover:bg-amber-50' : 'border-slate-200'}`}
+                        >
+                           <HelpCircle size={18} className="sm:w-5 sm:h-5" />
+                        </motion.button>
+                        <motion.button 
+                           whileHover={{ scale: 1.05 }}
+                           whileTap={{ scale: 0.95 }}
+                           onClick={() => handleMicClick('activity')}
+                           className={`w-[68px] h-[68px] text-white rounded-full flex items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.2)] border-[5px] border-slate-50 transition-colors ${selectedOpportunity ? 'bg-gradient-to-br from-[#F59E0B] to-[#D97706]' : 'bg-gradient-to-br from-[#7C3AED] to-[#5B21B6]'} ${recordingField === 'activity' ? 'animate-pulse' : ''}`}
+                        >
+                           <Mic size={30} />
+                        </motion.button>
+                     </div>
                   </div>
                </div>
             </motion.div>
