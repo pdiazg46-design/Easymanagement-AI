@@ -2401,16 +2401,16 @@ export default function Home() {
 
                      return (
                         <div className="flex gap-3">
-                           <div className="flex-1 bg-gradient-to-br from-[#1E3A8A] to-[#1e40af] rounded-[16px] p-4 flex flex-col items-center shadow-lg relative overflow-hidden group">
+                           <div className="flex-1 bg-gradient-to-br from-[#1E3A8A] to-[#1e40af] rounded-2xl p-3 flex flex-col items-center shadow-lg relative overflow-hidden group">
                              <div className="absolute right-0 bottom-0 opacity-10">
                                <Signal size={60} />
                              </div>
                              <span className="text-[10px] uppercase font-bold text-blue-200 mb-0.5 tracking-widest relative z-10">{lang === 'es' ? 'Pipeline Actual' : 'Current Pipeline'}</span>
-                             <span className="text-2xl font-black text-white relative z-10">{formatCompact(clientTotalUsd)}</span>
+                             <span className="text-xl sm:text-2xl font-black text-white relative z-10">{formatCompact(clientTotalUsd)}</span>
                            </div>
-                           <div className="flex-1 bg-white border border-slate-200 rounded-[16px] p-4 flex flex-col items-center shadow-sm">
+                           <div className="flex-1 bg-white border border-slate-200 rounded-2xl p-3 flex flex-col items-center shadow-sm">
                              <span className="text-[10px] uppercase font-bold text-slate-400 mb-0.5 tracking-widest text-center leading-tight">Proyectos Activos</span>
-                             <span className="text-2xl font-black text-[#1E3A8A] flex items-center gap-1">{clientOpps.length}</span>
+                             <span className="text-xl sm:text-2xl font-black text-[#1E3A8A] flex items-center gap-1">{clientOpps.length}</span>
                            </div>
                         </div>
                      );
@@ -2438,7 +2438,7 @@ export default function Home() {
                                       setSelectedOpportunity({id: opp.id, title: opp.title, amount: opp.amountUsd.toString()});
                                    }
                                 }}
-                                className={`bg-white p-5 rounded-[20px] border shadow-sm transition-all ${editingOppId === opp.id ? 'border-corporate-purple/60 shadow-md ring-2 ring-corporate-purple/10' : 'border-slate-200 flex justify-between items-center cursor-pointer hover:border-corporate-purple/40 hover:shadow-md active:scale-[0.98]'}`}
+                                className={`bg-white p-3.5 rounded-2xl border shadow-sm transition-all ${editingOppId === opp.id ? 'border-corporate-purple/60 shadow-md ring-2 ring-corporate-purple/10' : 'border-slate-200 flex justify-between items-center cursor-pointer hover:border-corporate-purple/40 hover:shadow-md active:scale-[0.98]'}`}
                              >
                                 {editingOppId === opp.id ? (
                                   <div className="flex flex-col w-full gap-3 cursor-default" onClick={e => e.stopPropagation()}>
@@ -2586,10 +2586,10 @@ export default function Home() {
                              </div>
 
                              {/* Detalle de Oportunidad (Cabecera) */}
-                             <div className="bg-white p-4 sm:p-5 rounded-[20px] border border-slate-200 shadow-sm flex flex-col gap-3">
-                                <h4 className="font-extrabold text-[#1E3A8A] text-[15px] sm:text-[16px] leading-tight">{oppDetails.title}</h4>
+                             <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-2.5">
+                                <h4 className="font-extrabold text-[#1E3A8A] text-[14px] sm:text-[15px] leading-tight">{oppDetails.title}</h4>
                                 <div className="flex justify-between items-end">
-                                   <div className="flex flex-col gap-2">
+                                   <div className="flex flex-col gap-1.5">
                                       <select 
                                         onClick={e => e.stopPropagation()} 
                                         onChange={async (e) => {
@@ -2742,7 +2742,7 @@ export default function Home() {
                )}
 
                {/* Botón flotante de Grabación Consciente del Contexto */}
-               <div className="absolute bottom-6 right-6 z-20 flex flex-col items-end">
+               <div className="fixed bottom-6 right-6 z-[60] flex flex-col items-end">
                   <div className="mb-2 w-max text-right">
                      <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full shadow-sm text-white border border-white/20 ${selectedOpportunity ? 'bg-amber-600' : 'bg-corporate-purple'}`}>
                         {selectedOpportunity ? 'Nota Oportunidad' : 'Nota Cliente'}
