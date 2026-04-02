@@ -237,7 +237,13 @@ export default function Home() {
   // Dashboard states
   const [activeTab, setActiveTab] = useState('oportunidades');
   const [showPipelineModal, setShowPipelineModal] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('easy_selectedCountry');
+        return saved && saved !== '' ? saved : null;
+    }
+    return null;
+  });
   const [regionalViewMode, setRegionalViewMode] = useState<'list' | 'map'>('list');
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   const [showActionModal, setShowActionModal] = useState(false);
@@ -269,25 +275,14 @@ export default function Home() {
 
   const [opportunities, setOpportunities] = useState<any[]>([]);
   const [draftOppTitle, setDraftOppTitle] = useState("");
-  const [hasLoadedSavedCountry, setHasLoadedSavedCountry] = useState(false);
-
   useEffect(() => {
-     const savedCountry = localStorage.getItem('easy_selectedCountry');
-     if (savedCountry && savedCountry !== '') {
-         setSelectedCountry(savedCountry);
-     }
-     setHasLoadedSavedCountry(true);
-  }, []);
-
-  useEffect(() => {
-     if (!hasLoadedSavedCountry) return;
      if (selectedCountry) setIsOpeningMarket(false);
      if (selectedCountry !== null) {
          localStorage.setItem('easy_selectedCountry', selectedCountry);
      } else {
          localStorage.setItem('easy_selectedCountry', '');
      }
-  }, [selectedCountry, hasLoadedSavedCountry]);
+  }, [selectedCountry]);
 
   const [draftOppAmount, setDraftOppAmount] = useState("");
   
