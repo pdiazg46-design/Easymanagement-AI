@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '../../../../../lib/prisma';
+import { prisma } from '../../../../lib/prisma';
 import { jwtVerify } from 'jose';
 
 export const dynamic = 'force-dynamic';
@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     const subscription = await req.json();
 
     // Guardar la suscripción atada al ID del usuario
-    await prisma.pushSubscription.upsert({
+    await (prisma as any).pushSubscription.upsert({
       where: { endpoint: subscription.endpoint },
       update: {
         p256dh: subscription.keys.p256dh,
