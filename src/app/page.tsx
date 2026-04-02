@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from "react-simple-maps";
 import { QRCodeSVG } from 'qrcode.react';
 import { getActivities, createActivity, toggleActivityCompletion, getOpportunities, createOpportunity, updateOpportunityStatus, getClients, createClient, deleteActivity, updateActivity, updateOpportunityConfidence, deleteOpportunity, updateOpportunityDetails, getAllUsers, toggleUserProStatus } from './actions';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 export default function Home() {
   const [lang, setLang] = useState<'es'|'en'>('es');
@@ -59,6 +61,7 @@ export default function Home() {
   const [showReportPasswordForm, setShowReportPasswordForm] = useState(false);
   const [reportPassword, setReportPassword] = useState('');
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const reportRef = useRef<HTMLDivElement>(null);
 
   const loadUserProfile = async () => {
      try {
@@ -3066,7 +3069,7 @@ export default function Home() {
                      <div className="flex justify-between items-start">
                         <div>
                            <div className="flex items-center gap-2 mb-1.5">
-                              <span className="text-[9px] font-black text-white bg-corporate-purple uppercase tracking-widest px-2 py-0.5 rounded-sm shadow-sm">CONFIDENCIAL V2</span>
+                              <span className="text-[9px] font-black text-white bg-corporate-purple uppercase tracking-widest px-2 py-0.5 rounded-sm shadow-sm">CONFIDENCIAL V3 (PDF)</span>
                               <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Corte al {new Date().toLocaleDateString()}</span>
                            </div>
                            <h2 className="text-2xl font-black text-[#1E3A8A] leading-tight flex items-center gap-2 tracking-tight">
@@ -3080,7 +3083,8 @@ export default function Home() {
                   </div>
 
                   {/* Contenido Informe */}
-                  <div className="flex-1 overflow-y-auto px-6 py-6 pb-24 space-y-6">
+                  <div className="flex-1 overflow-y-auto w-full">
+                     <div ref={reportRef} className="px-6 py-6 pb-24 space-y-6 bg-[#F8FAFC]">
                      
                      {/* Tarjeta 1: Total Pipeline */}
                      <div className="bg-corporate-purple rounded-[24px] p-6 text-white shadow-lg relative overflow-hidden">
@@ -3136,19 +3140,37 @@ export default function Home() {
                                            </div>
                                            <div className="text-sm font-black text-emerald-600">{formatCurrency(c.totalValueUsd)}</div>
                                         </div>
-                                        {/* Cascada de Proyectos */}
-                                        <div className="bg-slate-50/50 p-2.5 flex flex-col gap-2">
-                                           {c.opps.map((opp: any) => (
-                                              <div key={opp.id} className="flex justify-between items-center bg-white border border-slate-100/80 px-3 py-2.5 rounded-lg shadow-[0_1px_2px_rgb(0,0,0,0.02)] pl-4 relative">
-                                                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-corporate-purple/30 rounded-l-lg"></div>
-                                                 <div className="text-xs font-bold text-slate-600 truncate pr-3 select-all">
-                                                    {opp.title}
+                                        {/* Cascada de Proyectos agrupados por Cliente */}
+                                        <div className="bg-slate-50/50 p-2.5 flex flex-col gap-3">
+                                           {(() => {
+                                              const groupedOpps = c.opps.reduce((acc: Record<string, any[]>, opp: any) => {
+                                                 const clientName = opp.client?.name || "Sin Cliente";
+                                                 if (!acc[clientName]) acc[clientName] = [];
+                                                 acc[clientName].push(opp);
+                                                 return acc;
+                                              }, {});
+
+                                              return Object.entries(groupedOpps).map(([clientName, opportunities]) => (
+                                                 <div key={clientName} className="flex flex-col">
+                                                    <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 pl-1 flex items-center gap-1.5">
+                                                       <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div> {clientName}
+                                                    </div>
+                                                    <div className="flex flex-col gap-1.5 pl-3 border-l-2 border-slate-200 ml-1">
+                                                       {opportunities.map((opp: any) => (
+                                                          <div key={opp.id} className="flex justify-between items-center bg-white border border-slate-100/80 px-3 py-2 rounded-lg shadow-[0_1px_2px_rgb(0,0,0,0.02)] relative overflow-visible">
+                                                             <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-3 h-px bg-slate-200"></div>
+                                                             <div className="flex flex-col truncate pr-3 text-xs font-bold text-slate-600 select-all">
+                                                                {opp.title}
+                                                             </div>
+                                                             <div className="text-[11px] font-bold text-emerald-600/90 shrink-0">
+                                                                {formatCurrency(opp.amountUsd)}
+                                                             </div>
+                                                          </div>
+                                                       ))}
+                                                    </div>
                                                  </div>
-                                                 <div className="text-[11px] font-bold text-emerald-600/90 shrink-0">
-                                                    {formatCurrency(opp.amountUsd)}
-                                                 </div>
-                                              </div>
-                                           ))}
+                                              ));
+                                           })()}
                                         </div>
                                      </div>
                                   ))}
@@ -3161,6 +3183,7 @@ export default function Home() {
                         </div>
                      </div>
 
+                     </div>
                   </div>
 
                   {/* Footer Actions */}
@@ -3182,33 +3205,58 @@ export default function Home() {
                               className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm font-bold text-slate-800 focus:outline-none focus:border-corporate-purple focus:ring-1 focus:ring-corporate-purple"
                            />
                            <button 
+                              id="generate-pdf-btn"
                               disabled={reportPassword.length < 3}
-                              onClick={() => {
-                                 const secureToken = btoa(reportPassword).substring(0,12);
-                                 const secureLink = 'https://easymanagement.app/secure-report/' + secureToken;
+                              onClick={async () => {
+                                 if (!reportRef.current) return;
                                  
-                                 if (navigator.share) {
-                                     navigator.share({
-                                         title: 'Informe Ejecutivo MACRO - Confidencial',
-                                         text: 'Enlace cifrado del Informe de Gestión. Requiere contraseña para visualización en pantalla.',
-                                         url: secureLink
-                                     }).then(() => {
-                                         setShowReportPasswordForm(false);
-                                         setReportPassword('');
-                                     }).catch((error) => {
-                                         console.log("Share API error", error);
-                                         navigator.clipboard.writeText(secureLink).then(() => {
-                                            alert('Enlace copiado al portapapeles:\n' + secureLink);
-                                         });
-                                         setShowReportPasswordForm(false);
-                                     });
-                                 } else {
-                                     navigator.clipboard.writeText(secureLink).then(() => {
-                                         alert('Enlace seguro copiado al portapapeles:\n' + secureLink);
-                                         setShowReportPasswordForm(false);
-                                     }).catch(() => {
-                                         alert('Tu navegador no soporta copiado. Enlace: ' + secureLink);
-                                     });
+                                 const generatePDFBtn = document.getElementById("generate-pdf-btn");
+                                 if (generatePDFBtn) generatePDFBtn.innerText = "Generando PDF... (No cierres)";
+                                 
+                                 try {
+                                    // Capturar contenedor como canvas
+                                    const canvas = await html2canvas(reportRef.current, { scale: 2, useCORS: true, logging: false });
+                                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                                    
+                                    // Dimensiones
+                                    const pdf = new jsPDF('p', 'mm', 'a4');
+                                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                                    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                                    
+                                    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+                                    const pdfBlob = pdf.output('blob');
+                                    
+                                    // 1. Intentar API Web Share con Archivo Adjunto nativo
+                                    if (navigator.canShare && navigator.canShare({ files: [new File([pdfBlob], 'informe.pdf', { type: 'application/pdf' })] })) {
+                                        const file = new File([pdfBlob], 'Informe_Ejecutivo.pdf', { type: 'application/pdf' });
+                                        try {
+                                            await navigator.share({
+                                               title: 'Informe Ejecutivo',
+                                               text: 'Adjunto Informe Ejecutivo PDF.',
+                                               files: [file]
+                                            });
+                                            setShowReportPasswordForm(false);
+                                            setReportPassword('');
+                                            if(generatePDFBtn) generatePDFBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg> Generar y Compartir Enlace';
+                                        } catch (e) {
+                                            // Fallback a descarga
+                                            console.log("Share API fallado o cancelado", e);
+                                            pdf.save('Informe_Ejecutivo.pdf');
+                                            setShowReportPasswordForm(false);
+                                            if(generatePDFBtn) generatePDFBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg> Generar y Compartir Enlace';
+                                        }
+                                    } else {
+                                        // 2. Si es PC o navegador viejo, se dispara la descarga normal
+                                        pdf.save('Informe_Ejecutivo.pdf');
+                                        alert("El dispositivo no soporta compartir nativo. Descargando informe localmente.");
+                                        setShowReportPasswordForm(false);
+                                        if(generatePDFBtn) generatePDFBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg> Generar y Compartir Enlace';
+                                    }
+                                    
+                                 } catch(error) {
+                                    alert("Error generando el PDF. Intenta de nuevo.");
+                                    if(generatePDFBtn) generatePDFBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg> Generar y Compartir Enlace';
+                                    console.error(error);
                                  }
                                }}
                                className="w-full bg-emerald-600 text-white py-3.5 rounded-xl font-bold tracking-widest uppercase text-[11px] flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 disabled:opacity-50 disabled:shadow-none hover:bg-emerald-700 transition-all"
