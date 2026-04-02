@@ -1022,10 +1022,10 @@ export default function Home() {
                            </p>
                          ) : (
                            filteredClients.map((client: any) => (
-                             <div key={client.id} className="bg-white p-2.5 rounded-[14px] border border-slate-100 shadow-[0_2px_10px_rgb(0,0,0,0.03)] text-left flex flex-col gap-1.5 group">
+                             <div key={client.id} onClick={() => setSelectedClient(client)} className="bg-white p-2.5 rounded-[14px] border border-slate-100 shadow-[0_2px_10px_rgb(0,0,0,0.03)] text-left flex flex-col gap-1.5 group cursor-pointer hover:border-corporate-purple/30 transition-colors active:scale-[0.99]">
                                 <div className="flex justify-between items-center mb-0.5">
                                   <div>
-                                    <h4 className="font-extrabold text-[#1E3A8A] text-[12px] cursor-pointer hover:text-corporate-purple transition-colors active:scale-95 flex items-center gap-1.5" onClick={() => setSelectedClient(client)}>
+                                    <h4 className="font-extrabold text-[#1E3A8A] text-[12px] flex items-center gap-1.5">
                                        {client.name}
                                        <button 
                                          onClick={(e) => {
@@ -1041,7 +1041,7 @@ export default function Home() {
                                     </h4>
                                     {client.region && <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Región: {client.region}</p>}
                                   </div>
-                                  <button onClick={() => setOpenClientFormId(openClientFormId === client.id ? null : client.id)} className="bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-1 rounded-[6px] text-[9px] font-bold uppercase tracking-widest shadow-sm flex items-center gap-1 hover:bg-emerald-100 transition-colors">
+                                  <button onClick={(e) => { e.stopPropagation(); setOpenClientFormId(openClientFormId === client.id ? null : client.id); }} className="bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-1 rounded-[6px] text-[9px] font-bold uppercase tracking-widest shadow-sm flex items-center gap-1 hover:bg-emerald-100 transition-colors">
                                      + {lang === 'es' ? 'Oportunidad' : 'Opportunity'}
                                   </button>
                                 </div>
@@ -1065,7 +1065,8 @@ export default function Home() {
                                             />
                                             <button 
                                               className="w-full bg-slate-700 hover:bg-slate-800 text-white py-1.5 rounded-lg font-bold uppercase text-[10px]"
-                                              onClick={async () => {
+                                              onClick={async (e) => {
+                                                 e.stopPropagation();
                                                  if(!draftEditClientName) return;
                                                  await updateClient(client.id, {
                                                      name: draftEditClientName,
@@ -1109,7 +1110,8 @@ export default function Home() {
                                             </div>
                                             <button 
                                               className="w-full bg-[#1E3A8A] text-white py-2 rounded-lg font-bold uppercase text-[10px]"
-                                              onClick={async () => {
+                                              onClick={async (e) => {
+                                                 e.stopPropagation();
                                                  if(!draftOppTitle || !draftOppAmount) return;
                                                  await createOpportunity({
                                                      title: draftOppTitle,
@@ -1135,7 +1137,7 @@ export default function Home() {
                                       const clientOppsFiltered = opportunities.filter(o => o.clientId === client.id).filter(o => { if (activeTab === 'historial') { return o.status === (marketOppFilter === 'PERDIDOS' ? 'PERDIDO' : 'GANADO') && isDateInTimeframe(o.statusUpdatedAt, historialTimeframe); } else { return o.status === 'PROSPECTO' || o.status === 'COTIZADO'; } });
                                       if (clientOppsFiltered.length === 0) return <p className="text-[9px] text-slate-400 font-medium italic">{lang === 'es' ? 'Sin oportunidades en esta vista.' : 'No opportunities in this view.'}</p>;
                                       return clientOppsFiltered.map(opp => (
-                                          <div key={opp.id} onClick={() => { setSelectedClient(client); setSelectedOpportunity({id: opp.id, title: opp.title, amount: opp.amountUsd.toString()}); }} className="bg-slate-50 p-2 rounded-[8px] border border-slate-200/60 transition-all hover:bg-slate-100 hover:border-corporate-purple/40 hover:shadow-md cursor-pointer active:scale-95">
+                                          <div key={opp.id} onClick={(e) => { e.stopPropagation(); setSelectedClient(client); }} className="bg-slate-50 p-2 rounded-[8px] border border-slate-200/60 transition-all hover:bg-slate-100 hover:border-corporate-purple/40 hover:shadow-md cursor-pointer active:scale-95">
                                              <div className="flex justify-between items-start mb-1 pointer-events-none">
                                                 <span className="font-extrabold text-[#1E3A8A] text-[10px] leading-tight flex-1 pr-2">{opp.title}</span>
                                                 <span className="font-bold text-corporate-purple text-[11px]">{formatCurrency(opp.amountUsd)}</span>
