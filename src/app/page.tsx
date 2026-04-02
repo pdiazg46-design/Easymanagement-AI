@@ -54,6 +54,7 @@ export default function Home() {
   const [clientWebsite, setClientWebsite] = useState('');
   const [clientLogo, setClientLogo] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [userName, setUserName] = useState("");
   const [historialViewMode, setHistorialViewMode] = useState<'list'|'map'>('list');
   const [historialTimeframe, setHistorialTimeframe] = useState('all');
   const [showReportModal, setShowReportModal] = useState(false);
@@ -79,7 +80,8 @@ export default function Home() {
           if (data.user.avatarUrl) setAvatarUrl(data.user.avatarUrl);
           if (data.user.isPro) setIsProUser(true);
           if (data.user.email) setEmail(data.user.email);
-          
+          if (data.user.name) setUserName(data.user.name);
+
           if (data.user.logoUrl && data.user.avatarUrl && currentView === 'onboarding') {
              setCurrentView('dashboard');
           }
@@ -235,7 +237,13 @@ export default function Home() {
   // Dashboard states
   const [activeTab, setActiveTab] = useState('oportunidades');
   const [showPipelineModal, setShowPipelineModal] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(() => {
+      if (typeof window !== 'undefined') {
+          const saved = localStorage.getItem('easy_selectedCountry');
+          return saved === '' ? null : (saved || null);
+      }
+      return null;
+  });
   const [regionalViewMode, setRegionalViewMode] = useState<'list' | 'map'>('list');
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   const [showActionModal, setShowActionModal] = useState(false);
@@ -270,19 +278,10 @@ export default function Home() {
   
   useEffect(() => {
      if (selectedCountry) setIsOpeningMarket(false);
-     if (selectedCountry !== null) {
-         localStorage.setItem('easy_selectedCountry', selectedCountry);
-     } else {
-         localStorage.setItem('easy_selectedCountry', '');
+     if (typeof window !== 'undefined') {
+         localStorage.setItem('easy_selectedCountry', selectedCountry || '');
      }
   }, [selectedCountry]);
-  
-  useEffect(() => {
-     const savedCountry = localStorage.getItem('easy_selectedCountry');
-     if (savedCountry !== null) {
-         setSelectedCountry(savedCountry === '' ? null : savedCountry);
-     }
-  }, []);
 
   const [draftOppAmount, setDraftOppAmount] = useState("");
   
@@ -3483,6 +3482,7 @@ export default function Home() {
                                                 <div class="footer">
                                                     <p class="footer-title">Documento Confidencial</p>
                                                     <p class="footer-sub">Generado automáticamente - por AT-SIT para Sistema: Easy Management AI</p>
+                                                    <p class="footer-sub" style="margin-top:2px;">EMITIDO POR: ${userName || email || 'Usuario Administrador'}</p>
                                                 </div>
                                             </div>
                                         </body>
