@@ -3188,31 +3188,15 @@ export default function Home() {
 
                   {/* Footer Actions */}
                   <div className="absolute bottom-0 left-0 w-full bg-white/95 backdrop-blur-md border-t border-slate-200 p-5 z-20 transition-all duration-300">
-                     {showReportPasswordForm ? (
-                        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-3">
-                           <div className="flex justify-between items-center mb-1">
-                              <label className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
-                                 <Lock size={12} className="text-corporate-purple" /> 
-                                 Contraseña de Seguridad
-                              </label>
-                              <button onClick={() => setShowReportPasswordForm(false)} className="text-[10px] text-slate-400 font-bold uppercase hover:text-red-500">Cancelar</button>
-                           </div>
-                           <input 
-                              type="text" 
-                              placeholder="Ej: XYZ-2026"
-                              value={reportPassword}
-                              onChange={(e) => setReportPassword(e.target.value)}
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm font-bold text-slate-800 focus:outline-none focus:border-corporate-purple focus:ring-1 focus:ring-corporate-purple"
-                           />
-                           <button 
-                              id="generate-pdf-btn"
-                              disabled={reportPassword.length < 3}
-                              onClick={async () => {
-                                  const generatePDFBtn = document.getElementById("generate-pdf-btn");
-                                  if (generatePDFBtn) generatePDFBtn.innerText = "Generando Reporte Web...";
-                                  
-                                  try {
-                                     // 1. Construir HTML Nativo
+                     <button 
+                        id="generate-pdf-btn"
+                        onClick={() => {
+                            const generatePDFBtn = document.getElementById("generate-pdf-btn");
+                            const originalHTML = generatePDFBtn?.innerHTML || "";
+                            if (generatePDFBtn) generatePDFBtn.innerText = "Generando Reporte Web...";
+                            
+                            try {
+                               // 1. Construir HTML Nativo
                                      let html = `
                                         <!DOCTYPE html>
                                         <html lang="es">
@@ -3337,36 +3321,28 @@ export default function Home() {
                                      // 2. Generar Blob y abrir en Tab
                                      const blob = new Blob([html], { type: 'text/html' });
                                      const url = URL.createObjectURL(blob);
-                                     window.open(url, '_blank');
                                      
-                                     setShowReportPasswordForm(false);
-                                     setReportPassword('');
-                                     if (generatePDFBtn) generatePDFBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg> Generar y Compartir Enlace';
+                                     // Modo Ancla Síncrona para evitar Pop-up Blockers en Safari/iOS
+                                     const a = document.createElement('a');
+                                     a.href = url;
+                                     a.target = '_blank';
+                                     document.body.appendChild(a);
+                                     a.click();
+                                     document.body.removeChild(a);
+                                     
+                                     if (generatePDFBtn) generatePDFBtn.innerHTML = originalHTML;
                                      
                                   } catch (error) {
                                      alert("Error generando el Reporte. Intenta de nuevo.");
-                                     if(generatePDFBtn) generatePDFBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg> Generar y Compartir Enlace';
+                                     if (generatePDFBtn) generatePDFBtn.innerHTML = originalHTML;
                                      console.error(error);
                                   }
                                }}
-                               className="w-full bg-emerald-600 text-white py-3.5 rounded-xl font-bold tracking-widest uppercase text-[11px] flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 disabled:opacity-50 disabled:shadow-none hover:bg-emerald-700 transition-all"
+                               className="w-full bg-[#1E3A8A] text-white py-4 rounded-[20px] font-bold tracking-widest uppercase text-[12px] flex items-center justify-center gap-2 shadow-[0_8px_30px_rgb(30,58,138,0.3)] hover:scale-[1.02] active:scale-95 transition-all"
                            >
-                              <Share2 size={16} />
-                              Generar y Compartir Enlace
+                              <FileText size={18} />
+                              Generar Informe Web
                            </button>
-                           <p className="text-[9px] text-slate-400 text-center leading-tight mt-2 px-4">
-                              *El PDF en la nube no permitirá descargas ni copias. Solo habilitado para lectura en pantalla.
-                           </p>
-                        </motion.div>
-                     ) : (
-                        <button 
-                           onClick={() => setShowReportPasswordForm(true)}
-                           className="w-full bg-[#1E3A8A] text-white py-4 rounded-[20px] font-bold tracking-widest uppercase text-[12px] flex items-center justify-center gap-2 shadow-[0_8px_30px_rgb(30,58,138,0.3)] hover:scale-[1.02] active:scale-95 transition-all"
-                        >
-                           <Lock size={16} />
-                           Generar Enlace Seguro (PDF)
-                        </button>
-                     )}
                   </div>
                </motion.div>
             </motion.div>
