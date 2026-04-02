@@ -5,8 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from "react-simple-maps";
 import { QRCodeSVG } from 'qrcode.react';
 import { getActivities, createActivity, toggleActivityCompletion, getOpportunities, createOpportunity, updateOpportunityStatus, getClients, createClient, deleteActivity, updateActivity, updateOpportunityConfidence, deleteOpportunity, updateOpportunityDetails, getAllUsers, toggleUserProStatus } from './actions';
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
 
 export default function Home() {
   const [lang, setLang] = useState<'es'|'en'>('es');
@@ -2156,81 +2154,7 @@ export default function Home() {
 
           </AnimatePresence>
 
-        {/* --- INVISIBLE A4 PDF PRINT REPORT --- */}
-        <div className="absolute top-[-20000px] left-[-20000px] z-[-1] pointer-events-none">
-           <div id="pdf-print-container" ref={reportRef} className="w-[800px] bg-white p-10 font-sans text-slate-800 flex flex-col gap-8 shadow-none" style={{ minHeight: '1123px' }}>
-              
-              {/* Header */}
-              <div className="flex justify-between items-center border-b-2 border-slate-200 pb-5">
-                 <div>
-                    <h1 className="text-3xl font-black text-[#1E3A8A] uppercase tracking-tight">Informe de Gestión</h1>
-                    <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mt-1">Corte al {new Date().toLocaleDateString()}</p>
-                 </div>
-                 {clientLogo && <img src={clientLogo} alt="Logo" className="max-h-12 object-contain" />}
-              </div>
 
-              {/* Global Synthesis */}
-              <div className="flex justify-between items-center bg-slate-50 p-6 rounded-lg border border-slate-200">
-                 <div>
-                    <p className="text-[11px] uppercase font-bold text-slate-400 tracking-widest mb-1">Total Pipeline Latam</p>
-                    <p className="text-4xl font-black text-corporate-purple">{formatCurrency(globalTotalUsd)}</p>
-                 </div>
-                 <div className="text-right">
-                    <p className="text-[11px] uppercase font-bold text-slate-400 tracking-widest mb-1">Proyectos Activos</p>
-                    <p className="text-4xl font-black text-[#1E3A8A]">{globalTotalProjects}</p>
-                 </div>
-              </div>
-
-              {/* Cascada de Entidades */}
-              <div className="flex-1 mt-4">
-                 <h2 className="text-[13px] font-black text-slate-700 uppercase tracking-widest mb-6 border-b border-slate-200 pb-2">Desglose por País y Cliente</h2>
-                 {activeCountriesMetrics.map(c => (
-                     <div key={c.name} className="mb-6 font-sans">
-                        <div className="flex justify-between items-center bg-slate-100 px-4 py-2.5 rounded-t-lg border border-slate-200">
-                           <span className="font-bold text-sm text-slate-800">{c.name}</span>
-                           <span className="font-black text-sm text-[#1E3A8A]">{formatCurrency(c.totalValueUsd)}</span>
-                        </div>
-                        <div className="border border-slate-200 border-t-0 rounded-b-lg p-5">
-                           {(() => {
-                               const groupedOpps = c.opps.reduce((acc: Record<string, any[]>, opp: any) => {
-                                  const clientName = opp.client?.name || "Sin Cliente";
-                                  if (!acc[clientName]) acc[clientName] = [];
-                                  acc[clientName].push(opp);
-                                  return acc;
-                               }, {});
-
-                               return Object.entries(groupedOpps).map(([clientName, opportunities]) => (
-                                  <div key={clientName} className="mb-5 last:mb-0">
-                                     <div className="text-[12px] font-black text-slate-600 uppercase tracking-wider mb-2 flex items-center gap-2">
-                                        <div className="w-1.5 h-1.5 bg-slate-400 rounded-full"></div> {clientName}
-                                     </div>
-                                     <div className="flex flex-col gap-2 pl-4 border-l-2 border-slate-100 ml-[3px]">
-                                        {opportunities.map((opp: any) => (
-                                           <div key={opp.id} className="flex justify-between items-center py-1">
-                                              <span className="text-[13px] font-semibold text-slate-700 truncate pr-4">{opp.title}</span>
-                                              <span className="text-[13px] font-bold text-emerald-600 shrink-0">{formatCurrency(opp.amountUsd)}</span>
-                                           </div>
-                                        ))}
-                                     </div>
-                                  </div>
-                               ));
-                           })()}
-                        </div>
-                     </div>
-                 ))}
-                 
-                 {activeCountriesMetrics.length === 0 && (
-                     <p className="text-center text-slate-400 py-10 font-bold">No hay proyectos reportados en el pipeline.</p>
-                 )}
-              </div>
-
-              {/* Footer */}
-              <div className="mt-8 pt-6 border-t border-slate-200 text-center">
-                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Documento Confidencial V4 (PDF)</p>
-                 <p className="text-[9px] text-slate-400 mt-1">Generado automáticamente - Sistema Easy Management CRM</p>
-              </div>
-           </div>
-        </div>
 
         {/* MODALS GLOBALES DEL DASHBOARD */}
         <AnimatePresence>
@@ -3284,56 +3208,146 @@ export default function Home() {
                               id="generate-pdf-btn"
                               disabled={reportPassword.length < 3}
                               onClick={async () => {
-                                 if (!reportRef.current) return;
-                                 
-                                 const generatePDFBtn = document.getElementById("generate-pdf-btn");
-                                 if (generatePDFBtn) generatePDFBtn.innerText = "Generando PDF... (No cierres)";
-                                 
-                                 try {
-                                    // Capturar contenedor como canvas
-                                    const canvas = await html2canvas(reportRef.current, { scale: 2, useCORS: true, logging: false });
-                                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
-                                    
-                                    // Dimensiones
-                                    const pdf = new jsPDF('p', 'mm', 'a4');
-                                    const pdfWidth = pdf.internal.pageSize.getWidth();
-                                    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-                                    
-                                    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-                                    const pdfBlob = pdf.output('blob');
-                                    
-                                    // 1. Intentar API Web Share con Archivo Adjunto nativo
-                                    if (navigator.canShare && navigator.canShare({ files: [new File([pdfBlob], 'informe.pdf', { type: 'application/pdf' })] })) {
-                                        const file = new File([pdfBlob], 'Informe_Ejecutivo.pdf', { type: 'application/pdf' });
-                                        try {
-                                            await navigator.share({
-                                               title: 'Informe Ejecutivo',
-                                               text: 'Adjunto Informe Ejecutivo PDF.',
-                                               files: [file]
-                                            });
-                                            setShowReportPasswordForm(false);
-                                            setReportPassword('');
-                                            if(generatePDFBtn) generatePDFBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg> Generar y Compartir Enlace';
-                                        } catch (e) {
-                                            // Fallback a descarga
-                                            console.log("Share API fallado o cancelado", e);
-                                            pdf.save('Informe_Ejecutivo.pdf');
-                                            setShowReportPasswordForm(false);
-                                            if(generatePDFBtn) generatePDFBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg> Generar y Compartir Enlace';
-                                        }
-                                    } else {
-                                        // 2. Si es PC o navegador viejo, se dispara la descarga normal
-                                        pdf.save('Informe_Ejecutivo.pdf');
-                                        alert("El dispositivo no soporta compartir nativo. Descargando informe localmente.");
-                                        setShowReportPasswordForm(false);
-                                        if(generatePDFBtn) generatePDFBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg> Generar y Compartir Enlace';
-                                    }
-                                    
-                                 } catch(error) {
-                                    alert("Error generando el PDF. Intenta de nuevo.");
-                                    if(generatePDFBtn) generatePDFBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg> Generar y Compartir Enlace';
-                                    console.error(error);
-                                 }
+                                  const generatePDFBtn = document.getElementById("generate-pdf-btn");
+                                  if (generatePDFBtn) generatePDFBtn.innerText = "Generando Reporte Web...";
+                                  
+                                  try {
+                                     // 1. Construir HTML Nativo
+                                     let html = `
+                                        <!DOCTYPE html>
+                                        <html lang="es">
+                                        <head>
+                                            <meta charset="UTF-8">
+                                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                            <title>Informe de Gestión</title>
+                                            <style>
+                                                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap');
+                                                body { font-family: 'Inter', sans-serif; margin: 0; padding: 40px; background: #f1f5f9; color: #1e293b; }
+                                                .page { max-width: 800px; margin: 0 auto; background: white; padding: 50px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); border-radius: 8px; }
+                                                @media print {
+                                                    body { background: white; padding: 0; }
+                                                    .page { box-shadow: none; padding: 0; max-width: 100%; border-radius: 0; }
+                                                }
+                                                .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 30px; }
+                                                .title { font-size: 32px; font-weight: 900; color: #1e3a8a; text-transform: uppercase; margin: 0; letter-spacing: -1px; }
+                                                .date { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 2px; margin-top: 5px; }
+                                                .logo { max-height: 50px; }
+                                                .synthesis { display: flex; justify-content: space-between; background: #f8fafc; padding: 25px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 40px; }
+                                                .synth-label { font-size: 11px; text-transform: uppercase; font-weight: 800; color: #94a3b8; letter-spacing: 2px; margin: 0 0 5px 0; }
+                                                .synth-val1 { font-size: 36px; font-weight: 900; color: #8b5cf6; margin: 0; }
+                                                .synth-val2 { font-size: 36px; font-weight: 900; color: #1e3a8a; margin: 0; text-align: right; }
+                                                .section-title { font-size: 13px; font-weight: 900; color: #334155; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
+                                                .country-card { margin-bottom: 25px; page-break-inside: avoid; }
+                                                .country-header { display: flex; justify-content: space-between; align-items: center; background: #f1f5f9; padding: 12px 16px; border-radius: 8px 8px 0 0; border: 1px solid #e2e8f0; }
+                                                .country-name { font-weight: 700; font-size: 14px; color: #1e293b; margin: 0; }
+                                                .country-total { font-weight: 900; font-size: 14px; color: #1e3a8a; margin: 0; }
+                                                .country-body { border: 1px solid #e2e8f0; border-top: none; padding: 20px; border-radius: 0 0 8px 8px; }
+                                                .client-block { margin-bottom: 20px; }
+                                                .client-block:last-child { margin-bottom: 0; }
+                                                .client-name { font-size: 12px; font-weight: 900; color: #475569; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 10px 0; display: flex; align-items: center; gap: 8px; }
+                                                .dot { width: 6px; height: 6px; background: #94a3b8; border-radius: 50%; display: inline-block; }
+                                                .opp-list { margin: 0 0 0 3px; padding-left: 16px; border-left: 2px solid #f1f5f9; }
+                                                .opp-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; }
+                                                .opp-title { font-size: 13px; font-weight: 600; color: #334155; margin: 0; }
+                                                .opp-amount { font-size: 13px; font-weight: 700; color: #059669; margin: 0; }
+                                                .footer { margin-top: 50px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center; }
+                                                .footer-title { font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px; margin: 0; }
+                                                .footer-sub { font-size: 9px; color: #94a3b8; margin-top: 5px; }
+                                            </style>
+                                        </head>
+                                        <body>
+                                            <div class="page">
+                                                <div class="header">
+                                                    <div>
+                                                        <h1 class="title">Informe de Gestión</h1>
+                                                        <p class="date">Corte al ${new Date().toLocaleDateString()}</p>
+                                                    </div>
+                                                    ${clientLogo ? `<img src="${clientLogo}" class="logo" />` : ''}
+                                                </div>
+                                                <div class="synthesis">
+                                                    <div>
+                                                        <p class="synth-label">Total Pipeline Latam</p>
+                                                        <p class="synth-val1">${formatCurrency(globalTotalUsd)}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p class="synth-label">Proyectos Activos</p>
+                                                        <p class="synth-val2">${globalTotalProjects}</p>
+                                                    </div>
+                                                </div>
+                                                <h2 class="section-title">Desglose por País y Cliente</h2>
+                                     `;
+                                     
+                                     if(activeCountriesMetrics.length === 0) {
+                                         html += `<p style="text-align: center; color: #94a3b8; font-weight: bold; margin: 40px 0;">No hay proyectos reportados en el pipeline.</p>`;
+                                     } else {
+                                         activeCountriesMetrics.forEach(c => {
+                                             html += `
+                                                <div class="country-card">
+                                                    <div class="country-header">
+                                                        <p class="country-name">${c.name}</p>
+                                                        <p class="country-total">${formatCurrency(c.totalValueUsd)}</p>
+                                                    </div>
+                                                    <div class="country-body">
+                                             `;
+                                              
+                                             const groupedOpps = c.opps.reduce((acc: Record<string, any[]>, opp: any) => {
+                                                 const clientName = opp.client?.name || "Sin Cliente";
+                                                 if (!acc[clientName]) acc[clientName] = [];
+                                                 acc[clientName].push(opp);
+                                                 return acc;
+                                             }, {});
+                                             
+                                             Object.entries(groupedOpps).forEach(([clientName, opportunities]) => {
+                                                 html += `
+                                                    <div class="client-block">
+                                                        <p class="client-name"><span class="dot"></span> ${clientName}</p>
+                                                        <div class="opp-list">
+                                                 `;
+                                                 (opportunities as any[]).forEach(opp => {
+                                                     html += `
+                                                            <div class="opp-item">
+                                                                <p class="opp-title">${opp.title}</p>
+                                                                <p class="opp-amount">${formatCurrency(opp.amountUsd)}</p>
+                                                            </div>
+                                                     `;
+                                                 });
+                                                 html += `
+                                                        </div>
+                                                    </div>
+                                                 `;
+                                             });
+                                             
+                                             html += `
+                                                    </div>
+                                                </div>
+                                             `;
+                                         });
+                                     }
+                                     
+                                     html += `
+                                                <div class="footer">
+                                                    <p class="footer-title">Documento Confidencial V5 (HTML)</p>
+                                                    <p class="footer-sub">Generado automáticamente - Sistema Easy Management CRM</p>
+                                                </div>
+                                            </div>
+                                        </body>
+                                        </html>
+                                     `;
+                                     
+                                     // 2. Generar Blob y abrir en Tab
+                                     const blob = new Blob([html], { type: 'text/html' });
+                                     const url = URL.createObjectURL(blob);
+                                     window.open(url, '_blank');
+                                     
+                                     setShowReportPasswordForm(false);
+                                     setReportPassword('');
+                                     if (generatePDFBtn) generatePDFBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg> Generar y Compartir Enlace';
+                                     
+                                  } catch (error) {
+                                     alert("Error generando el Reporte. Intenta de nuevo.");
+                                     if(generatePDFBtn) generatePDFBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg> Generar y Compartir Enlace';
+                                     console.error(error);
+                                  }
                                }}
                                className="w-full bg-emerald-600 text-white py-3.5 rounded-xl font-bold tracking-widest uppercase text-[11px] flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 disabled:opacity-50 disabled:shadow-none hover:bg-emerald-700 transition-all"
                            >
