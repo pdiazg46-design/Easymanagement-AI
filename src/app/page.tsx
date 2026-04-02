@@ -1837,7 +1837,7 @@ export default function Home() {
                 )}
 
                 {/* CONTENIDO PRINCIPAL SCROLLABLE */}
-                <div className="flex-1 overflow-y-auto no-scrollbar px-3 sm:px-5 pb-[220px] flex flex-col gap-4 sm:gap-6">
+                <div className="flex-1 overflow-y-auto no-scrollbar px-3 sm:px-5 pb-[220px] flex flex-col gap-3 sm:gap-4">
                   
 
 
@@ -1870,17 +1870,17 @@ export default function Home() {
                   <motion.div 
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setShowPipelineModal(true)}
-                    className="bg-corporate-purple rounded-3xl p-5 shadow-[0_8px_30px_rgb(124,58,237,0.3)] text-white w-full cursor-pointer overflow-hidden relative shrink-0"
+                    className="bg-corporate-purple rounded-2xl p-3.5 shadow-[0_8px_30px_rgb(124,58,237,0.3)] text-white w-full cursor-pointer overflow-hidden relative shrink-0"
                   >
                     <div className="flex items-center w-full">
                       <div className="w-[75%] pr-3 text-left overflow-hidden">
-                        <p className="text-white/80 text-[10px] sm:text-xs font-medium uppercase tracking-wider mb-1 truncate">{activeTab === 'historial' ? getHistorialTitle() : t[lang].pipeline}</p>
-                        <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight flex items-baseline gap-1.5 truncate">{formatCurrency(totalPipeline)}</h2>
+                        <p className="text-white/80 text-[9px] sm:text-[10px] font-medium uppercase tracking-wider mb-0.5 truncate">{activeTab === 'historial' ? getHistorialTitle() : t[lang].pipeline}</p>
+                        <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight flex items-baseline gap-1.5 truncate">{formatCurrency(totalPipeline)}</h2>
                       </div>
-                      <div className="w-px h-12 bg-white/20 shrink-0"></div>
+                      <div className="w-px h-10 bg-white/20 shrink-0"></div>
                       <div className="w-[25%] text-center pl-2 flex flex-col justify-center items-center shrink-0">
-                        <p className="text-white/80 text-[7px] sm:text-[8px] font-bold uppercase tracking-widest mb-1 leading-tight">{activeTab === 'historial' ? (lang === 'es' ? 'PROYECTOS GANADOS' : 'WON PROJECTS') : t[lang].activeProj.split(' ')[0] + '\n' + t[lang].activeProj.split(' ')[1]}</p>
-                        <h2 className="text-2xl sm:text-3xl font-extrabold pb-0 leading-none">{activeProjects}</h2>
+                        <p className="text-white/80 text-[7px] font-bold uppercase tracking-widest mb-0.5 leading-tight">{activeTab === 'historial' ? (lang === 'es' ? 'PROYECTOS GANADOS' : 'WON PROJECTS') : t[lang].activeProj.split(' ')[0] + '\n' + t[lang].activeProj.split(' ')[1]}</p>
+                        <h2 className="text-xl sm:text-2xl font-extrabold pb-0 leading-none">{activeProjects}</h2>
                       </div>
                     </div>
                   </motion.div>
@@ -1888,13 +1888,13 @@ export default function Home() {
                   <div className="bg-slate-100 rounded-full p-1 flex items-center justify-between w-full shadow-inner border border-slate-200/60 shrink-0">
                     <button 
                       onClick={() => setActiveTab('historial')}
-                      className={`flex-1 py-2 text-sm font-semibold rounded-full transition-all duration-300 ${activeTab === 'historial' ? 'bg-[#1E3A8A] text-white shadow-md' : 'text-slate-500'}`}
+                      className={`flex-1 py-1.5 text-xs font-semibold rounded-full transition-all duration-300 ${activeTab === 'historial' ? 'bg-[#1E3A8A] text-white shadow-md' : 'text-slate-500'}`}
                     >
                       {t[lang].history}
                     </button>
                     <button 
                       onClick={() => setActiveTab('oportunidades')}
-                      className={`flex-1 py-2 text-sm font-semibold rounded-full transition-all duration-300 ${activeTab === 'oportunidades' ? 'bg-corporate-purple text-white shadow-md' : 'text-slate-500'}`}
+                      className={`flex-1 py-1.5 text-xs font-semibold rounded-full transition-all duration-300 ${activeTab === 'oportunidades' ? 'bg-corporate-purple text-white shadow-md' : 'text-slate-500'}`}
                     >
                       {t[lang].opps}
                     </button>
@@ -1905,10 +1905,10 @@ export default function Home() {
                       <motion.div 
                         key="oportunidades" 
                         initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-                        className="flex flex-col gap-6"
+                        className="flex flex-col gap-3"
                       >
-                        <div className="bg-white rounded-[24px] p-4 sm:p-5 shadow-[0_4px_25px_rgb(0,0,0,0.04)] border border-slate-100 relative">
-                          <div className="flex justify-between items-center mb-4 border-b border-slate-100 pb-3">
+                        <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-[0_4px_25px_rgb(0,0,0,0.04)] border border-slate-100 relative">
+                          <div className="flex justify-between items-center mb-2.5 border-b border-slate-100 pb-2.5">
                              <div className="relative group cursor-pointer flex-1 mr-2 max-w-xs">
                                <select 
                                  className="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-[#1E3A8A] text-[11px] sm:text-[12px] font-extrabold uppercase tracking-wider outline-none cursor-pointer appearance-none rounded-xl py-2 pl-3 pr-8 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)] transition-all active:scale-[0.98]"
