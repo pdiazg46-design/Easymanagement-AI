@@ -3330,6 +3330,21 @@ export default function Home() {
                                const monthsNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
                                const reportTitleDetail = reportMonthFilter === "" ? "HISTÓRICO COMPLETO" : `REPORTE: ${monthsNames[parseInt(mStr)-1]} ${yStr}`;
 
+                               // Construir arreglo filtrado por pa\u00eds inteligente
+                               const pdfCountriesMap = new Map<string, { opps: any[], totalValueUsd: number, name: string }>();
+                               monthOpps.forEach(opp => {
+                                   const cName = opp.client?.country;
+                                   if (!cName) return;
+                                   let metrics = pdfCountriesMap.get(cName);
+                                   if (!metrics) {
+                                       metrics = { opps: [], totalValueUsd: 0, name: cName };
+                                       pdfCountriesMap.set(cName, metrics);
+                                   }
+                                   metrics.opps.push(opp);
+                                   metrics.totalValueUsd += opp.amountUsd;
+                               });
+                               const pdfCountriesMetrics = Array.from(pdfCountriesMap.values()).sort((a,b) => b.totalValueUsd - a.totalValueUsd);
+
                                // Construir HTML Nativo
                                      let html = `
                                         <!DOCTYPE html>
@@ -3424,10 +3439,10 @@ export default function Home() {
                                                 <h2 class="section-title">Desglose por País y Cliente</h2>
                                      `;
                                      
-                                     if(activeCountriesMetrics.length === 0) {
-                                         html += `<p style="text-align: center; color: #94a3b8; font-weight: bold; margin: 40px 0;">No hay proyectos reportados en el pipeline activo.</p>`;
+                                     if(pdfCountriesMetrics.length === 0) {
+                                         html += `<p style="text-align: center; color: #94a3b8; font-weight: bold; margin: 40px 0;">No hay proyectos reportados en el pipeline activo para este período.</p>`;
                                      } else {
-                                         activeCountriesMetrics.forEach(c => {
+                                         pdfCountriesMetrics.forEach(c => {
                                              html += `
                                                 <div class="country-card">
                                                     <div class="country-header">
