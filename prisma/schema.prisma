@@ -53,6 +53,7 @@ model Client {
   id           String   @id @default(cuid())
   name         String   // Ej: "Telefónica del Perú" o "Distribuidor Local S.A."
   country      String   // Ej: "Perú", "Brasil"
+  region       String?  // Ej: "Antofagasta", "Biobío"
   tenantId     String
   tenant       Tenant   @relation(fields: [tenantId], references: [id])
   

@@ -152,15 +152,28 @@ export async function getClients(country?: string) {
   });
 }
 
-export async function createClient(data: { name: string, country: string }) {
+export async function createClient(data: { name: string, country: string, region?: string }) {
   const { tenant } = await getSession();
   
   const client = await prisma.client.create({
     data: {
       name: data.name,
       country: data.country,
+      region: data.region,
       tenantId: tenant.id
     }
+  });
+  
+  revalidatePath("/");
+  return client;
+}
+
+export async function updateClient(id: string, data: { name?: string, country?: string, region?: string }) {
+  const { tenant } = await getSession();
+  
+  const client = await prisma.client.update({
+    where: { id, tenantId: tenant.id },
+    data
   });
   
   revalidatePath("/");

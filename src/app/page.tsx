@@ -4,7 +4,8 @@ import { Mic, Trash2, Keyboard, Edit2, Signal, Mail, Lock, Fingerprint, UploadCl
 import { motion, AnimatePresence } from 'framer-motion';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from "react-simple-maps";
 import { QRCodeSVG } from 'qrcode.react';
-import { getActivities, createActivity, toggleActivityCompletion, getOpportunities, createOpportunity, updateOpportunityStatus, getClients, createClient, deleteActivity, updateActivity, updateOpportunityConfidence, deleteOpportunity, updateOpportunityDetails, getAllUsers, toggleUserProStatus } from './actions';
+import { toPng } from 'html-to-image';
+import { createActivity, updateActivity, toggleActivityCompletion, deleteActivity, getActivities, createOpportunity, updateOpportunityStatus, deleteOpportunity, updateOpportunityConfidence, updateOpportunityDetails, getAllUsers, toggleUserProStatus, getOpportunities, getClients, createClient, updateClient } from './actions';
 
 export default function Home() {
   const [lang, setLang] = useState<'es'|'en'>('es');
@@ -269,12 +270,29 @@ export default function Home() {
   
   useEffect(() => {
      if (selectedCountry) setIsOpeningMarket(false);
+     if (selectedCountry !== null) {
+         localStorage.setItem('easy_selectedCountry', selectedCountry);
+     } else {
+         localStorage.setItem('easy_selectedCountry', '');
+     }
   }, [selectedCountry]);
+  
+  useEffect(() => {
+     const savedCountry = localStorage.getItem('easy_selectedCountry');
+     if (savedCountry !== null) {
+         setSelectedCountry(savedCountry === '' ? null : savedCountry);
+     }
+  }, []);
+
   const [draftOppAmount, setDraftOppAmount] = useState("");
   
   const [clients, setClients] = useState<any[]>([]);
   const [showClientForm, setShowClientForm] = useState(false);
   const [draftClientName, setDraftClientName] = useState("");
+  const [draftClientRegion, setDraftClientRegion] = useState("");
+  const [editingClientId, setEditingClientId] = useState<string | null>(null);
+  const [draftEditClientName, setDraftEditClientName] = useState("");
+  const [draftEditClientRegion, setDraftEditClientRegion] = useState("");
   const [openClientFormId, setOpenClientFormId] = useState<string | null>(null);
   const [adminUsers, setAdminUsers] = useState<any[]>([]);
   const [editingOppId, setEditingOppId] = useState<string | null>(null);
@@ -286,6 +304,7 @@ export default function Home() {
   const [showVoiceHelpModal, setShowVoiceHelpModal] = useState(false);
   const [userCurrency, setUserCurrency] = useState<'USD' | 'LOCAL'>('USD');
   const [selectedDayTasks, setSelectedDayTasks] = useState<any[]>([]);
+  const [reportMonthFilter, setReportMonthFilter] = useState<string>((new Date()).toISOString().slice(0, 7));
 
   // Function to format money globally
   const formatCurrency = (val: number | string) => {
@@ -908,7 +927,7 @@ export default function Home() {
                      <div>
                        <div className="flex justify-between items-center mb-4 pr-1 mt-2">
                           <div className="flex flex-col gap-1.5">
-                             <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest pl-1">{lang === 'es' ? 'Canales / Distribuidores' : 'Channels / Distributors'}</h3>
+                             <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest pl-1">{lang === 'es' ? 'Canal / Cliente' : 'Channels / Distributors'}</h3>
                              {countryClients.length > 0 && (
                                <div className="flex bg-slate-100/80 p-0.5 w-max rounded-[10px] shadow-inner ml-1">
                                   <button 
@@ -947,15 +966,24 @@ export default function Home() {
                                      value={draftClientName}
                                      onChange={e => setDraftClientName(e.target.value)}
                                    />
+                                   <input 
+                                     type="text" 
+                                     placeholder={lang === 'es' ? 'Región (Ej. Santiago)' : 'Region (E.g. NY)'}
+                                     className="w-full bg-white border border-slate-200 text-sm px-4 py-2.5 rounded-xl font-medium outline-none text-[#1E3A8A]"
+                                     value={draftClientRegion}
+                                     onChange={e => setDraftClientRegion(e.target.value)}
+                                   />
                                    <button 
                                      className="w-full bg-[#1E3A8A] text-white py-2.5 rounded-xl font-bold uppercase tracking-wider text-[11px] flex items-center justify-center gap-2 mt-1"
                                      onClick={async () => {
                                         if(!draftClientName) return;
                                         await createClient({
                                             name: draftClientName,
-                                            country: targetCountry
+                                            country: targetCountry,
+                                            region: draftClientRegion || undefined
                                         });
                                         setDraftClientName("");
+                                        setDraftClientRegion("");
                                         setShowClientForm(false);
                                         refreshClients();
                                      }}
@@ -980,11 +1008,63 @@ export default function Home() {
                            filteredClients.map((client: any) => (
                              <div key={client.id} className="bg-white p-4 rounded-[20px] border border-slate-100 shadow-[0_2px_10px_rgb(0,0,0,0.03)] text-left flex flex-col gap-3 group">
                                 <div className="flex justify-between items-center mb-1">
-                                  <h4 className="font-extrabold text-[#1E3A8A] text-[15px] cursor-pointer hover:text-corporate-purple transition-colors active:scale-95" onClick={() => setSelectedClient(client)}>{client.name}</h4>
+                                  <div>
+                                    <h4 className="font-extrabold text-[#1E3A8A] text-[15px] cursor-pointer hover:text-corporate-purple transition-colors active:scale-95 flex items-center gap-2" onClick={() => setSelectedClient(client)}>
+                                       {client.name}
+                                       <button 
+                                         onClick={(e) => {
+                                           e.stopPropagation();
+                                           setEditingClientId(editingClientId === client.id ? null : client.id);
+                                           setDraftEditClientName(client.name);
+                                           setDraftEditClientRegion(client.region || "");
+                                         }}
+                                         className="text-slate-300 hover:text-slate-500 transition-colors"
+                                       >
+                                         <Edit2 size={12} />
+                                       </button>
+                                    </h4>
+                                    {client.region && <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Región: {client.region}</p>}
+                                  </div>
                                   <button onClick={() => setOpenClientFormId(openClientFormId === client.id ? null : client.id)} className="bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-1.5 rounded-[8px] text-[10px] font-bold uppercase tracking-widest shadow-sm flex items-center gap-1 hover:bg-emerald-100 transition-colors">
                                      + {lang === 'es' ? 'Oportunidad' : 'Opportunity'}
                                   </button>
                                 </div>
+                                <AnimatePresence>
+                                   {editingClientId === client.id && (
+                                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden mb-2">
+                                         <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-col gap-2">
+                                            <input 
+                                              type="text" 
+                                              placeholder="Nombre"
+                                              className="w-full bg-white border border-slate-200 text-xs px-3 py-2 rounded-lg font-medium outline-none text-[#1E3A8A]"
+                                              value={draftEditClientName}
+                                              onChange={e => setDraftEditClientName(e.target.value)}
+                                            />
+                                            <input 
+                                              type="text" 
+                                              placeholder="Región"
+                                              className="w-full bg-white border border-slate-200 text-xs px-3 py-2 rounded-lg font-medium outline-none text-[#1E3A8A]"
+                                              value={draftEditClientRegion}
+                                              onChange={e => setDraftEditClientRegion(e.target.value)}
+                                            />
+                                            <button 
+                                              className="w-full bg-slate-700 hover:bg-slate-800 text-white py-1.5 rounded-lg font-bold uppercase text-[10px]"
+                                              onClick={async () => {
+                                                 if(!draftEditClientName) return;
+                                                 await updateClient(client.id, {
+                                                     name: draftEditClientName,
+                                                     region: draftEditClientRegion || undefined
+                                                 });
+                                                 setEditingClientId(null);
+                                                 refreshClients();
+                                              }}
+                                            >
+                                               Guardar Cambios
+                                            </button>
+                                         </div>
+                                      </motion.div>
+                                   )}
+                                </AnimatePresence>
                                 
                                 <AnimatePresence>
                                    {openClientFormId === client.id && (
@@ -1090,8 +1170,13 @@ export default function Home() {
           <Geographies geography="https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json">
             {({ geographies }) =>
               geographies.map((geo) => {
-                // Color base, pero si hacemos match podríamos pintarlo
-                const fill = "#E2E8F0";
+                let rname = geo.properties.name;
+                if (rname === "Brazil") rname = "Brasil";
+                if (rname === "Mexico") rname = "México";
+                if (rname === "Peru") rname = "Perú";
+                
+                const cData = activeCountriesMetrics.find(c => c.name === rname);
+                const fill = cData ? "#8b5cf6" : "#E2E8F0"; // Heatmap logic
                 
                 return (
                   <Geography
@@ -1129,11 +1214,8 @@ export default function Home() {
           {activeCountriesMetrics.map(({ name, coordinates, value, isActive }) => (
             <Marker key={name} coordinates={coordinates as [number, number]} onClick={() => setSelectedCountry(name)}>
               <g style={{ cursor: "pointer" }}>
-                <rect x="-24" y="-15" width="48" height="28" fill={isActive ? "#7C3AED" : "#ffffff"} fillOpacity="0.95" rx="6" stroke={isActive ? "#6D28D9" : "#cbd5e1"} strokeWidth={0.5 / autoZoom} className="drop-shadow-sm" />
-                <text textAnchor="middle" y="-3" style={{ fill: isActive ? "#ffffff" : "#64748b", opacity: isActive ? 0.9 : 1, fontSize: 5.5, fontWeight: "800", textTransform: "uppercase", letterSpacing: "0.5px", pointerEvents: "none" }}>
-                   {name}
-                </text>
-                <text textAnchor="middle" y={8.5} style={{ fill: isActive ? "#ffffff" : "#0f172a", fontSize: 9, fontWeight: "900", letterSpacing: "-0.2px", pointerEvents: "none" }}>
+                <rect x="-18" y="-10" width="36" height="20" fill={isActive ? "#7C3AED" : "#ffffff"} fillOpacity="0.95" rx="4" stroke={isActive ? "#6D28D9" : "#cbd5e1"} strokeWidth={0.5 / autoZoom} className="drop-shadow-sm" />
+                <text textAnchor="middle" y={3.5} style={{ fill: isActive ? "#ffffff" : "#0f172a", fontSize: 7, fontWeight: "900", letterSpacing: "-0.2px", pointerEvents: "none" }}>
                    {value}
                 </text>
               </g>
@@ -2644,7 +2726,7 @@ export default function Home() {
                )}
 
                {/* Botón flotante de Grabación Consciente del Contexto */}
-               <div className="absolute bottom-[90px] sm:bottom-[70px] right-6 z-20 flex flex-col items-end">
+               <div className="absolute bottom-6 right-6 z-20 flex flex-col items-end">
                   <div className="mb-2 w-max text-right">
                      <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full shadow-sm text-white border border-white/20 ${selectedOpportunity ? 'bg-amber-600' : 'bg-corporate-purple'}`}>
                         {selectedOpportunity ? 'Nota Oportunidad' : 'Nota Cliente'}
@@ -3188,15 +3270,61 @@ export default function Home() {
 
                   {/* Footer Actions */}
                   <div className="absolute bottom-0 left-0 w-full bg-white/95 backdrop-blur-md border-t border-slate-200 p-5 z-20 transition-all duration-300">
+                     <div className="flex gap-3 mb-3">
+                         <div className="flex-1">
+                             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Filtro de Desempeño</label>
+                             <input 
+                                 type="month" 
+                                 className="w-full border border-slate-200 bg-white rounded-xl px-3 py-2 text-xs font-bold text-[#1E3A8A] outline-none focus:border-corporate-purple shadow-sm"
+                                 value={reportMonthFilter}
+                                 onChange={e => setReportMonthFilter(e.target.value)}
+                             />
+                         </div>
+                         <div className="flex items-end">
+                             <button
+                                 onClick={() => setReportMonthFilter("")}
+                                 className="h-[34px] px-3 bg-slate-100 text-slate-500 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-slate-200 shadow-sm"
+                             >Todo</button>
+                         </div>
+                     </div>
                      <button 
                         id="generate-pdf-btn"
-                        onClick={() => {
+                        onClick={async () => {
                             const generatePDFBtn = document.getElementById("generate-pdf-btn");
                             const originalHTML = generatePDFBtn?.innerHTML || "";
                             if (generatePDFBtn) generatePDFBtn.innerText = "Generando Reporte Web...";
                             
                             try {
-                               // 1. Construir HTML Nativo
+                               // Snapshot Map
+                               let mapDataUrl = "";
+                               const mapNode = document.getElementById("heatmap-container");
+                               if (mapNode) {
+                                  mapDataUrl = await toPng(mapNode, { cacheBust: true, style: { background: '#F8FAFC' } });
+                               }
+
+                               // Calculate Monthly Stats
+                               const dateInReportMonth = (dateStr: string) => {
+                                  if (!dateStr || reportMonthFilter === "") return true;
+                                  return dateStr.substring(0, 7) === reportMonthFilter;
+                               };
+
+                               const monthOpps = opportunities.filter(o => 
+                                   (o.status === 'PROSPECTO' || o.status === 'COTIZADO') 
+                                       ? dateInReportMonth(o.createdAt?.toString() || "") 
+                                       : dateInReportMonth(o.statusUpdatedAt?.toString() || "")
+                               );
+
+                               const wonMonth = monthOpps.filter(o => o.status === 'GANADO').reduce((a,c)=>a+c.amountUsd,0);
+                               const lostMonth = monthOpps.filter(o => o.status === 'PERDIDO').reduce((a,c)=>a+c.amountUsd,0);
+                               const prospectMonth = monthOpps.filter(o => o.status === 'PROSPECTO').reduce((a,c)=>a+c.amountUsd,0);
+                               const quoteMonth = monthOpps.filter(o => o.status === 'COTIZADO').reduce((a,c)=>a+c.amountUsd,0);
+
+                               const yStr = reportMonthFilter === "" ? "" : reportMonthFilter.split('-')[0];
+                               const mStr = reportMonthFilter === "" ? "" : reportMonthFilter.split('-')[1];
+                               const monthsNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+                               const reportTitleDetail = reportMonthFilter === "" ? "HISTÓRICO COMPLETO" : `REPORTE: ${monthsNames[parseInt(mStr)-1]} ${yStr}`;
+
+                               // Construir HTML Nativo
                                      let html = `
                                         <!DOCTYPE html>
                                         <html lang="es">
@@ -3218,16 +3346,19 @@ export default function Home() {
                                                     .title { font-size: 24px !important; }
                                                     .header { flex-direction: column-reverse; align-items: flex-start !important; gap: 15px; }
                                                     .synthesis { flex-direction: column; gap: 15px; padding: 20px !important; }
-                                                    .synth-val1, .synth-val2 { font-size: 28px !important; text-align: left !important; }
                                                 }
                                                 .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 30px; }
                                                 .title { font-size: 32px; font-weight: 900; color: #1e3a8a; text-transform: uppercase; margin: 0; letter-spacing: -1px; }
                                                 .date { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 2px; margin-top: 5px; }
                                                 .logo { max-height: 50px; }
-                                                .synthesis { display: flex; justify-content: space-between; background: #f8fafc; padding: 25px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 40px; }
-                                                .synth-label { font-size: 11px; text-transform: uppercase; font-weight: 800; color: #94a3b8; letter-spacing: 2px; margin: 0 0 5px 0; }
-                                                .synth-val1 { font-size: 36px; font-weight: 900; color: #8b5cf6; margin: 0; }
-                                                .synth-val2 { font-size: 36px; font-weight: 900; color: #1e3a8a; margin: 0; text-align: right; }
+                                                .synthesis { display: flex; justify-content: flex-start; gap: 40px; background: #f8fafc; padding: 25px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 40px; text-align: left; flex-wrap: wrap; }
+                                                .synth-label { font-size: 10px; text-transform: uppercase; font-weight: 800; color: #94a3b8; letter-spacing: 2px; margin: 0 0 5px 0; }
+                                                .synth-val1 { font-size: 28px; font-weight: 900; color: #8b5cf6; margin: 0; }
+                                                .synth-val2 { font-size: 28px; font-weight: 900; color: #10b981; margin: 0; }
+                                                .synth-val3 { font-size: 28px; font-weight: 900; color: #3b82f6; margin: 0; }
+                                                .synth-val4 { font-size: 28px; font-weight: 900; color: #ef4444; margin: 0; }
+                                                .map-box { margin-bottom: 40px; border-radius: 12px; border: 1px solid #e2e8f0; padding: 15px; background: #f8fafc; }
+                                                .map-title { font-size: 11px; text-transform: uppercase; font-weight: 800; color: #64748b; letter-spacing: 2px; margin: 0 0 15px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
                                                 .section-title { font-size: 13px; font-weight: 900; color: #334155; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
                                                 .country-card { margin-bottom: 25px; page-break-inside: avoid; }
                                                 .country-header { display: flex; justify-content: space-between; align-items: center; background: #f1f5f9; padding: 12px 16px; border-radius: 8px 8px 0 0; border: 1px solid #e2e8f0; }
@@ -3239,7 +3370,8 @@ export default function Home() {
                                                 .client-name { font-size: 12px; font-weight: 900; color: #475569; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 10px 0; display: flex; align-items: center; gap: 8px; }
                                                 .dot { width: 6px; height: 6px; background: #94a3b8; border-radius: 50%; display: inline-block; }
                                                 .opp-list { margin: 0 0 0 3px; padding-left: 16px; border-left: 2px solid #f1f5f9; }
-                                                .opp-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; }
+                                                .opp-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #f1f5f9; }
+                                                .opp-item:last-child { border-bottom: none; }
                                                 .opp-title { font-size: 13px; font-weight: 600; color: #334155; margin: 0; }
                                                 .opp-amount { font-size: 13px; font-weight: 700; color: #059669; margin: 0; }
                                                 .footer { margin-top: 50px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center; }
@@ -3252,25 +3384,42 @@ export default function Home() {
                                                 <div class="header">
                                                     <div>
                                                         <h1 class="title">Informe de Gestión</h1>
-                                                        <p class="date">Corte al ${new Date().toLocaleDateString()}</p>
+                                                        <p class="date">${reportTitleDetail}</p>
                                                     </div>
                                                     ${clientLogo ? `<img src="${clientLogo}" class="logo" />` : ''}
                                                 </div>
+                                                
                                                 <div class="synthesis">
-                                                    <div>
-                                                        <p class="synth-label">Total Pipeline Latam</p>
-                                                        <p class="synth-val1">${formatCurrency(globalTotalUsd)}</p>
+                                                    <div style="flex-basis: 40%;">
+                                                        <p class="synth-label">Prospectado</p>
+                                                        <p class="synth-val1">${formatCurrency(prospectMonth)}</p>
                                                     </div>
-                                                    <div>
-                                                        <p class="synth-label">Proyectos Activos</p>
-                                                        <p class="synth-val2">${globalTotalProjects}</p>
+                                                    <div style="flex-basis: 40%;">
+                                                        <p class="synth-label">Cotizado</p>
+                                                        <p class="synth-val3">${formatCurrency(quoteMonth)}</p>
+                                                    </div>
+                                                    <div style="flex-basis: 40%;">
+                                                        <p class="synth-label">Ganado</p>
+                                                        <p class="synth-val2">${formatCurrency(wonMonth)}</p>
+                                                    </div>
+                                                    <div style="flex-basis: 40%;">
+                                                        <p class="synth-label">Perdido</p>
+                                                        <p class="synth-val4">${formatCurrency(lostMonth)}</p>
                                                     </div>
                                                 </div>
+
+                                                ${mapDataUrl ? `
+                                                <div class="map-box">
+                                                    <p class="map-title">Mapa de Calor Regional</p>
+                                                    <img src="${mapDataUrl}" style="width: 100%; height: auto; border-radius: 8px;" />
+                                                </div>
+                                                ` : ''}
+
                                                 <h2 class="section-title">Desglose por País y Cliente</h2>
                                      `;
                                      
                                      if(activeCountriesMetrics.length === 0) {
-                                         html += `<p style="text-align: center; color: #94a3b8; font-weight: bold; margin: 40px 0;">No hay proyectos reportados en el pipeline.</p>`;
+                                         html += `<p style="text-align: center; color: #94a3b8; font-weight: bold; margin: 40px 0;">No hay proyectos reportados en el pipeline activo.</p>`;
                                      } else {
                                          activeCountriesMetrics.forEach(c => {
                                              html += `
@@ -3318,7 +3467,7 @@ export default function Home() {
                                      
                                      html += `
                                                 <div class="footer">
-                                                    <p class="footer-title">Documento Confidencial V5 (HTML)</p>
+                                                    <p class="footer-title">Documento Confidencial V6 (HTML)</p>
                                                     <p class="footer-sub">Generado automáticamente - Sistema Easy Management CRM</p>
                                                 </div>
                                             </div>
