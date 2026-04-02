@@ -42,10 +42,10 @@ export default function Home() {
   // Login & Config states
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [userName, setUserName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [userName, setUserName] = useState('');
   const [authError, setAuthError] = useState('');
   const [isLoginMode, setIsLoginMode] = useState(false);
   const [isProUser, setIsProUser] = useState(false);
@@ -79,8 +79,8 @@ export default function Home() {
           if (data.user.logoUrl) setClientLogo(data.user.logoUrl);
           if (data.user.avatarUrl) setAvatarUrl(data.user.avatarUrl);
           if (data.user.isPro) setIsProUser(true);
-          if (data.user.email) setEmail(data.user.email);
           if (data.user.name) setUserName(data.user.name);
+          if (data.user.email) setEmail(data.user.email);
           
           if (data.user.logoUrl && data.user.avatarUrl && currentView === 'onboarding') {
              setCurrentView('dashboard');
@@ -237,13 +237,7 @@ export default function Home() {
   // Dashboard states
   const [activeTab, setActiveTab] = useState('oportunidades');
   const [showPipelineModal, setShowPipelineModal] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState<string | null>(() => {
-    if (typeof window !== 'undefined') {
-        const saved = localStorage.getItem('easy_selectedCountry');
-        return saved && saved !== '' ? saved : null;
-    }
-    return null;
-  });
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [regionalViewMode, setRegionalViewMode] = useState<'list' | 'map'>('list');
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   const [showActionModal, setShowActionModal] = useState(false);
@@ -275,6 +269,7 @@ export default function Home() {
 
   const [opportunities, setOpportunities] = useState<any[]>([]);
   const [draftOppTitle, setDraftOppTitle] = useState("");
+  
   useEffect(() => {
      if (selectedCountry) setIsOpeningMarket(false);
      if (selectedCountry !== null) {
@@ -283,11 +278,23 @@ export default function Home() {
          localStorage.setItem('easy_selectedCountry', '');
      }
   }, [selectedCountry]);
+  
+  useEffect(() => {
+     localStorage.setItem('easy_performanceScope', performanceScope);
+  }, [performanceScope]);
+  
+  useEffect(() => {
+     const savedCountry = localStorage.getItem('easy_selectedCountry');
+     if (savedCountry !== null) {
+         setSelectedCountry(savedCountry === '' ? null : savedCountry);
+     }
+     const savedScope = localStorage.getItem('easy_performanceScope');
+     if (savedScope !== null) {
+         setPerformanceScope(savedScope);
+     }
+  }, []);
 
   const [draftOppAmount, setDraftOppAmount] = useState("");
-
-  const [draftEditOppTitle, setDraftEditOppTitle] = useState("");
-  const [draftEditOppAmount, setDraftEditOppAmount] = useState("");
   
   const [clients, setClients] = useState<any[]>([]);
   const [showClientForm, setShowClientForm] = useState(false);
@@ -2202,7 +2209,7 @@ export default function Home() {
                 </div>
 
                 {/* FOOTER CREADOR DE ACTIVIDAD */}
-                <div className="fixed bottom-0 left-0 w-full bg-gradient-to-t from-white via-white/95 to-transparent pt-12 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-6 px-4 flex flex-col items-center pointer-events-none z-[100]">
+                <div className="absolute bottom-8 sm:bottom-6 left-0 w-full bg-gradient-to-t from-white via-white/95 to-transparent pt-12 pb-4 sm:pb-6 px-4 flex flex-col items-center pointer-events-none z-20">
                    <div className="pointer-events-auto flex items-end justify-center relative mb-2 gap-4">
                       
                       <motion.button 
@@ -2574,54 +2581,7 @@ export default function Home() {
 
                              {/* Detalle de Oportunidad (Cabecera) */}
                              <div className="bg-white p-4 sm:p-5 rounded-[20px] border border-slate-200 shadow-sm flex flex-col gap-3">
-                                {editingOppId === oppDetails.id ? (
-                                  <div className="flex flex-col gap-2">
-                                     <input 
-                                       type="text" 
-                                       value={draftEditOppTitle} 
-                                       onChange={e => setDraftEditOppTitle(e.target.value)}
-                                       className="w-full text-[13px] border-b border-slate-300 py-1 outline-none font-bold text-[#1E3A8A]"
-                                     />
-                                     <div className="flex items-center gap-2">
-                                        <span className="text-[12px] font-bold text-slate-400">USD</span>
-                                        <input 
-                                          type="number" 
-                                          value={draftEditOppAmount} 
-                                          onChange={e => setDraftEditOppAmount(e.target.value)}
-                                          className="w-full text-[13px] border-b border-slate-300 py-1 outline-none font-bold text-emerald-600"
-                                        />
-                                     </div>
-                                     <div className="flex gap-2 justify-end mt-2">
-                                        <button onClick={() => setEditingOppId(null)} className="text-[10px] uppercase font-bold px-3 py-1.5 bg-slate-100 text-slate-500 rounded-lg">Cancelar</button>
-                                        <button onClick={async () => {
-                                           setOpportunities(prev => prev.map(o => o.id === oppDetails.id ? {...o, title: draftEditOppTitle, amountUsd: Number(draftEditOppAmount)} : o));
-                                           setEditingOppId(null);
-                                           try { await updateOpportunityDetails(oppDetails.id, draftEditOppTitle, Number(draftEditOppAmount)); } catch(e){}
-                                        }} className="text-[10px] uppercase font-bold px-3 py-1.5 bg-[#1E3A8A] text-white rounded-lg">Guardar</button>
-                                     </div>
-                                  </div>
-                                ) : (
-                                  <>
-                                    <div className="flex justify-between items-start gap-2">
-                                      <h4 className="font-extrabold text-[#1E3A8A] text-[15px] sm:text-[16px] leading-tight">{oppDetails.title}</h4>
-                                      <div className="flex gap-1 shrink-0">
-                                         <button onClick={() => {
-                                            setDraftEditOppTitle(oppDetails.title);
-                                            setDraftEditOppAmount(oppDetails.amountUsd.toString());
-                                            setEditingOppId(oppDetails.id);
-                                         }} className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors">
-                                            <Edit2 size={14} />
-                                         </button>
-                                         <button onClick={async () => {
-                                            if (!confirm("¿Eliminar oportunidad? Esto borrará también el historial asociado.")) return;
-                                            setOpportunities(prev => prev.filter(o => o.id !== oppDetails.id));
-                                            setSelectedOpportunity(null);
-                                            try { await deleteOpportunity(oppDetails.id); } catch(e){}
-                                         }} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-                                            <Trash2 size={14} />
-                                         </button>
-                                      </div>
-                                    </div>
+                                <h4 className="font-extrabold text-[#1E3A8A] text-[15px] sm:text-[16px] leading-tight">{oppDetails.title}</h4>
                                 <div className="flex justify-between items-end">
                                    <div className="flex flex-col gap-2">
                                       <select 
@@ -2682,10 +2642,9 @@ export default function Home() {
                                    </div>
                                    <div className="text-right">
                                       <span className="text-[18px] sm:text-[20px] font-black text-emerald-600 leading-none">{formatCurrency(oppDetails.amountUsd || 0)}</span>
+                                      <div className="text-[10px] uppercase font-bold text-slate-400 mt-1">USD</div>
                                    </div>
                                 </div>
-                              </>
-                             )}
                              </div>
                            </div>
                         );
@@ -3448,7 +3407,7 @@ export default function Home() {
                                                 <div class="header">
                                                     <div>
                                                         <h1 class="title">Informe de Gestión</h1>
-                                                        <p class="date">${reportTitleDetail} <br/><span style="font-size: 7px; color: #94a3b8; letter-spacing: 1px; font-weight: 800;">GENERADO EL ${new Date().toLocaleDateString('es-CL')} POR ${userName.toUpperCase() || 'USUARIO'}${email ? ` (${email.toUpperCase()})` : ''}</span></p>
+                                                        <p class="date">${reportTitleDetail} <br/><span style="font-size: 7px; color: #94a3b8; letter-spacing: 1px; font-weight: 800;">GENERADO EL ${new Date().toLocaleDateString('es-CL')}</span></p>
                                                     </div>
                                                     ${clientLogo ? `<img src="${clientLogo}" class="logo" />` : ''}
                                                 </div>
@@ -3534,6 +3493,7 @@ export default function Home() {
                                                 <div class="footer">
                                                     <p class="footer-title">Documento Confidencial</p>
                                                     <p class="footer-sub">Generado automáticamente - por AT-SIT para Sistema: Easy Management AI</p>
+                                                    <p class="footer-sub" style="margin-top: 1px; color: #64748b;">Generado por: ${userName || 'Usuario Activo'} | ${email}</p>
                                                 </div>
                                             </div>
                                         </body>
