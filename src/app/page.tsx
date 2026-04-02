@@ -1013,19 +1013,19 @@ export default function Home() {
 
                        <div className="space-y-4">
                          {countryClients.length === 0 ? (
-                           <p className="text-[11px] text-slate-400 font-medium italic tracking-wide px-1">
+                           <p className="text-[10px] text-slate-400 font-medium italic tracking-wide px-1">
                              {lang === 'es' ? 'No hay clientes registrados en este país.' : 'No clients registered in this country.'}
                            </p>
                          ) : filteredClients.length === 0 ? (
-                           <p className="text-[11px] text-slate-400 font-medium italic tracking-wide px-1">
+                           <p className="text-[10px] text-slate-400 font-medium italic tracking-wide px-1">
                              {lang === 'es' ? `No hay clientes ${clientFilterMode.toLowerCase()}.` : `No ${clientFilterMode.toLowerCase()} clients.`}
                            </p>
                          ) : (
                            filteredClients.map((client: any) => (
-                             <div key={client.id} className="bg-white p-4 rounded-[20px] border border-slate-100 shadow-[0_2px_10px_rgb(0,0,0,0.03)] text-left flex flex-col gap-3 group">
-                                <div className="flex justify-between items-center mb-1">
+                             <div key={client.id} className="bg-white p-2.5 rounded-[14px] border border-slate-100 shadow-[0_2px_10px_rgb(0,0,0,0.03)] text-left flex flex-col gap-1.5 group">
+                                <div className="flex justify-between items-center mb-0.5">
                                   <div>
-                                    <h4 className="font-extrabold text-[#1E3A8A] text-[15px] cursor-pointer hover:text-corporate-purple transition-colors active:scale-95 flex items-center gap-2" onClick={() => setSelectedClient(client)}>
+                                    <h4 className="font-extrabold text-[#1E3A8A] text-[12px] cursor-pointer hover:text-corporate-purple transition-colors active:scale-95 flex items-center gap-1.5" onClick={() => setSelectedClient(client)}>
                                        {client.name}
                                        <button 
                                          onClick={(e) => {
@@ -1041,7 +1041,7 @@ export default function Home() {
                                     </h4>
                                     {client.region && <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Región: {client.region}</p>}
                                   </div>
-                                  <button onClick={() => setOpenClientFormId(openClientFormId === client.id ? null : client.id)} className="bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-1.5 rounded-[8px] text-[10px] font-bold uppercase tracking-widest shadow-sm flex items-center gap-1 hover:bg-emerald-100 transition-colors">
+                                  <button onClick={() => setOpenClientFormId(openClientFormId === client.id ? null : client.id)} className="bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-1 rounded-[6px] text-[9px] font-bold uppercase tracking-widest shadow-sm flex items-center gap-1 hover:bg-emerald-100 transition-colors">
                                      + {lang === 'es' ? 'Oportunidad' : 'Opportunity'}
                                   </button>
                                 </div>
@@ -1130,19 +1130,19 @@ export default function Home() {
                                 </AnimatePresence>
 
                                 {/* Lista de oportunidades */}
-                                <div className="flex flex-col gap-2 mt-2">
+                                <div className="flex flex-col gap-1.5 mt-1">
                                   {(() => {
                                       const clientOppsFiltered = opportunities.filter(o => o.clientId === client.id).filter(o => { if (activeTab === 'historial') { return o.status === (marketOppFilter === 'PERDIDOS' ? 'PERDIDO' : 'GANADO') && isDateInTimeframe(o.statusUpdatedAt, historialTimeframe); } else { return o.status === 'PROSPECTO' || o.status === 'COTIZADO'; } });
-                                      if (clientOppsFiltered.length === 0) return <p className="text-[10px] text-slate-400 font-medium italic">{lang === 'es' ? 'Sin oportunidades en esta vista.' : 'No opportunities in this view.'}</p>;
+                                      if (clientOppsFiltered.length === 0) return <p className="text-[9px] text-slate-400 font-medium italic">{lang === 'es' ? 'Sin oportunidades en esta vista.' : 'No opportunities in this view.'}</p>;
                                       return clientOppsFiltered.map(opp => (
-                                          <div key={opp.id} onClick={() => { setSelectedClient(client); setSelectedOpportunity({id: opp.id, title: opp.title, amount: opp.amountUsd.toString()}); }} className="bg-slate-50 p-3 rounded-[12px] border border-slate-200/60 transition-all hover:bg-slate-100 hover:border-corporate-purple/40 hover:shadow-md cursor-pointer active:scale-95">
-                                             <div className="flex justify-between items-start mb-2 pointer-events-none">
-                                                <span className="font-extrabold text-[#1E3A8A] text-[11px] leading-tight flex-1 pr-2">{opp.title}</span>
-                                                <span className="font-bold text-corporate-purple text-[12px]">{formatCurrency(opp.amountUsd)}</span>
+                                          <div key={opp.id} onClick={() => { setSelectedClient(client); setSelectedOpportunity({id: opp.id, title: opp.title, amount: opp.amountUsd.toString()}); }} className="bg-slate-50 p-2 rounded-[8px] border border-slate-200/60 transition-all hover:bg-slate-100 hover:border-corporate-purple/40 hover:shadow-md cursor-pointer active:scale-95">
+                                             <div className="flex justify-between items-start mb-1 pointer-events-none">
+                                                <span className="font-extrabold text-[#1E3A8A] text-[10px] leading-tight flex-1 pr-2">{opp.title}</span>
+                                                <span className="font-bold text-corporate-purple text-[11px]">{formatCurrency(opp.amountUsd)}</span>
                                              </div>
-                                             <div className="flex gap-1 bg-white p-1 rounded-full border border-slate-100 shadow-sm" onClick={e => e.stopPropagation()}>
+                                             <div className="flex gap-1 bg-white p-0.5 rounded-full border border-slate-100 shadow-sm" onClick={e => e.stopPropagation()}>
                                                {['PROSPECTO', 'COTIZADO', 'GANADO', 'PERDIDO'].map(status => (
-                                                  <div key={status} className={`flex-1 flex justify-center py-1 rounded-full transition-all text-[8px] sm:text-[9px] font-bold ${opp.status === status ? (status === 'GANADO' ? 'bg-emerald-500 text-white shadow-sm' : status === 'PERDIDO' ? 'bg-rose-500 text-white shadow-sm' : 'bg-[#1E3A8A] text-white shadow-sm') : 'text-slate-300'}`}>
+                                                  <div key={status} className={`flex-1 flex justify-center py-0.5 rounded-full transition-all text-[8px] font-bold ${opp.status === status ? (status === 'GANADO' ? 'bg-emerald-500 text-white shadow-sm' : status === 'PERDIDO' ? 'bg-rose-500 text-white shadow-sm' : 'bg-[#1E3A8A] text-white shadow-sm') : 'text-slate-300'}`}>
                                                      {status.substring(0,3)}
                                                   </div>
                                                ))}
