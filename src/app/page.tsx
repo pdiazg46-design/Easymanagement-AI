@@ -2156,6 +2156,82 @@ export default function Home() {
 
           </AnimatePresence>
 
+        {/* --- INVISIBLE A4 PDF PRINT REPORT --- */}
+        <div className="absolute top-[-20000px] left-[-20000px] z-[-1] pointer-events-none">
+           <div id="pdf-print-container" ref={reportRef} className="w-[800px] bg-white p-10 font-sans text-slate-800 flex flex-col gap-8 shadow-none" style={{ minHeight: '1123px' }}>
+              
+              {/* Header */}
+              <div className="flex justify-between items-center border-b-2 border-slate-200 pb-5">
+                 <div>
+                    <h1 className="text-3xl font-black text-[#1E3A8A] uppercase tracking-tight">Informe de Gestión</h1>
+                    <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mt-1">Corte al {new Date().toLocaleDateString()}</p>
+                 </div>
+                 {clientLogo && <img src={clientLogo} alt="Logo" className="max-h-12 object-contain" />}
+              </div>
+
+              {/* Global Synthesis */}
+              <div className="flex justify-between items-center bg-slate-50 p-6 rounded-lg border border-slate-200">
+                 <div>
+                    <p className="text-[11px] uppercase font-bold text-slate-400 tracking-widest mb-1">Total Pipeline Latam</p>
+                    <p className="text-4xl font-black text-corporate-purple">{formatCurrency(globalTotalUsd)}</p>
+                 </div>
+                 <div className="text-right">
+                    <p className="text-[11px] uppercase font-bold text-slate-400 tracking-widest mb-1">Proyectos Activos</p>
+                    <p className="text-4xl font-black text-[#1E3A8A]">{globalTotalProjects}</p>
+                 </div>
+              </div>
+
+              {/* Cascada de Entidades */}
+              <div className="flex-1 mt-4">
+                 <h2 className="text-[13px] font-black text-slate-700 uppercase tracking-widest mb-6 border-b border-slate-200 pb-2">Desglose por País y Cliente</h2>
+                 {activeCountriesMetrics.map(c => (
+                     <div key={c.name} className="mb-6 font-sans">
+                        <div className="flex justify-between items-center bg-slate-100 px-4 py-2.5 rounded-t-lg border border-slate-200">
+                           <span className="font-bold text-sm text-slate-800">{c.name}</span>
+                           <span className="font-black text-sm text-[#1E3A8A]">{formatCurrency(c.totalValueUsd)}</span>
+                        </div>
+                        <div className="border border-slate-200 border-t-0 rounded-b-lg p-5">
+                           {(() => {
+                               const groupedOpps = c.opps.reduce((acc: Record<string, any[]>, opp: any) => {
+                                  const clientName = opp.client?.name || "Sin Cliente";
+                                  if (!acc[clientName]) acc[clientName] = [];
+                                  acc[clientName].push(opp);
+                                  return acc;
+                               }, {});
+
+                               return Object.entries(groupedOpps).map(([clientName, opportunities]) => (
+                                  <div key={clientName} className="mb-5 last:mb-0">
+                                     <div className="text-[12px] font-black text-slate-600 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                        <div className="w-1.5 h-1.5 bg-slate-400 rounded-full"></div> {clientName}
+                                     </div>
+                                     <div className="flex flex-col gap-2 pl-4 border-l-2 border-slate-100 ml-[3px]">
+                                        {opportunities.map((opp: any) => (
+                                           <div key={opp.id} className="flex justify-between items-center py-1">
+                                              <span className="text-[13px] font-semibold text-slate-700 truncate pr-4">{opp.title}</span>
+                                              <span className="text-[13px] font-bold text-emerald-600 shrink-0">{formatCurrency(opp.amountUsd)}</span>
+                                           </div>
+                                        ))}
+                                     </div>
+                                  </div>
+                               ));
+                           })()}
+                        </div>
+                     </div>
+                 ))}
+                 
+                 {activeCountriesMetrics.length === 0 && (
+                     <p className="text-center text-slate-400 py-10 font-bold">No hay proyectos reportados en el pipeline.</p>
+                 )}
+              </div>
+
+              {/* Footer */}
+              <div className="mt-8 pt-6 border-t border-slate-200 text-center">
+                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Documento Confidencial V3 (PDF)</p>
+                 <p className="text-[9px] text-slate-400 mt-1">Generado automáticamente - Sistema Easy Management CRM</p>
+              </div>
+           </div>
+        </div>
+
         {/* MODALS GLOBALES DEL DASHBOARD */}
         <AnimatePresence>
           {showPipelineModal && currentView === 'dashboard' && (
@@ -3084,7 +3160,7 @@ export default function Home() {
 
                   {/* Contenido Informe */}
                   <div className="flex-1 overflow-y-auto w-full">
-                     <div ref={reportRef} className="px-6 py-6 pb-24 space-y-6 bg-[#F8FAFC]">
+                     <div className="px-6 py-6 pb-24 space-y-6 bg-[#F8FAFC]">
                      
                      {/* Tarjeta 1: Total Pipeline */}
                      <div className="bg-corporate-purple rounded-[24px] p-6 text-white shadow-lg relative overflow-hidden">
