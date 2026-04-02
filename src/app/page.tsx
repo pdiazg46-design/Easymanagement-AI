@@ -934,7 +934,8 @@ export default function Home() {
         return opps.some(o => o.status === 'PROSPECTO' || o.status === 'COTIZADO');
      };
 
-     const countryClients = clients.filter((c: any) => c.country === targetCountry);
+     const targetNormalized = targetCountry.trim().toLowerCase();
+     const countryClients = clients.filter((c: any) => (c.country || "").trim().toLowerCase() === targetNormalized);
      const filteredClients = countryClients.filter((c: any) => 
         clientFilterMode === 'ACTIVOS' ? clientIsActive(c.id) : !clientIsActive(c.id)
      );
