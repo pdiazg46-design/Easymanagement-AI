@@ -3355,49 +3355,39 @@ export default function Home() {
                                             <title>Informe de Gestión</title>
                                             <style>
                                                 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap');
-                                                body { font-family: 'Inter', sans-serif; margin: 0; padding: 40px; background: #f1f5f9; color: #1e293b; }
-                                                .page { max-width: 800px; margin: 0 auto; background: white; padding: 50px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); border-radius: 8px; }
-                                                @media print {
-                                                    body { background: white; padding: 0; }
-                                                    .page { box-shadow: none; padding: 0; max-width: 100%; border-radius: 0; }
-                                                }
-                                                @media (max-width: 600px) {
-                                                    body { padding: 15px; }
-                                                    .page { padding: 25px; }
-                                                    .title { font-size: 24px !important; }
-                                                    .header { flex-direction: column-reverse; align-items: flex-start !important; gap: 15px; }
-                                                    .synthesis { flex-direction: column; gap: 15px; padding: 20px !important; }
-                                                }
-                                                .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 30px; }
-                                                .title { font-size: 32px; font-weight: 900; color: #1e3a8a; text-transform: uppercase; margin: 0; letter-spacing: -1px; }
-                                                .date { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 2px; margin-top: 5px; }
-                                                .logo { max-height: 50px; }
-                                                .synthesis { display: flex; justify-content: flex-start; gap: 40px; background: #f8fafc; padding: 25px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 40px; text-align: left; flex-wrap: wrap; }
-                                                .synth-label { font-size: 10px; text-transform: uppercase; font-weight: 800; color: #94a3b8; letter-spacing: 2px; margin: 0 0 5px 0; }
-                                                .synth-val1 { font-size: 28px; font-weight: 900; color: #8b5cf6; margin: 0; }
-                                                .synth-val2 { font-size: 28px; font-weight: 900; color: #10b981; margin: 0; }
-                                                .synth-val3 { font-size: 28px; font-weight: 900; color: #3b82f6; margin: 0; }
-                                                .synth-val4 { font-size: 28px; font-weight: 900; color: #ef4444; margin: 0; }
-                                                .map-box { margin-bottom: 40px; border-radius: 12px; border: 1px solid #e2e8f0; padding: 15px; background: #f8fafc; }
-                                                .map-title { font-size: 11px; text-transform: uppercase; font-weight: 800; color: #64748b; letter-spacing: 2px; margin: 0 0 15px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
-                                                .section-title { font-size: 13px; font-weight: 900; color: #334155; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
-                                                .country-card { margin-bottom: 25px; page-break-inside: avoid; }
-                                                .country-header { display: flex; justify-content: space-between; align-items: center; background: #f1f5f9; padding: 12px 16px; border-radius: 8px 8px 0 0; border: 1px solid #e2e8f0; }
-                                                .country-name { font-weight: 700; font-size: 14px; color: #1e293b; margin: 0; }
-                                                .country-total { font-weight: 900; font-size: 14px; color: #1e3a8a; margin: 0; }
-                                                .country-body { border: 1px solid #e2e8f0; border-top: none; padding: 20px; border-radius: 0 0 8px 8px; }
-                                                .client-block { margin-bottom: 20px; }
+                                                body { font-family: 'Inter', sans-serif; margin: 0; padding: 12px; background: #0f172a; color: #f8fafc; }
+                                                .page { width: 100%; max-width: 480px; margin: 0 auto; background: #0f172a; padding: 0; box-shadow: none; border-radius: 0; }
+                                                .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid #1e293b; padding-bottom: 8px; margin-bottom: 10px; }
+                                                .title { font-size: 14px; font-weight: 900; color: #f8fafc; text-transform: uppercase; margin: 0; letter-spacing: -0.5px; }
+                                                .date { font-size: 8px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+                                                .logo { max-height: 20px; }
+                                                .synthesis { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #1e293b; padding: 10px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 10px; }
+                                                .synth-item { text-align: left; }
+                                                .synth-label { font-size: 7px; text-transform: uppercase; font-weight: 800; color: #cbd5e1; letter-spacing: 1px; margin: 0 0 2px 0; }
+                                                .synth-val1 { font-size: 14px; font-weight: 900; color: #a855f7; margin: 0; }
+                                                .synth-val2 { font-size: 14px; font-weight: 900; color: #10b981; margin: 0; }
+                                                .synth-val3 { font-size: 14px; font-weight: 900; color: #3b82f6; margin: 0; }
+                                                .synth-val4 { font-size: 14px; font-weight: 900; color: #ef4444; margin: 0; }
+                                                .map-box { margin-bottom: 10px; border-radius: 8px; border: 1px solid #334155; padding: 0; background: #1e293b; position: relative; overflow: hidden; }
+                                                .map-title { position: absolute; top:5px; left:8px; font-size: 7px; text-transform: uppercase; font-weight: 900; color: #f8fafc; z-index: 10; padding:2px 4px; background: rgba(0,0,0,0.5); border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); margin:0;}
+                                                .map-box img { width: 100%; height: auto; display: block; border-radius:0; }
+                                                .section-title { font-size: 9px; font-weight: 900; color: #cbd5e1; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; border-bottom: 1px solid #1e293b; padding-bottom: 4px; }
+                                                .country-card { margin-bottom: 8px; page-break-inside: avoid; }
+                                                .country-header { display: flex; justify-content: space-between; align-items: center; background: transparent; padding: 2px 0; border-bottom: 1px solid #1e293b; }
+                                                .country-name { font-weight: 800; font-size: 10px; color: #f8fafc; margin: 0; text-transform: uppercase; }
+                                                .country-total { font-weight: 900; font-size: 10px; color: #38bdf8; margin: 0; }
+                                                .country-body { padding: 4px 0; }
+                                                .client-block { margin-bottom: 8px; }
                                                 .client-block:last-child { margin-bottom: 0; }
-                                                .client-name { font-size: 12px; font-weight: 900; color: #475569; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 10px 0; display: flex; align-items: center; gap: 8px; }
-                                                .dot { width: 6px; height: 6px; background: #94a3b8; border-radius: 50%; display: inline-block; }
-                                                .opp-list { margin: 0 0 0 3px; padding-left: 16px; border-left: 2px solid #f1f5f9; }
-                                                .opp-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #f1f5f9; }
-                                                .opp-item:last-child { border-bottom: none; }
-                                                .opp-title { font-size: 13px; font-weight: 600; color: #334155; margin: 0; }
-                                                .opp-amount { font-size: 13px; font-weight: 700; color: #059669; margin: 0; }
-                                                .footer { margin-top: 50px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center; }
-                                                .footer-title { font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px; margin: 0; }
-                                                .footer-sub { font-size: 9px; color: #94a3b8; margin-top: 5px; }
+                                                .client-name { font-size: 8px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 4px 0; display: flex; align-items: center; gap: 4px; border-bottom: 1px dashed rgba(255,255,255,0.05); padding-bottom:2px;}
+                                                .dot { width: 4px; height: 4px; background: #a855f7; border-radius: 50%; display: inline-block; }
+                                                .opp-list { margin: 0; padding-left: 8px; }
+                                                .opp-item { display: flex; justify-content: space-between; align-items: center; padding: 2px 0; }
+                                                .opp-title { font-size: 8px; font-weight: 600; color: #cbd5e1; margin: 0; max-width: 70%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+                                                .opp-amount { font-size: 8px; font-weight: 800; color: #34d399; margin: 0; }
+                                                .footer { margin-top: 15px; padding-top: 10px; border-top: 1px dashed #334155; text-align: center; }
+                                                .footer-title { font-size: 7px; font-weight: 900; color: #475569; text-transform: uppercase; letter-spacing: 1px; margin: 0; }
+                                                .footer-sub { font-size: 6px; color: #334155; margin-top: 3px; font-weight: 600; text-transform: uppercase;}
                                             </style>
                                         </head>
                                         <body>
@@ -3405,25 +3395,25 @@ export default function Home() {
                                                 <div class="header">
                                                     <div>
                                                         <h1 class="title">Informe de Gestión</h1>
-                                                        <p class="date">${reportTitleDetail} <br/><span style="font-size: 9px; color: #94a3b8; letter-spacing: 1px; font-weight: 600;">GENERADO EL ${new Date().toLocaleDateString('es-CL')}</span></p>
+                                                        <p class="date">${reportTitleDetail} <br/><span style="font-size: 7px; color: #475569; letter-spacing: 1px; font-weight: 800;">GENERADO EL ${new Date().toLocaleDateString('es-CL')}</span></p>
                                                     </div>
                                                     ${clientLogo ? `<img src="${clientLogo}" class="logo" />` : ''}
                                                 </div>
                                                 
                                                 <div class="synthesis">
-                                                    <div style="flex-basis: 40%;">
+                                                    <div class="synth-item">
                                                         <p class="synth-label">Prospectado</p>
                                                         <p class="synth-val1">${formatCurrency(prospectMonth)}</p>
                                                     </div>
-                                                    <div style="flex-basis: 40%;">
+                                                    <div class="synth-item">
                                                         <p class="synth-label">Cotizado</p>
                                                         <p class="synth-val3">${formatCurrency(quoteMonth)}</p>
                                                     </div>
-                                                    <div style="flex-basis: 40%;">
+                                                    <div class="synth-item">
                                                         <p class="synth-label">Ganado</p>
                                                         <p class="synth-val2">${formatCurrency(wonMonth)}</p>
                                                     </div>
-                                                    <div style="flex-basis: 40%;">
+                                                    <div class="synth-item">
                                                         <p class="synth-label">Perdido</p>
                                                         <p class="synth-val4">${formatCurrency(lostMonth)}</p>
                                                     </div>
@@ -3431,16 +3421,16 @@ export default function Home() {
 
                                                 ${mapDataUrl ? `
                                                 <div class="map-box">
-                                                    <p class="map-title">Mapa de Calor Regional</p>
-                                                    <img src="${mapDataUrl}" style="width: 100%; height: auto; border-radius: 8px;" />
+                                                    <p class="map-title">Heatmap Regional</p>
+                                                    <img src="${mapDataUrl}" />
                                                 </div>
                                                 ` : ''}
 
-                                                <h2 class="section-title">Desglose por País y Cliente</h2>
+                                                <h2 class="section-title">Desglose de Operaciones</h2>
                                      `;
                                      
                                      if(pdfCountriesMetrics.length === 0) {
-                                         html += `<p style="text-align: center; color: #94a3b8; font-weight: bold; margin: 40px 0;">No hay proyectos reportados en el pipeline activo para este período.</p>`;
+                                         html += `<p style="text-align: center; font-size: 8px; color: #64748b; font-weight: bold; margin: 20px 0;">No hay proyectos activos para este período.</p>`;
                                      } else {
                                          pdfCountriesMetrics.forEach(c => {
                                              html += `
@@ -3488,8 +3478,8 @@ export default function Home() {
                                      
                                      html += `
                                                 <div class="footer">
-                                                    <p class="footer-title">Documento Confidencial V6 (HTML)</p>
-                                                    <p class="footer-sub">Generado automáticamente - Sistema Easy Management CRM</p>
+                                                    <p class="footer-title">Documento Confidencial</p>
+                                                    <p class="footer-sub">Generado automáticamente - por AT-SIT para Sistema: Easy Management AI</p>
                                                 </div>
                                             </div>
                                         </body>
