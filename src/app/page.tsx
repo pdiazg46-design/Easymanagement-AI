@@ -321,6 +321,7 @@ export default function Home() {
   const [userCurrency, setUserCurrency] = useState<'USD' | 'LOCAL'>('USD');
   const [selectedDayTasks, setSelectedDayTasks] = useState<any[]>([]);
   const [reportMonthFilter, setReportMonthFilter] = useState<string>((new Date()).toISOString().slice(0, 7));
+  const [generatedBlobUrl, setGeneratedBlobUrl] = useState<string | null>(null);
 
   // Function to format money globally
   const formatCurrency = (val: number | string) => {
@@ -3511,23 +3512,14 @@ export default function Home() {
                                         </html>
                                      `;
                                      
-                                     // 2. Generar Blob y abrir en Tab o Popup simulando celular
+                                     // 2. Generar Blob y abrir internamente o enviar a pestaña
                                      const blob = new Blob([html], { type: 'text/html' });
                                      const url = URL.createObjectURL(blob);
                                      
-                                     let openedInPopup = false;
                                      if (window.innerWidth > 768) {
-                                         const w = 450;
-                                         const h = 850;
-                                         const left = (window.screen.width / 2) - (w / 2);
-                                         const top = (window.screen.height / 2) - (h / 2);
-                                         const popup = window.open(url, "InformeGestion", `width=${w},height=${h},top=${top},left=${left},scrollbars=yes,resizable=yes`);
-                                         if (popup && !popup.closed) {
-                                             openedInPopup = true;
-                                         }
-                                     }
-
-                                     if (!openedInPopup) {
+                                         // En desktop/Web PWA lo forzamos dentro de un iframe interno para mantener proporción
+                                         setGeneratedBlobUrl(url);
+                                     } else {
                                          // Fallback y Modo Ancla Síncrona para Safari/iOS o vista Móvil
                                          const a = document.createElement('a');
                                          a.href = url;
@@ -3774,6 +3766,40 @@ export default function Home() {
                     </div>
                  </div>
                </motion.div>
+            </motion.div>
+          )}
+
+          {generatedBlobUrl && (
+            <motion.div 
+               initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 50 }}
+               className="absolute inset-0 z-[200] bg-white flex flex-col pt-[52px] pb-[72px] overflow-hidden"
+            >
+               <div className="absolute top-0 left-0 w-full px-4 py-3 bg-[#0f172a] border-b border-slate-800 flex justify-between items-center shadow-md z-10">
+                   <h2 className="text-white font-bold text-[11px] tracking-widest uppercase flex items-center gap-2">
+                       <FileText size={14} className="text-blue-400" /> Visor de Informe
+                   </h2>
+                   <button 
+                       onClick={() => setGeneratedBlobUrl(null)}
+                       className="bg-white/10 hover:bg-white/20 text-white p-1 rounded-full transition-colors active:scale-95"
+                   >
+                       <X size={16} />
+                   </button>
+               </div>
+               
+               <iframe 
+                   src={generatedBlobUrl} 
+                   className="w-full flex-1 border-0 bg-[#0B1120]" 
+                   title="Documento Generado" 
+               />
+               
+               <div className="absolute bottom-0 left-0 w-full p-4 bg-white border-t border-slate-100 shadow-[0_-10px_20px_rgba(0,0,0,0.03)] flex justify-center z-10">
+                   <button 
+                       onClick={() => setGeneratedBlobUrl(null)}
+                       className="w-full max-w-[280px] bg-white text-slate-700 font-bold tracking-widest text-[11px] uppercase py-3.5 rounded-[16px] shadow-sm border-2 border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all active:scale-95 flex items-center justify-center gap-2"
+                   >
+                       <ChevronLeft size={16} /> Cerrar y Volver
+                   </button>
+               </div>
             </motion.div>
           )}
 
