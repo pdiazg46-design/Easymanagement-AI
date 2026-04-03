@@ -3511,17 +3511,31 @@ export default function Home() {
                                         </html>
                                      `;
                                      
-                                     // 2. Generar Blob y abrir en Tab
+                                     // 2. Generar Blob y abrir en Tab o Popup simulando celular
                                      const blob = new Blob([html], { type: 'text/html' });
                                      const url = URL.createObjectURL(blob);
                                      
-                                     // Modo Ancla Síncrona para evitar Pop-up Blockers en Safari/iOS
-                                     const a = document.createElement('a');
-                                     a.href = url;
-                                     a.target = '_blank';
-                                     document.body.appendChild(a);
-                                     a.click();
-                                     document.body.removeChild(a);
+                                     let openedInPopup = false;
+                                     if (window.innerWidth > 768) {
+                                         const w = 450;
+                                         const h = 850;
+                                         const left = (window.screen.width / 2) - (w / 2);
+                                         const top = (window.screen.height / 2) - (h / 2);
+                                         const popup = window.open(url, "InformeGestion", `width=${w},height=${h},top=${top},left=${left},scrollbars=yes,resizable=yes`);
+                                         if (popup && !popup.closed) {
+                                             openedInPopup = true;
+                                         }
+                                     }
+
+                                     if (!openedInPopup) {
+                                         // Fallback y Modo Ancla Síncrona para Safari/iOS o vista Móvil
+                                         const a = document.createElement('a');
+                                         a.href = url;
+                                         a.target = '_blank';
+                                         document.body.appendChild(a);
+                                         a.click();
+                                         document.body.removeChild(a);
+                                     }
                                      
                                      if (generatePDFBtn) generatePDFBtn.innerHTML = originalHTML;
                                      
