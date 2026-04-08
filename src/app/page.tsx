@@ -2484,7 +2484,7 @@ export default function Home() {
                                                     const val = e.target.value.replace(/\D/g, "");
                                                     setInlineEditAmount(val ? parseInt(val, 10).toLocaleString("en-US") : "");
                                                  }} 
-                                                 className="w-full bg-slate-50 border border-slate-200 text-sm px-7 py-2.5 rounded-xl font-black text-emerald-600 outline-none focus:border-emerald-500/50 focus:bg-white tracking-widest"
+                                                 className={`w-full bg-slate-50 border border-slate-200 text-sm ${userCurrency === 'USD' ? 'pl-12' : 'pl-7'} pr-3 py-2.5 rounded-xl font-black text-emerald-600 outline-none focus:border-emerald-500/50 focus:bg-white tracking-widest`}
                                               />
                                            </div>
                                         </div>
