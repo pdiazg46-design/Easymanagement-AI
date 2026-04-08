@@ -585,7 +585,7 @@ export default function Home() {
     const lowerText = transcript.toLowerCase();
     
     // 1. Extraer el Compromiso (Lo que sigue)
-    let extractedAction = currentLang === 'es' ? "Acción registrada en terreno" : "Field recorded action";
+    let extractedAction = "";
     
     if (lowerText.includes("proyecto ganado") || lowerText.includes("ganamos el proyecto") || lowerText.includes("gané el proyecto") || lowerText.includes("ganamos el negocio")) {
        extractedAction = "Proyecto Ganado 🏆";
@@ -684,7 +684,7 @@ export default function Home() {
       
       if (field === 'activity') {
         setDraftActivity("");
-        setDraftAction(lang === 'es' ? "Acción registrada en terreno" : "Field recorded action");
+        setDraftAction("");
       } else {
         setDraftAction(lang === 'es' ? "Escuchando..." : "Listening...");
       }
@@ -2915,12 +2915,12 @@ export default function Home() {
                       {/* Campo Acción */}
                       <div>
                         <div className="flex justify-between items-center mb-2 pl-3 px-1">
-                           <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">{lang === 'es' ? 'Dicta un recordatorio para tu agenda' : 'Dictate a short reminder for agenda'}</label>
-                           <button onClick={(e) => { e.preventDefault(); handleMicClick('action'); }} className={`p-1.5 rounded-full shadow-sm transition-colors border outline-none active:scale-95 ${recordingField === 'action' ? 'bg-[#F59E0B] text-white  animate-pulse border-[#F59E0B]' : 'bg-white text-slate-400 border-slate-200 hover:text-[#F59E0B] hover:border-[#F59E0B]/30'}`}>
+                           <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">{lang === 'es' ? 'RECORDATORIO / ACCIÓN' : 'REMINDER / ACTION'}</label>
+                           <button onClick={(e) => { e.preventDefault(); handleMicClick('action'); }} className={`p-1.5 rounded-full shadow-sm transition-colors border outline-none active:scale-95 ${recordingField === 'action' ? 'bg-[#F59E0B] text-white border-[#F59E0B] scale-110' : 'bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/30 animate-pulse hover:bg-[#F59E0B]/20'}`}>
                                <Mic size={14} />
                            </button>
                         </div>
-                        <input type="text" value={draftAction} onChange={(e) => setDraftAction(e.target.value)} className={`w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-slate-700 font-bold focus:outline-none focus:ring-2 focus:ring-[#F59E0B]/50 text-sm shadow-inner transition-colors ${recordingField === 'action' ? 'border-[#F59E0B]' : 'border-slate-200'}`} />
+                        <input type="text" placeholder={lang === 'es' ? 'Dicta un recordatorio para tu agenda...' : 'Dictate a short reminder for agenda...'} value={draftAction} onChange={(e) => setDraftAction(e.target.value)} className={`w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-slate-700 font-bold focus:outline-none focus:ring-2 focus:ring-[#F59E0B]/50 text-sm shadow-inner transition-colors placeholder:font-normal placeholder:opacity-75 ${recordingField === 'action' ? 'border-[#F59E0B]' : 'border-slate-200'}`} />
                       </div>
                       
                       {/* Campo Fecha */}
