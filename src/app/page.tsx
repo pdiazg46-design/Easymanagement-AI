@@ -1378,12 +1378,14 @@ export default function Home() {
                   {isLoginMode ? (lang === 'es' ? 'INICIAR SESIÓN' : 'LOGIN') : (lang === 'es' ? 'COMENZAR' : 'START NOW')}
                 </motion.button>
 
+                {/* Acceso Biomátrico (Oculto temporalmente hasta implementar WebAuthn)
                 <div className="mt-8 flex flex-col items-center pb-6">
                   <span className="text-[10px] text-slate-400 font-medium uppercase tracking-widest mb-3">Acceso Biométrico Rápido</span>
                   <motion.div whileHover={{ scale: 1.05 }} className="w-16 h-16 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-corporate-purple cursor-pointer shadow-inner">
                     <Fingerprint size={32} strokeWidth={1.5} />
                   </motion.div>
                 </div>
+                */}
               </motion.div>
             )}
 
