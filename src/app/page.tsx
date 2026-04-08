@@ -2494,13 +2494,21 @@ export default function Home() {
                                         </div>
                                         <div className="flex items-end gap-1.5 pb-0.5 mt-[22px]">
                                            <button 
-                                              onClick={() => setEditingOppId(null)}
+                                              type="button"
+                                              onClick={(e) => {
+                                                 e.preventDefault();
+                                                 e.stopPropagation();
+                                                 setEditingOppId(null);
+                                              }}
                                               className="bg-slate-100 text-slate-500 border border-slate-200 px-3 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider hover:bg-slate-200 transition-colors flex items-center gap-1 shadow-sm"
                                            >
                                               <X size={14} /> Cancelar
                                            </button>
                                            <button 
-                                              onClick={async () => {
+                                              type="button"
+                                              onClick={async (e) => {
+                                                 e.preventDefault();
+                                                 e.stopPropagation();
                                                  const newAmt = parseInt(inlineEditAmount.replace(/\D/g, ""), 10);
                                                  if (!isNaN(newAmt) && inlineEditTitle.trim() !== '') {
                                                     setOpportunities(prev => prev.map(o => o.id === opp.id ? { ...o, title: inlineEditTitle, amountUsd: newAmt } : o));
@@ -2553,7 +2561,9 @@ export default function Home() {
                                        <span className="text-[17px] font-black text-emerald-600 leading-none">{formatCurrency(opp.amountUsd)}</span>
                                        <div className="flex items-center gap-1 mt-2">
                                            <button 
+                                              type="button"
                                               onClick={(e) => {
+                                                e.preventDefault();
                                                 e.stopPropagation();
                                                 setInlineEditTitle(opp.title);
                                                 setInlineEditAmount(opp.amountUsd.toLocaleString("en-US"));
@@ -2565,7 +2575,9 @@ export default function Home() {
                                               <Edit2 size={14} />
                                            </button>
                                            <button 
+                                              type="button"
                                               onClick={async (e) => {
+                                                e.preventDefault();
                                                 e.stopPropagation();
                                                 if (confirm(lang === 'es' ? '¿Eliminar permanentemente este proyecto y sus bitácoras?' : 'Permanently delete this project and its timeline?')) {
                                                   setOpportunities(prev => prev.filter(o => o.id !== opp.id));
