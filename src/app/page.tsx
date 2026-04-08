@@ -1259,7 +1259,7 @@ export default function Home() {
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, x: -50 }}
                 className="absolute inset-0 flex flex-col items-center px-8 bg-white overflow-y-auto no-scrollbar pt-12 pb-8"
               >
-                <button onClick={() => setLang(lang === 'es' ? 'en' : 'es')} className="absolute left-6 top-10 bg-slate-100 text-[#1E3A8A] px-3 py-1.5 rounded-full text-[10px] font-bold shadow-sm border border-slate-200 uppercase flex items-center gap-1 z-50">
+                <button onClick={() => setLang(lang === 'es' ? 'en' : 'es')} className="absolute right-6 top-6 bg-slate-100/80 hover:bg-slate-200 backdrop-blur-sm text-[#1E3A8A] px-3 py-1.5 rounded-full text-[10px] font-bold shadow-sm border border-slate-200 uppercase flex items-center gap-1 z-50 transition-colors">
                    🌐 {lang === 'es' ? 'ES' : 'EN'}
                 </button>
                 <div className="text-center w-full mb-8 mt-4">
