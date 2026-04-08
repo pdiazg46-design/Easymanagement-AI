@@ -506,6 +506,7 @@ export default function Home() {
   const finalTranscriptRef = useRef<string>('');
   const activeMicFieldRef = useRef<'activity' | 'action'>('activity');
   const isRecordingRef = useRef(false);
+  const accumulatedTranscriptRef = useRef<string>('');
   const [recordingField, setRecordingField] = useState<'activity' | 'action' | null>(null);
 
   // Inicializar Speech Recognition
@@ -553,10 +554,12 @@ export default function Home() {
           
           finalTranscriptRef.current = finalStr;
 
+          const fullText = accumulatedTranscriptRef.current + finalStr + interimStr;
+
           if (activeMicFieldRef.current === 'action') {
-             setDraftAction(finalStr + interimStr);
+             setDraftAction(fullText);
           } else {
-             setDraftActivity(finalStr + interimStr);
+             setDraftActivity(fullText);
           }
         };
 
@@ -566,6 +569,8 @@ export default function Home() {
         
         recognition.onend = () => {
           if (isRecordingRef.current) {
+            accumulatedTranscriptRef.current += finalTranscriptRef.current + ' ';
+            finalTranscriptRef.current = '';
             try { recognition.start(); } catch(e) {}
           }
         };
@@ -674,6 +679,7 @@ export default function Home() {
       setRecordingField(field);
       setIsRecording(true);
       isRecordingRef.current = true;
+      accumulatedTranscriptRef.current = '';
       finalTranscriptRef.current = '';
       
       if (field === 'activity') {
@@ -705,7 +711,7 @@ export default function Home() {
         if (activeMicFieldRef.current === 'activity') {
             setDraftActivity(prevActivity => {
                const finalAct = prevActivity.trim();
-               if (!finalAct && !finalTranscriptRef.current) {
+               if (!finalAct && !finalTranscriptRef.current && !accumulatedTranscriptRef.current) {
                   return lang === 'es' ? "No se detectó audio (Permiso denegado o micrófono apagado). Escribe manualmente." : "No audio detected. Please type manually.";
                }
                
