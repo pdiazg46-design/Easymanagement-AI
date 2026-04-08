@@ -35,13 +35,36 @@ export async function PUT(req: Request) {
       data: dataToUpdate
     });
 
-    // Aseguramos que el Logo del Mandante quede guardado de forma permanente a nivel Global en el Tenant
-    let firstTenant = await prisma.tenant.findFirst();
-    if (firstTenant && logoUrl) {
-       await prisma.tenant.update({
-          where: { id: firstTenant.id },
-          data: { logoUrl }
-       });
+    const currentUser = await prisma.user.findUnique({ where: { id: payload.id as string } });
+
+    // Aseguramos que el Logo del Mandante quede guardado de forma permanente a nivel Global en el Tenant vinculado
+    if (logoUrl) {
+       if (currentUser?.tenantId) {
+          await prisma.tenant.update({
+             where: { id: currentUser.tenantId },
+             data: { logoUrl }
+          });
+       } else {
+          let firstTenant = await prisma.tenant.findFirst();
+          if (firstTenant) {
+             await prisma.tenant.update({
+                where: { id: firstTenant.id },
+                data: { logoUrl }
+             });
+             await prisma.user.update({
+                where: { id: payload.id as string },
+                data: { tenantId: firstTenant.id }
+             });
+          } else {
+             const newTenant = await prisma.tenant.create({
+                data: { name: "Tenant Original", logoUrl }
+             });
+             await prisma.user.update({
+                where: { id: payload.id as string },
+                data: { tenantId: newTenant.id }
+             });
+          }
+       }
     }
 
     return NextResponse.json({ message: "Perfil actualizado correctamente", user: updatedUser });
