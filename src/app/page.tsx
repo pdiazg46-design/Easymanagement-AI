@@ -505,6 +505,7 @@ export default function Home() {
   const recognitionRef = useRef<any>(null);
   const finalTranscriptRef = useRef<string>('');
   const activeMicFieldRef = useRef<'activity' | 'action'>('activity');
+  const isRecordingRef = useRef(false);
   const [recordingField, setRecordingField] = useState<'activity' | 'action' | null>(null);
 
   // Inicializar Speech Recognition
@@ -561,6 +562,12 @@ export default function Home() {
 
         recognition.onerror = (event: any) => {
           console.error("Mic error:", event.error);
+        };
+        
+        recognition.onend = () => {
+          if (isRecordingRef.current) {
+            try { recognition.start(); } catch(e) {}
+          }
         };
         
         recognitionRef.current = recognition;
@@ -658,13 +665,15 @@ export default function Home() {
     return { action: extractedAction, date: extractedDate };
   };
 
-  const handleMicClick = (field: 'activity' | 'action' = 'activity') => {
+  const handleMicClick = (fieldInput?: 'activity' | 'action' | any) => {
+    const field: 'activity' | 'action' = (fieldInput === 'action') ? 'action' : 'activity';
     setEditingTask(null);
     
     if (!isRecording) {
       activeMicFieldRef.current = field;
       setRecordingField(field);
       setIsRecording(true);
+      isRecordingRef.current = true;
       finalTranscriptRef.current = '';
       
       if (field === 'activity') {
@@ -680,6 +689,7 @@ export default function Home() {
       }
     } else {
       setIsRecording(false);
+      isRecordingRef.current = false;
       setRecordingField(null);
       setIsProcessingVoice(true);
       
