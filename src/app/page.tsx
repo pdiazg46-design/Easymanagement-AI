@@ -2915,7 +2915,7 @@ export default function Home() {
                       {/* Campo Acción */}
                       <div>
                         <div className="flex justify-between items-center mb-2 pl-3 px-1">
-                           <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">{lang === 'es' ? '¿Qué sigue?' : 'What\'s next?'}</label>
+                           <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">{lang === 'es' ? 'Dicta un recordatorio para tu agenda' : 'Dictate a short reminder for agenda'}</label>
                            <button onClick={(e) => { e.preventDefault(); handleMicClick('action'); }} className={`p-1.5 rounded-full shadow-sm transition-colors border outline-none active:scale-95 ${recordingField === 'action' ? 'bg-[#F59E0B] text-white  animate-pulse border-[#F59E0B]' : 'bg-white text-slate-400 border-slate-200 hover:text-[#F59E0B] hover:border-[#F59E0B]/30'}`}>
                                <Mic size={14} />
                            </button>
