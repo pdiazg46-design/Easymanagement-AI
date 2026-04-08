@@ -313,6 +313,7 @@ export default function Home() {
   const [adminUsers, setAdminUsers] = useState<any[]>([]);
   const [editingOppId, setEditingOppId] = useState<string | null>(null);
   const [inlineEditTitle, setInlineEditTitle] = useState("");
+  const [inlineEditAmount, setInlineEditAmount] = useState("");
   const [showMobilePanel, setShowMobilePanel] = useState(false);
   const [clientFilterMode, setClientFilterMode] = useState<'ACTIVOS' | 'INACTIVOS'>('ACTIVOS');
   const [showQRModal, setShowQRModal] = useState(false);
