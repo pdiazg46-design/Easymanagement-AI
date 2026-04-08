@@ -2455,12 +2455,7 @@ export default function Home() {
                            return activeOpps.map(opp => (
                              <div 
                                 key={opp.id} 
-                                onClick={() => {
-                                   if (editingOppId !== opp.id) {
-                                      setSelectedOpportunity({id: opp.id, title: opp.title, amount: opp.amountUsd.toString()});
-                                   }
-                                }}
-                                className={`bg-white p-3.5 rounded-2xl border shadow-sm transition-all ${editingOppId === opp.id ? 'border-corporate-purple/60 shadow-md ring-2 ring-corporate-purple/10' : 'border-slate-200 flex justify-between items-center cursor-pointer hover:border-corporate-purple/40 hover:shadow-md active:scale-[0.98]'}`}
+                                className={`bg-white p-3.5 rounded-2xl border shadow-sm transition-all ${editingOppId === opp.id ? 'border-corporate-purple/60 shadow-md ring-2 ring-corporate-purple/10' : 'border-slate-200 flex justify-between items-center hover:border-corporate-purple/40 hover:shadow-md'}`}
                              >
                                 {editingOppId === opp.id ? (
                                   <div className="flex flex-col w-full gap-3 cursor-default" onClick={e => e.stopPropagation()}>
@@ -2525,7 +2520,10 @@ export default function Home() {
                                   </div>
                                 ) : (
                                   <>
-                                    <div>
+                                    <div 
+                                        className="flex-1 cursor-pointer active:scale-[0.98] transition-transform" 
+                                        onClick={() => setSelectedOpportunity({id: opp.id, title: opp.title, amount: opp.amountUsd.toString()})}
+                                    >
                                        <h4 className="font-extrabold text-[#1E3A8A] text-[15px] mb-1.5">{opp.title}</h4>
                                        <div className="flex items-center gap-2">
                                           {/* Status Selector */}
@@ -2558,7 +2556,7 @@ export default function Home() {
                                        </div>
                                     </div>
                                     <div className="text-right shrink-0 flex flex-col items-end gap-1">
-                                       <span className="text-[17px] font-black text-emerald-600 leading-none">{formatCurrency(opp.amountUsd)}</span>
+                                       <span onClick={() => setSelectedOpportunity({id: opp.id, title: opp.title, amount: opp.amountUsd.toString()})} className="text-[17px] font-black text-emerald-600 leading-none cursor-pointer active:scale-[0.98] transition-transform">{formatCurrency(opp.amountUsd)}</span>
                                        <div className="flex items-center gap-1 mt-2">
                                            <button 
                                               type="button"
