@@ -2551,8 +2551,7 @@ export default function Home() {
                                     </div>
                                     <div className="text-right shrink-0 flex flex-col items-end gap-1">
                                        <span className="text-[17px] font-black text-emerald-600 leading-none">{formatCurrency(opp.amountUsd)}</span>
-                                       {opp.status === 'PROSPECTO' && (
-                                         <div className="flex items-center gap-1 mt-1">
+                                       <div className="flex items-center gap-1 mt-2">
                                            <button 
                                               onClick={(e) => {
                                                 e.stopPropagation();
@@ -2560,10 +2559,10 @@ export default function Home() {
                                                 setInlineEditAmount(opp.amountUsd.toLocaleString("en-US"));
                                                 setEditingOppId(opp.id);
                                               }}
-                                              className="p-1 px-1.5 text-slate-300 hover:text-blue-500 bg-slate-50 hover:bg-blue-50 border border-transparent hover:border-blue-100 rounded transition-colors"
+                                              className="flex items-center justify-center p-1.5 px-2 text-blue-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 rounded-md transition-colors shadow-sm"
                                               title={lang === 'es' ? 'Editar Oportunidad' : 'Edit Opportunity'}
                                            >
-                                              <Edit2 size={13} />
+                                              <Edit2 size={14} />
                                            </button>
                                            <button 
                                               onClick={async (e) => {
@@ -2573,13 +2572,12 @@ export default function Home() {
                                                   try { await deleteOpportunity(opp.id); } catch(err){ console.error(err) }
                                                 }
                                               }}
-                                              className="p-1 px-1.5 text-slate-300 hover:text-red-500 bg-slate-50 hover:bg-red-50 border border-transparent hover:border-red-100 rounded transition-colors"
+                                              className="flex items-center justify-center p-1.5 px-2 text-red-600 bg-red-50 hover:bg-red-100 hover:text-red-700 rounded-md transition-colors shadow-sm"
                                               title={lang === 'es' ? 'Eliminar Oportunidad' : 'Delete Opportunity'}
                                            >
-                                              <Trash2 size={13} />
+                                              <Trash2 size={14} />
                                            </button>
-                                         </div>
-                                       )}
+                                        </div>
                                     </div>
                                   </>
                                 )}
@@ -2670,7 +2668,6 @@ export default function Home() {
                                    </div>
                                    <div className="text-right">
                                       <span className="text-[18px] sm:text-[20px] font-black text-emerald-600 leading-none">{formatCurrency(oppDetails.amountUsd || 0)}</span>
-                                      <div className="text-[10px] uppercase font-bold text-slate-400 mt-1">USD</div>
                                    </div>
                                 </div>
                              </div>
