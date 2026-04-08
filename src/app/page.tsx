@@ -1050,7 +1050,7 @@ export default function Home() {
                                 <AnimatePresence>
                                    {editingClientId === client.id && (
                                       <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden mb-2">
-                                         <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-col gap-2">
+                                         <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-col gap-2" onClick={e => e.stopPropagation()}>
                                             <input 
                                               type="text" 
                                               placeholder="Nombre"
@@ -1088,7 +1088,7 @@ export default function Home() {
                                 <AnimatePresence>
                                    {openClientFormId === client.id && (
                                       <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden mb-2">
-                                         <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-col gap-2">
+                                         <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-col gap-2" onClick={e => e.stopPropagation()}>
                                             <input 
                                               type="text" 
                                               placeholder={lang === 'es' ? 'Título (Ej. Servidores)' : 'Title (E.g. Servers)'}
@@ -1101,7 +1101,7 @@ export default function Home() {
                                               <input 
                                                 type="text" 
                                                 placeholder={lang === 'es' ? 'Monto' : 'Amount'}
-                                                className="w-full bg-white border border-slate-200 text-xs px-6 py-2 rounded-lg font-medium outline-none text-[#1E3A8A]"
+                                                className={`w-full bg-white border border-slate-200 text-xs py-2 rounded-lg font-medium outline-none text-[#1E3A8A] ${userCurrency === 'USD' ? 'pl-9 pr-3' : 'px-6'}`}
                                                 value={draftOppAmount}
                                                 onFocus={e => e.target.select()}
                                                 onChange={e => {
