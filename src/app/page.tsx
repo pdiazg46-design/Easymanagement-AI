@@ -2941,21 +2941,42 @@ export default function Home() {
                  {(() => {
                     const draftLower = draftActivity.toLowerCase();
                     const ragMatches = [];
-                    if (draftLower.includes('impresora') || draftLower.includes('barcode') || draftLower.includes('codigo de barra') || draftLower.includes('código de barra')) {
-                       ragMatches.push({ name: 'Bartech BTP-R580II (Térmica POS)', price: 245.00, stock: 'Stock Local' });
-                       ragMatches.push({ name: 'Bartech BTP-2300E (Industrial)', price: 680.00, stock: 'Bajo Pedido' });
-                    }
-                    if (draftLower.includes('lector') || draftLower.includes('scanner')) {
-                       ragMatches.push({ name: 'Lector Omnidireccional Bartech BS-7120', price: 115.00, stock: 'Stock Local' });
-                    }
-                    if (draftLower.includes('kiosco') || draftLower.includes('autoatención') || draftLower.includes('pantalla') || draftLower.includes('multipropósito')) {
-                       ragMatches.push({ name: 'Kiosco Interactivo Bartech 32" (Pared)', price: 1250.00, stock: 'Bajo Pedido' });
-                       ragMatches.push({ name: 'Kiosco Multipropósito 21" (Pedestal)', price: 850.00, stock: 'Stock Local' });
-                       ragMatches.push({ name: 'Kiosco Pago Autoservicio 15"', price: 1100.00, stock: 'Limitado' });
-                       ragMatches.push({ name: 'Kiosco Outdoor 43" (Antivandálico)', price: 2150.00, stock: 'Bajo Pedido' });
-                    }
-                    if (draftLower.includes('gaveta') || draftLower.includes('dinero') || draftLower.includes('pos')) {
-                       ragMatches.push({ name: 'Terminal POS Bartech All-In-One 15"', price: 850.00, stock: 'Limitado' });
+                    const isHubbell = clientWebsite.toLowerCase().includes('hubbell');
+
+                    if (isHubbell) {
+                       // Hubbell Knowledge Base
+                       if (draftLower.includes('sensor') || draftLower.includes('ocupación') || draftLower.includes('ocupacion') || draftLower.includes('movimiento') || draftLower.includes('ahorro')) {
+                           ragMatches.push({ name: 'Hubbell LightHAWK Occupancy Sensor', price: 85.00, stock: 'Stock Local' });
+                       }
+                       if (draftLower.includes('enchufe') || draftLower.includes('trifásico') || draftLower.includes('trifasico') || draftLower.includes('industrial') || draftLower.includes('conector')) {
+                           ragMatches.push({ name: 'Hubbell Twist-Lock Receptacle 30A', price: 45.00, stock: 'Stock Local' });
+                           ragMatches.push({ name: 'Hubbell Insulgrip Heavy Duty Plug', price: 28.00, stock: 'Limitado' });
+                       }
+                       if (draftLower.includes('cables') || draftLower.includes('canalización') || draftLower.includes('canalizacion') || draftLower.includes('tablero') || draftLower.includes('rack')) {
+                           ragMatches.push({ name: 'Hubbell Wiring Device-Kellems Mesh Grip', price: 110.00, stock: 'Bajo Pedido' });
+                           ragMatches.push({ name: 'Hubbell Premise Wiring Patch Panel', price: 220.00, stock: 'Stock Local' });
+                       }
+                       if (draftLower.includes('iluminación') || draftLower.includes('iluminacion') || draftLower.includes('luz') || draftLower.includes('foco') || draftLower.includes('galpón')) {
+                           ragMatches.push({ name: 'Hubbell Industrial High Bay LED', price: 345.00, stock: 'Bajo Pedido' });
+                       }
+                    } else {
+                       // Bartech (Fallback) Knowledge Base
+                       if (draftLower.includes('impresora') || draftLower.includes('barcode') || draftLower.includes('codigo de barra') || draftLower.includes('código de barra')) {
+                          ragMatches.push({ name: 'Bartech BTP-R580II (Térmica POS)', price: 245.00, stock: 'Stock Local' });
+                          ragMatches.push({ name: 'Bartech BTP-2300E (Industrial)', price: 680.00, stock: 'Bajo Pedido' });
+                       }
+                       if (draftLower.includes('lector') || draftLower.includes('scanner')) {
+                          ragMatches.push({ name: 'Lector Omnidireccional Bartech BS-7120', price: 115.00, stock: 'Stock Local' });
+                       }
+                       if (draftLower.includes('kiosco') || draftLower.includes('autoatención') || draftLower.includes('pantalla') || draftLower.includes('multipropósito')) {
+                          ragMatches.push({ name: 'Kiosco Interactivo Bartech 32" (Pared)', price: 1250.00, stock: 'Bajo Pedido' });
+                          ragMatches.push({ name: 'Kiosco Multipropósito 21" (Pedestal)', price: 850.00, stock: 'Stock Local' });
+                          ragMatches.push({ name: 'Kiosco Pago Autoservicio 15"', price: 1100.00, stock: 'Limitado' });
+                          ragMatches.push({ name: 'Kiosco Outdoor 43" (Antivandálico)', price: 2150.00, stock: 'Bajo Pedido' });
+                       }
+                       if (draftLower.includes('gaveta') || draftLower.includes('dinero') || draftLower.includes('pos')) {
+                          ragMatches.push({ name: 'Terminal POS Bartech All-In-One 15"', price: 850.00, stock: 'Limitado' });
+                       }
                     }
 
                     if (ragMatches.length === 0) return null;
