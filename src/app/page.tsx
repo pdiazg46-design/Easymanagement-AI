@@ -2920,7 +2920,7 @@ export default function Home() {
                                <Mic size={14} />
                            </button>
                         </div>
-                        <input type="text" placeholder={lang === 'es' ? 'Dicta un recordatorio para tu agenda...' : 'Dictate a short reminder for agenda...'} value={draftAction} onChange={(e) => setDraftAction(e.target.value)} className={`w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-slate-700 font-bold focus:outline-none focus:ring-2 focus:ring-[#F59E0B]/50 text-sm shadow-inner transition-colors placeholder:font-normal placeholder:opacity-75 ${recordingField === 'action' ? 'border-[#F59E0B]' : 'border-slate-200'}`} />
+                        <input type="text" placeholder={lang === 'es' ? 'Dicta un recordatorio...' : 'Dictate a short reminder...'} value={draftAction} onChange={(e) => setDraftAction(e.target.value)} className={`w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-slate-700 font-bold focus:outline-none focus:ring-2 focus:ring-[#F59E0B]/50 text-sm shadow-inner transition-colors placeholder:font-normal placeholder:opacity-75 ${recordingField === 'action' ? 'border-[#F59E0B]' : 'border-slate-200'}`} />
                       </div>
                       
                       {/* Campo Fecha */}
