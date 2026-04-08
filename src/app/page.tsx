@@ -1575,7 +1575,9 @@ export default function Home() {
                         </label>
                      </div>
 
-<div className="mt-8 mb-6 w-full flex flex-col justify-end gap-3 shrink-0">
+                  </div>
+
+                  <div className="mt-8 mb-6 w-full flex flex-col justify-end gap-3 shrink-0">
                     <motion.button 
                       whileTap={{ scale: 0.95 }}
                       onClick={async () => {
