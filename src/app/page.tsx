@@ -1495,89 +1495,136 @@ export default function Home() {
                          </div>
                        </div>
                     </div>
-
 
-                 
-                     {/* LISTA DE PRECIOS PERSONALIZADA POR USUARIO (RAG) */}
-                     <div className="space-y-2 mt-4 pt-4 border-t border-slate-100">
-                        <div className="flex justify-between items-center ml-2 mb-2">
-                          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                            <UploadCloud size={14}/> {lang === 'es' ? 'Mi Lista de Precios' : 'My Price List'}
-                          </label>
-                          <span className="bg-corporate-purple/10 text-corporate-purple text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest">RAG</span>
-                        </div>
-                        <p className="text-xs font-medium text-slate-500 px-2 leading-relaxed mb-3">
-                          {lang === 'es'
-                            ? 'Sube tu catálogo propio (CSV). El motor lo usará para sugerir productos mientras dictás tus bitácoras. Si subís uno nuevo, reemplaza al anterior.'
-                            : 'Upload your own catalog (CSV). The engine suggests products while you dictate logs. Uploading a new one replaces the previous.'}
-                        </p>
+                    <div className="space-y-2">
+                       <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-2">{lang === 'es' ? 'Logo Corporativo' : 'Corporate Logo'}</label>
+                       <label className="border-2 border-dashed border-slate-200 bg-slate-50 rounded-3xl p-6 flex flex-col items-center justify-center text-slate-400 cursor-pointer hover:bg-slate-100 transition-colors relative overflow-hidden group h-36">
+                          <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+                          {clientLogo ? (
+                             <>
+                               <img src={clientLogo} alt="Logo Mandante" className="h-full w-full object-contain" />
+                               <div className="absolute inset-0 bg-slate-900/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Edit2 size={24} className="text-white mb-2" />
+                                  <span className="text-xs font-bold text-white uppercase tracking-wider">{lang === 'es' ? 'Cambiar Logo' : 'Change Logo'}</span>
+                               </div>
+                             </>
+                          ) : (
+                             <>
+                                <UploadCloud size={36} className="mb-3 text-slate-300 group-hover:text-corporate-purple transition-colors" />
+                                <span className="text-sm font-semibold text-slate-600 mb-1">{lang === 'es' ? 'Subir Imagen' : 'Upload Image'}</span>
+                                <span className="text-xs font-medium text-slate-400">{lang === 'es' ? 'PNG o JPG (Max 2MB)' : 'PNG or JPG (Max 2MB)'}</span>
+                             </>
+                          )}
+                       </label>
+                    </div>
 
-                        <label className="border-2 border-dashed border-corporate-purple/30 bg-corporate-purple/5 rounded-2xl p-4 flex items-center justify-center gap-3 cursor-pointer hover:bg-corporate-purple/10 transition-colors">
-                           <input
-                             type="file"
-                             accept=".csv"
-                             className="hidden"
-                             onChange={(e) => {
-                               if (!e.target.files || e.target.files.length === 0) return;
-                               const file = e.target.files[0];
-                               const reader = new FileReader();
-                               reader.onload = (evt) => {
-                                 try {
-                                   const text = (evt.target?.result || '') as string;
-                                   const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
-                                   if (lines.length < 2) {
-                                     alert(lang === 'es' ? 'El archivo no tiene datos.' : 'File has no data.');
-                                     return;
-                                   }
-                                   const sep = lines[0].includes(';') ? ';' : lines[0].includes('\t') ? '\t' : ',';
-                                   const headers = lines[0].split(sep).map(h => h.trim().toLowerCase().replace(/"/g, ''));
-                                   const nameIdx = headers.findIndex(h => ['nombre','name','producto','product','descripcion','description','item'].includes(h));
-                                   const priceIdx = headers.findIndex(h => ['precio','price','valor','value','monto','amount','costo','cost'].includes(h));
-                                   const stockIdx = headers.findIndex(h => ['stock','disponibilidad','availability','estado','status'].includes(h));
-                                   if (nameIdx === -1 || priceIdx === -1) {
-                                     alert((lang === 'es' ? 'Columnas no reconocidas. Usa: "nombre" y "precio". Encontradas: ' : 'Columns not found. Use: "nombre" and "precio". Found: ') + headers.join(', '));
-                                     return;
-                                   }
-                                   const catalog = lines.slice(1).map(line => {
-                                     const cols = line.split(sep).map(c => c.trim().replace(/"/g, ''));
-                                     const rawPrice = (cols[priceIdx] || '0').replace(/[^\d.,]/g, '').replace(',', '.');
-                                     return {
-                                       name: cols[nameIdx] || '',
-                                       price: parseFloat(rawPrice) || 0,
-                                       stock: stockIdx >= 0 ? (cols[stockIdx] || 'Disponible') : 'Disponible'
-                                     };
-                                   }).filter(item => item.name.length > 1 && item.price > 0);
-                                   if (catalog.length === 0) {
-                                     alert(lang === 'es' ? 'No se encontraron productos válidos.' : 'No valid products found.');
-                                     return;
-                                   }
-                                   const key = 'easy_ragCatalog_' + (email || 'user');
-                                   localStorage.setItem(key, JSON.stringify(catalog));
-                                   alert((lang === 'es' ? '\u2705 ' + catalog.length + ' productos cargados. Activos en tus bitácoras.' : '\u2705 ' + catalog.length + ' products loaded. Active in your logs.'));
-                                   e.target.value = '';
-                                 } catch (err) {
-                                   console.error(err);
-                                   alert(lang === 'es' ? 'Error al procesar el archivo CSV.' : 'Error processing CSV file.');
-                                 }
-                               };
-                               reader.readAsText(file, 'UTF-8');
-                             }}
-                           />
-                           <UploadCloud size={22} className="text-corporate-purple shrink-0" />
-                           <div className="flex flex-col">
-                             <span className="text-sm font-bold text-corporate-purple">
-                               {lang === 'es' ? 'Subir lista de precios (.CSV)' : 'Upload price list (.CSV)'}
-                             </span>
-                             <span className="text-[10px] text-slate-400 font-medium">
-                               {lang === 'es' ? 'Columnas: nombre, precio, stock' : 'Columns: name, price, stock'}
-                             </span>
-                           </div>
-                        </label>
-                     </div>
+                    <div className="space-y-2 mt-4 pt-4 border-t border-slate-100">
+                       <div className="flex justify-between items-center ml-2 mb-2">
+                         <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5"><UploadCloud size={14}/> {lang === 'es' ? 'Base de Conocimiento (RAG)' : 'Knowledge Base (RAG)'}</label>
+                         <span className="bg-corporate-purple/10 text-corporate-purple text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest">{lang === 'es' ? 'NUEVO' : 'NEW'}</span>
+                       </div>
+                       <p className="text-xs font-medium text-slate-500 px-2 leading-relaxed mb-3">{lang === 'es' ? 'Sube listas de precio o inventario. Nuestro motor extrae solo la tabla de datos, eliminando imágenes para máxima velocidad (RAG).' : 'Upload price lists or inventory. Our engine extracts only the data table, removing images for maximum speed (RAG).'}</p>
+                       
+                       <label className="border-2 border-dashed border-corporate-purple/30 bg-corporate-purple/5 rounded-2xl p-4 flex items-center justify-center gap-3 cursor-pointer hover:bg-corporate-purple/10 transition-colors">
+                          <input type="file" accept=".csv,.xlsx,.xls" className="hidden" multiple onChange={(e) => {
+                             if(e.target.files && e.target.files.length > 0) {
+                               const arr = Array.from(e.target.files).map(f => {
+                                 // Simulamos la reducción drástica al extraer "solo texto" de una lista
+                                 const rawMb = f.size > 0 ? (f.size / (1024 * 1024)) : 1.5;
+                                 const optimizedKb = Math.max(12, Math.round(rawMb * 25)); 
+                                 return { name: f.name, size: `${optimizedKb} KB (Datos puros)` };
+                               });
+                               setUploadedCatalogs(prev => [...prev, ...arr]);
+                             }
+                          }} />
+                          <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-corporate-purple shrink-0">
+                             <UploadCloud size={18} />
+                          </div>
+                          <div className="flex-1">
+                             <span className="text-xs font-bold text-slate-700 block">{lang === 'es' ? 'Subir Lista (Data)' : 'Upload List (Data)'}</span>
+                             <span className="text-[9px] text-slate-500 uppercase tracking-widest">Excel, CSV</span>
+                          </div>
+                       </label>
+                       
+                       {uploadedCatalogs.length > 0 && (
+                          <div className="mt-2 space-y-2">
+                             {uploadedCatalogs.map((cat, idx) => (
+                                <div key={idx} className="flex items-center justify-between bg-white border border-slate-200 p-2.5 rounded-xl shadow-sm">
+                                   <div className="flex items-center gap-2 overflow-hidden">
+                                      <div className="w-6 h-6 rounded bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+                                         <span className="text-[8px] font-black">PDF</span>
+                                      </div>
+                                      <span className="text-[11px] font-bold text-slate-700 truncate">{cat.name}</span>
+                                   </div>
+                                   <span className="text-[9px] text-slate-400 font-bold bg-slate-100 px-1.5 py-0.5 rounded">{cat.size}</span>
+                                </div>
+                             ))}
+                          </div>
+                       )}
+                    </div>
+                 </div>
 
-                  </div>
 
-                  <div className="mt-8 mb-6 w-full flex flex-col justify-end gap-3 shrink-0">
+                                   {/* ─── MI LISTA DE PRECIOS (RAG) ─────────────────── */}
+                                   <div className="space-y-2 mt-4 pt-4 border-t border-slate-100">
+                                      <div className="flex justify-between items-center ml-2 mb-2">
+                                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                          <UploadCloud size={14}/> {lang === 'es' ? 'Mi Lista de Precios' : 'My Price List'}
+                                        </label>
+                                        <span className="bg-corporate-purple/10 text-corporate-purple text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest">RAG</span>
+                                      </div>
+                                      <p className="text-xs font-medium text-slate-500 px-2 leading-relaxed mb-3">
+                                        {lang === 'es'
+                                          ? 'Sube tu catálogo en CSV. El motor sugiere productos al dictar bitácoras. Un nuevo archivo reemplaza al anterior.'
+                                          : 'Upload your CSV catalog. The engine suggests products while dictating logs. A new file replaces the previous one.'}
+                                      </p>
+                                      <label className="border-2 border-dashed border-corporate-purple/30 bg-corporate-purple/5 rounded-2xl p-4 flex items-center justify-center gap-3 cursor-pointer hover:bg-corporate-purple/10 transition-colors">
+                                         <input
+                                           type="file"
+                                           accept=".csv"
+                                           className="hidden"
+                                           onChange={(e) => {
+                                             if (!e.target.files || e.target.files.length === 0) return;
+                                             const file = e.target.files[0];
+                                             const reader = new FileReader();
+                                             reader.onload = (evt) => {
+                                               try {
+                                                 const text = (evt.target?.result || '') as string;
+                                                 const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
+                                                 if (lines.length < 2) { alert(lang === 'es' ? 'Archivo sin datos.' : 'File has no data.'); return; }
+                                                 const sep = lines[0].includes(';') ? ';' : lines[0].includes('\t') ? '\t' : ',';
+                                                 const headers = lines[0].split(sep).map(h => h.trim().toLowerCase().replace(/"/g, ''));
+                                                 const nameIdx = headers.findIndex(h => ['nombre','name','producto','product','item'].includes(h));
+                                                 const priceIdx = headers.findIndex(h => ['precio','price','valor','monto'].includes(h));
+                                                 const stockIdx = headers.findIndex(h => ['stock','disponibilidad','estado','status'].includes(h));
+                                                 if (nameIdx === -1 || priceIdx === -1) {
+                                                   alert((lang === 'es' ? 'Columnas requeridas: "nombre" y "precio". Encontradas: ' : 'Required columns: "name" and "price". Found: ') + headers.join(', '));
+                                                   return;
+                                                 }
+                                                 const catalog = lines.slice(1).map(line => {
+                                                   const cols = line.split(sep).map(c => c.trim().replace(/"/g, ''));
+                                                   const rawPrice = (cols[priceIdx] || '0').replace(/[^\d.,]/g, '').replace(',', '.');
+                                                   return { name: cols[nameIdx] || '', price: parseFloat(rawPrice) || 0, stock: stockIdx >= 0 ? (cols[stockIdx] || 'Disponible') : 'Disponible' };
+                                                 }).filter(item => item.name.length > 1 && item.price > 0);
+                                                 if (catalog.length === 0) { alert(lang === 'es' ? 'Sin productos válidos.' : 'No valid products.'); return; }
+                                                 localStorage.setItem('easy_ragCatalog_' + (email || 'user'), JSON.stringify(catalog));
+                                                 alert('\u2705 ' + catalog.length + (lang === 'es' ? ' productos cargados. Activos en tus bitácoras.' : ' products loaded and active.'));
+                                                 e.target.value = '';
+                                               } catch (err) { console.error(err); alert(lang === 'es' ? 'Error al procesar CSV.' : 'Error processing CSV.'); }
+                                             };
+                                             reader.readAsText(file, 'UTF-8');
+                                           }}
+                                         />
+                                         <UploadCloud size={22} className="text-corporate-purple shrink-0" />
+                                         <div className="flex flex-col">
+                                           <span className="text-sm font-bold text-corporate-purple">{lang === 'es' ? 'Subir lista de precios (.CSV)' : 'Upload price list (.CSV)'}</span>
+                                           <span className="text-[10px] text-slate-400 font-medium">{lang === 'es' ? 'Columnas: nombre, precio, stock' : 'Columns: name, price, stock'}</span>
+                                         </div>
+                                      </label>
+                                   </div>
+                                   {/* ─────────────────────────────────────────────────── */}
+
+                 <div className="mt-8 mb-6 w-full flex flex-col justify-end gap-3 shrink-0">
                     <motion.button 
                       whileTap={{ scale: 0.95 }}
                       onClick={async () => {
@@ -2822,26 +2869,149 @@ export default function Home() {
                    <p className={`text-[10px] sm:text-[11px] font-bold uppercase tracking-widest flex items-center gap-1.5 whitespace-nowrap ${editingTask ? 'text-slate-400' : 'text-corporate-purple'} mb-2`}>
                       {editingTask ? <><Edit2 size={12}/> {lang === 'es' ? 'Edición Manual' : 'Manual Edit'}</> : <><Mic size={12}/> {lang === 'es' ? 'Entrada por Voz' : 'Voice Input'}</>}
                    </p>
-                                     {/* Tarjeta RAG con Catálogo del Usuario */}
+                   {(() => {
+                      const opp = editingTask ? opportunities.find(o => o.id === editingTask.opportunityId) : selectedOpportunity;
+                      const oppName = opp ? (opp.title || opp.name) : null;
+                      const client = editingTask ? clients.find(c => c.id === editingTask.clientId || (opp && c.id === opp.clientId)) : selectedClient;
+                      const clientName = client ? client.name : null;
+                      const countryName = client ? client.country : selectedCountry;
+
+                      return (
+                         <div className="flex flex-col gap-1.5 mt-1 items-start">
+                            {countryName && (
+                               <span className="text-[9px] text-slate-500 bg-slate-100 uppercase tracking-widest font-black px-2 py-0.5 rounded-md inline-flex items-center gap-1 border border-slate-200 max-w-full">
+                                  <span className="shrink-0">🌎 PAÍS:</span> <span className="truncate">{countryName}</span>
+                               </span>
+                            )}
+                            {clientName && (
+                               <span className="text-[9px] text-blue-600 bg-blue-100/50 uppercase tracking-widest font-black px-2 py-0.5 rounded-md inline-flex items-center gap-1 border border-blue-200/50 max-w-full">
+                                  <span className="shrink-0">👤 CLIENTE:</span> <span className="truncate">{clientName}</span>
+                               </span>
+                            )}
+                            {oppName && (
+                               <div className="flex flex-col gap-1.5 items-start max-w-full">
+                                  <span className="text-[9px] text-corporate-purple bg-corporate-purple/10 uppercase tracking-widest font-black px-2 py-1 rounded-md inline-flex items-start gap-1 border border-corporate-purple/20 max-w-full leading-relaxed">
+                                     <span className="shrink-0 mt-[1px]">📁 PROYECTO:</span> <span className="break-words">{oppName}</span>
+                                  </span>
+                                  {opp?.status && (
+                                     <span className={`text-[9px] uppercase tracking-widest font-black px-2 py-0.5 rounded-md inline-block border ${
+                                        opp.status === 'GANADO' ? 'text-emerald-700 bg-emerald-100 border-emerald-200' :
+                                        opp.status === 'PERDIDO' ? 'text-red-700 bg-red-100 border-red-200' :
+                                        opp.status === 'COTIZADO' ? 'text-blue-700 bg-blue-100 border-blue-200' :
+                                        'text-amber-700 bg-amber-100 border-amber-200'
+                                     } max-w-full truncate`}>
+                                        {opp.status}
+                                     </span>
+                                  )}
+                               </div>
+                            )}
+                         </div>
+                      );
+                   })()}
+                 </div>
+                 <button 
+                   onClick={(e) => {
+                     e.stopPropagation();
+                     setShowActionModal(false);
+                     setTimeout(() => { setEditingTask(null); setPendingLostOpp(null); }, 300);
+                   }} 
+                   className="p-3 bg-slate-100 rounded-full hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer active:scale-95"
+                 >
+                   <X size={24} />
+                 </button>
+               </div>
+               
+               {/* Contenido Formulario Deslizante */}
+               <div className="p-6 space-y-6">
+                 
+                 {/* Tarjeta: Detalle de Actividad (Pasado/Presente) */}
+                 <div className="bg-white rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-6 relative overflow-hidden group hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow">
+                    <div className="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-[#7C3AED] to-[#5B21B6]"></div>
+                    <div className="flex items-center gap-2 mb-4 pl-3">
+                      <Mic size={20} className="text-corporate-purple" />
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-slate-400 font-bold tracking-widest uppercase">Paso 1: Lo que ocurrió hoy</span>
+                        <h3 className="font-bold text-slate-800 text-[15px] tracking-wide uppercase">{lang === 'es' ? 'Bitácora de la Acción' : 'Action Details'}</h3>
+                      </div>
+                    </div>
+                    
+                    {/* Fake text to simulate or show edited content */}
+                    <div className="relative">
+                      <textarea 
+                        value={draftActivity}
+                        onChange={(e) => setDraftActivity(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/50 text-sm h-36 resize-none placeholder:text-slate-400 font-medium leading-relaxed shadow-inner"
+                      ></textarea>
+                    </div>
+                    <div className="flex justify-between items-center mt-3 pl-3">
+                       {editingTask ? (
+                          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest flex items-center gap-1"><Edit2 size={12}/> {lang === 'es' ? 'Editando' : 'Editing'}</p>
+                       ) : (
+                          <p className="text-[10px] text-green-600 font-bold uppercase tracking-widest flex items-center gap-1"><Signal size={12}/> {lang === 'es' ? 'Voz procesada' : 'Voice processed'}</p>
+                       )}
+                       <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
+                           {editingTask ? 
+                               (editingTask.createdAt ? `${new Date(editingTask.createdAt).toLocaleDateString(lang === 'es' ? 'es-CL' : 'en-US')} ${new Date(editingTask.createdAt).toLocaleTimeString(lang === 'es' ? 'es-CL' : 'en-US', { hour: '2-digit', minute: '2-digit' })} hrs` : 'N/A')
+                               : 
+                               (lang === 'es' ? `Hoy, ${new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })} hrs` : `Today, ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} hrs`)
+                           }
+                       </p>
+                    </div>
+                 </div>
+
+                 {/* Tarjeta: Próximo Compromiso (Futuro) */}
+                 <div className="bg-white rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-6 relative overflow-hidden group hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow">
+                    <div className="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-[#F59E0B] to-[#D97706]"></div>
+                    <div className="flex items-center gap-2 mb-5 pl-3">
+                      <Navigation size={20} className="text-[#F59E0B] fill-[#F59E0B]/20" />
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-[#F59E0B] font-bold tracking-widest uppercase">Paso 2: Lo que sigue</span>
+                        <h3 className="font-bold text-slate-800 text-[15px] tracking-wide uppercase">{lang === 'es' ? 'Plan y Compromiso' : 'Next Committment'}</h3>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-5">
+                      {/* Campo Acción */}
+                      <div>
+                        <div className="flex justify-between items-center mb-2 pl-3 px-1">
+                           <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">{lang === 'es' ? 'RECORDATORIO / ACCIÓN' : 'REMINDER / ACTION'}</label>
+                           <button onClick={(e) => { e.preventDefault(); handleMicClick('action'); }} className={`p-1.5 rounded-full shadow-sm transition-colors border outline-none active:scale-95 ${recordingField === 'action' ? 'bg-[#F59E0B] text-white border-[#F59E0B] scale-110' : 'bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/30 animate-pulse hover:bg-[#F59E0B]/20'}`}>
+                               <Mic size={14} />
+                           </button>
+                        </div>
+                        <input type="text" placeholder={lang === 'es' ? 'Dicta un recordatorio...' : 'Dictate a short reminder...'} value={draftAction} onChange={(e) => setDraftAction(e.target.value)} className={`w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-slate-700 font-bold focus:outline-none focus:ring-2 focus:ring-[#F59E0B]/50 text-sm shadow-inner transition-colors placeholder:font-normal placeholder:opacity-75 ${recordingField === 'action' ? 'border-[#F59E0B]' : 'border-slate-200'}`} />
+                      </div>
+                      
+                      {/* Campo Fecha */}
+                      <div>
+                        <label className="text-[11px] font-bold text-slate-500 mb-2 block uppercase tracking-widest pl-3 flex items-center gap-2">
+                          <Calendar size={12} /> {lang === 'es' ? '¿Para cuándo?' : 'When?'}
+                        </label>
+                        <div className="relative">
+                          <input 
+                              type="date" 
+                              value={draftDate}
+                              onChange={(e) => setDraftDate(e.target.value)}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-slate-700 font-bold focus:outline-none focus:ring-2 focus:ring-[#F59E0B]/50 text-sm shadow-inner appearance-none placeholder:text-slate-400 uppercase tracking-widest" 
+                          />
+                        </div>
+                      </div>
+                    </div>
+                 </div>
+
+                 {/* Match de Catálogo Personalizado */}
                   {(() => {
                      const draftLower = draftActivity.toLowerCase();
                      const ragMatches: { name: string; price: number; stock: string }[] = [];
-
-                     // Leer catálogo subido por el usuario desde localStorage
                      let userCatalog: { name: string; price: number; stock: string }[] = [];
                      try {
-                        const stored = typeof window !== 'undefined' ? localStorage.getItem('easy_ragCatalog') : null;
+                        const stored = typeof window !== 'undefined' ? localStorage.getItem('easy_ragCatalog_' + (email || 'user')) : null;
                         if (stored) userCatalog = JSON.parse(stored);
                      } catch (_) {}
-
-                     // Buscar coincidencias: palabras del nombre del producto en el texto dictado
                      userCatalog.forEach(item => {
                         const words = item.name.toLowerCase().split(/[\s,;\-\/]+/).filter((w: string) => w.length > 3);
-                        const hasMatch = words.some((word: string) => draftLower.includes(word));
-                        if (hasMatch) ragMatches.push(item);
+                        if (words.some((word: string) => draftLower.includes(word))) ragMatches.push(item);
                      });
-
-                     // Solo mostrar si hay catálogo propio Y hay coincidencias
                      if (userCatalog.length === 0 || ragMatches.length === 0) return null;
 
 
@@ -2889,59 +3059,7 @@ export default function Home() {
                     );
                  })()}
 
-                                   {/* MATCH DE CATÁLOGO PERSONALIZADO (RAG) */}
-                  {(() => {
-                     const draftLower = draftActivity.toLowerCase();
-                     const ragMatches: { name: string; price: number; stock: string }[] = [];
-                     // Leer el catálogo subido por el usuario (clave por email para aislamiento)
-                     let userCatalog: { name: string; price: number; stock: string }[] = [];
-                     try {
-                        const ragKey = 'easy_ragCatalog_' + (email || 'user');
-                        const stored = typeof window !== 'undefined' ? localStorage.getItem(ragKey) : null;
-                        if (stored) userCatalog = JSON.parse(stored);
-                     } catch (_) {}
-                     // Buscar coincidencias por palabras clave del nombre del producto
-                     userCatalog.forEach(item => {
-                        const words = item.name.toLowerCase().split(/[\s,;\-\/]+/).filter((w: string) => w.length > 3);
-                        if (words.some((word: string) => draftLower.includes(word))) ragMatches.push(item);
-                     });
-                     // Solo mostrar si hay catálogo propio y hay coincidencias
-                     if (userCatalog.length === 0 || ragMatches.length === 0) return null;
-                     return (
-                        <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} className="bg-white rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-6 relative overflow-hidden group hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow">
-                           <div className="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-[#009EE3] to-[#008CC9]"></div>
-                           <div className="flex items-center gap-2 mb-4 pl-3">
-                              <Database size={20} className="text-[#009EE3]" />
-                              <div className="flex flex-col">
-                                <span className="text-[10px] text-[#009EE3] font-bold tracking-widest uppercase flex items-center gap-1"><Sparkles size={10}/> {lang === 'es' ? 'Mi Catálogo' : 'My Catalog'}</span>
-                                <h3 className="font-bold text-slate-800 text-[15px] tracking-wide uppercase leading-tight mt-0.5">{lang === 'es' ? 'Match de Productos' : 'Product Match'}</h3>
-                              </div>
-                           </div>
-                           <div className="space-y-3 mx-1">
-                              {ragMatches.map((item, idx) => (
-                                 <div key={idx} className="bg-slate-50 border border-slate-200 rounded-2xl p-3 flex justify-between items-center transition-colors hover:border-[#009EE3]/30">
-                                    <div className="flex flex-col flex-1 pl-1">
-                                       <span className="text-[11px] sm:text-[12px] font-bold text-slate-700 leading-tight pr-2">{item.name}</span>
-                                       <div className="flex items-center gap-2 mt-1.5">
-                                          <span className={`text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-sm ${item.stock === 'Disponible' || item.stock === 'Stock Local' ? 'bg-emerald-100/50 text-emerald-600' : 'bg-amber-100/50 text-amber-600'}`}>{item.stock}</span>
-                                          <span className="text-[11px] font-black text-emerald-600 border-l border-slate-200 pl-2 opacity-80">{formatCurrency(item.price)}</span>
-                                       </div>
-                                    </div>
-                                    <button
-                                       onClick={(e) => { e.preventDefault(); setDraftAction(prev => (prev ? prev + ' + ' : 'Cotizar: ') + item.name); }}
-                                       className="w-10 h-10 shrink-0 bg-blue-50/80 border border-blue-100 text-[#009EE3] rounded-xl flex items-center justify-center shadow-sm active:scale-90 hover:bg-[#009EE3] hover:text-white transition-all"
-                                       title={lang==='es' ? 'Añadir al Plan de Acción' : 'Add to Action'}
-                                    >
-                                       <span className="font-black text-xl leading-none -mt-0.5">+</span>
-                                    </button>
-                                 </div>
-                              ))}
-                           </div>
-                        </motion.div>
-                     );
-                  })()}
-
-{/* Botón de Confirmación (Integrado al flujo) */}
+                 {/* Botón de Confirmación (Integrado al flujo) */}
                  <div className="pt-2 pb-6 flex flex-col gap-3">
                     <button onClick={handleSaveLocal} className="w-full bg-gradient-to-r from-[#1E3A8A] to-[#1e40af] text-white rounded-[20px] py-4 font-bold tracking-widest uppercase shadow-[0_8px_30px_rgb(30,58,138,0.4)] flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all pointer-events-auto border-2 border-[#1E3A8A]/50">
                       <UploadCloud size={20} />
