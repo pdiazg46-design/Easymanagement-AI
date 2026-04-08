@@ -1495,7 +1495,6 @@ export default function Home() {
                          </div>
                        </div>
                     </div>
-
                     <div className="space-y-2">
                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-2">{lang === 'es' ? 'Logo Corporativo' : 'Corporate Logo'}</label>
                        <label className="border-2 border-dashed border-slate-200 bg-slate-50 rounded-3xl p-6 flex flex-col items-center justify-center text-slate-400 cursor-pointer hover:bg-slate-100 transition-colors relative overflow-hidden group h-36">
@@ -1518,66 +1517,65 @@ export default function Home() {
                        </label>
                     </div>
 
-{/* ─── MI LISTA DE PRECIOS (RAG) ─────────────────── */}
-                                   <div className="space-y-2 mt-4 pt-4 border-t border-slate-100">
-                                      <div className="flex justify-between items-center ml-2 mb-2">
-                                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                                          <UploadCloud size={14}/> {lang === 'es' ? 'Mi Lista de Precios' : 'My Price List'}
-                                        </label>
-                                        <span className="bg-corporate-purple/10 text-corporate-purple text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest">RAG</span>
-                                      </div>
-                                      <p className="text-xs font-medium text-slate-500 px-2 leading-relaxed mb-3">
-                                        {lang === 'es'
-                                          ? 'Sube tu catálogo en CSV. El motor sugiere productos al dictar bitácoras. Un nuevo archivo reemplaza al anterior.'
-                                          : 'Upload your CSV catalog. The engine suggests products while dictating logs. A new file replaces the previous one.'}
-                                      </p>
-                                      <label className="border-2 border-dashed border-corporate-purple/30 bg-corporate-purple/5 rounded-2xl p-4 flex items-center justify-center gap-3 cursor-pointer hover:bg-corporate-purple/10 transition-colors">
-                                         <input
-                                           type="file"
-                                           accept=".csv"
-                                           className="hidden"
-                                           onChange={(e) => {
-                                             if (!e.target.files || e.target.files.length === 0) return;
-                                             const file = e.target.files[0];
-                                             const reader = new FileReader();
-                                             reader.onload = (evt) => {
-                                               try {
-                                                 const text = (evt.target?.result || '') as string;
-                                                 const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
-                                                 if (lines.length < 2) { alert(lang === 'es' ? 'Archivo sin datos.' : 'File has no data.'); return; }
-                                                 const sep = lines[0].includes(';') ? ';' : lines[0].includes('\t') ? '\t' : ',';
-                                                 const headers = lines[0].split(sep).map(h => h.trim().toLowerCase().replace(/"/g, ''));
-                                                 const nameIdx = headers.findIndex(h => ['nombre','name','producto','product','item'].includes(h));
-                                                 const priceIdx = headers.findIndex(h => ['precio','price','valor','monto'].includes(h));
-                                                 const stockIdx = headers.findIndex(h => ['stock','disponibilidad','estado','status'].includes(h));
-                                                 if (nameIdx === -1 || priceIdx === -1) {
-                                                   alert((lang === 'es' ? 'Columnas requeridas: "nombre" y "precio". Encontradas: ' : 'Required columns: "name" and "price". Found: ') + headers.join(', '));
-                                                   return;
-                                                 }
-                                                 const catalog = lines.slice(1).map(line => {
-                                                   const cols = line.split(sep).map(c => c.trim().replace(/"/g, ''));
-                                                   const rawPrice = (cols[priceIdx] || '0').replace(/[^\d.,]/g, '').replace(',', '.');
-                                                   return { name: cols[nameIdx] || '', price: parseFloat(rawPrice) || 0, stock: stockIdx >= 0 ? (cols[stockIdx] || 'Disponible') : 'Disponible' };
-                                                 }).filter(item => item.name.length > 1 && item.price > 0);
-                                                 if (catalog.length === 0) { alert(lang === 'es' ? 'Sin productos válidos.' : 'No valid products.'); return; }
-                                                 localStorage.setItem('easy_ragCatalog_' + (email || 'user'), JSON.stringify(catalog));
-                                                 alert('\u2705 ' + catalog.length + (lang === 'es' ? ' productos cargados. Activos en tus bitácoras.' : ' products loaded and active.'));
-                                                 e.target.value = '';
-                                               } catch (err) { console.error(err); alert(lang === 'es' ? 'Error al procesar CSV.' : 'Error processing CSV.'); }
-                                             };
-                                             reader.readAsText(file, 'UTF-8');
-                                           }}
-                                         />
-                                         <UploadCloud size={22} className="text-corporate-purple shrink-0" />
-                                         <div className="flex flex-col">
-                                           <span className="text-sm font-bold text-corporate-purple">{lang === 'es' ? 'Subir lista de precios (.CSV)' : 'Upload price list (.CSV)'}</span>
-                                           <span className="text-[10px] text-slate-400 font-medium">{lang === 'es' ? 'Columnas: nombre, precio, stock' : 'Columns: name, price, stock'}</span>
-                                         </div>
-                                      </label>
-                                   </div>
-                                   {/* ─────────────────────────────────────────────────── */}
-
-                 <div className="mt-8 mb-6 w-full flex flex-col justify-end gap-3 shrink-0">
+                                         <div className="space-y-2 mt-4 pt-4 border-t border-slate-100">
+                        <div className="flex justify-between items-center ml-2 mb-2">
+                          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <UploadCloud size={14}/> {lang === 'es' ? 'Mi Lista de Precios' : 'My Price List'}
+                          </label>
+                          <span className="bg-corporate-purple/10 text-corporate-purple text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest">RAG</span>
+                        </div>
+                        <p className="text-xs font-medium text-slate-500 px-2 leading-relaxed mb-3">
+                          {lang === 'es'
+                            ? 'Sube tu catálogo en CSV. El motor sugiere productos al dictar bitácoras. Un nuevo archivo reemplaza al anterior.'
+                            : 'Upload your CSV catalog. The engine suggests products while dictating logs. A new file replaces the previous one.'}
+                        </p>
+                        <label className="border-2 border-dashed border-corporate-purple/30 bg-corporate-purple/5 rounded-2xl p-4 flex items-center justify-center gap-3 cursor-pointer hover:bg-corporate-purple/10 transition-colors">
+                           <input
+                             type="file"
+                             accept=".csv"
+                             className="hidden"
+                             onChange={(e) => {
+                               if (!e.target.files || e.target.files.length === 0) return;
+                               const file = e.target.files[0];
+                               const reader = new FileReader();
+                               reader.onload = (evt) => {
+                                 try {
+                                   const text = (evt.target?.result || '') as string;
+                                   const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
+                                   if (lines.length < 2) { alert(lang === 'es' ? 'Archivo sin datos.' : 'File has no data.'); return; }
+                                   const sep = lines[0].includes(';') ? ';' : lines[0].includes('\t') ? '\t' : ',';
+                                   const headers = lines[0].split(sep).map(h => h.trim().toLowerCase().replace(/"/g, ''));
+                                   const nameIdx = headers.findIndex(h => ['nombre','name','producto','product','item'].includes(h));
+                                   const priceIdx = headers.findIndex(h => ['precio','price','valor','monto'].includes(h));
+                                   const stockIdx = headers.findIndex(h => ['stock','disponibilidad','estado','status'].includes(h));
+                                   if (nameIdx === -1 || priceIdx === -1) {
+                                     alert((lang === 'es' ? 'Columnas requeridas: "nombre" y "precio". Encontradas: ' : 'Required: "name" and "price". Found: ') + headers.join(', '));
+                                     return;
+                                   }
+                                   const catalog = lines.slice(1).map(line => {
+                                     const cols = line.split(sep).map(c => c.trim().replace(/"/g, ''));
+                                     const rawPrice = (cols[priceIdx] || '0').replace(/[^\d.,]/g, '').replace(',', '.');
+                                     return { name: cols[nameIdx] || '', price: parseFloat(rawPrice) || 0, stock: stockIdx >= 0 ? (cols[stockIdx] || 'Disponible') : 'Disponible' };
+                                   }).filter(item => item.name.length > 1 && item.price > 0);
+                                   if (catalog.length === 0) { alert(lang === 'es' ? 'Sin productos válidos.' : 'No valid products.'); return; }
+                                   localStorage.setItem('easy_ragCatalog_' + (email || 'user'), JSON.stringify(catalog));
+                                   alert('\u2705 ' + catalog.length + (lang === 'es' ? ' productos cargados.' : ' products loaded.'));
+                                   e.target.value = '';
+                                 } catch (err) { console.error(err); alert(lang === 'es' ? 'Error al procesar CSV.' : 'Error processing CSV.'); }
+                               };
+                               reader.readAsText(file, 'UTF-8');
+                             }}
+                           />
+                           <UploadCloud size={22} className="text-corporate-purple shrink-0" />
+                           <div className="flex flex-col">
+                             <span className="text-sm font-bold text-corporate-purple">{lang === 'es' ? 'Subir lista de precios (.CSV)' : 'Upload price list (.CSV)'}</span>
+                             <span className="text-[10px] text-slate-400 font-medium">{lang === 'es' ? 'Columnas: nombre, precio, stock' : 'Columns: name, price, stock'}</span>
+                           </div>
+                        </label>
+                      </div>
+                   </div>
+  
+                   <div className="mt-8 shrink-0">
                     <motion.button 
                       whileTap={{ scale: 0.95 }}
                       onClick={async () => {
@@ -2952,7 +2950,7 @@ export default function Home() {
                     </div>
                  </div>
 
-                 {/* Match de Catálogo Personalizado */}
+                 {/* Match de Catálogo Personalizado (RAG) */}
                   {(() => {
                      const draftLower = draftActivity.toLowerCase();
                      const ragMatches: { name: string; price: number; stock: string }[] = [];
