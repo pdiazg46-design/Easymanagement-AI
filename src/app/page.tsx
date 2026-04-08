@@ -1518,54 +1518,7 @@ export default function Home() {
                        </label>
                     </div>
 
-                    <div className="space-y-2 mt-4 pt-4 border-t border-slate-100">
-                       <div className="flex justify-between items-center ml-2 mb-2">
-                         <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5"><UploadCloud size={14}/> {lang === 'es' ? 'Base de Conocimiento (RAG)' : 'Knowledge Base (RAG)'}</label>
-                         <span className="bg-corporate-purple/10 text-corporate-purple text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest">{lang === 'es' ? 'NUEVO' : 'NEW'}</span>
-                       </div>
-                       <p className="text-xs font-medium text-slate-500 px-2 leading-relaxed mb-3">{lang === 'es' ? 'Sube listas de precio o inventario. Nuestro motor extrae solo la tabla de datos, eliminando imágenes para máxima velocidad (RAG).' : 'Upload price lists or inventory. Our engine extracts only the data table, removing images for maximum speed (RAG).'}</p>
-                       
-                       <label className="border-2 border-dashed border-corporate-purple/30 bg-corporate-purple/5 rounded-2xl p-4 flex items-center justify-center gap-3 cursor-pointer hover:bg-corporate-purple/10 transition-colors">
-                          <input type="file" accept=".csv,.xlsx,.xls" className="hidden" multiple onChange={(e) => {
-                             if(e.target.files && e.target.files.length > 0) {
-                               const arr = Array.from(e.target.files).map(f => {
-                                 // Simulamos la reducción drástica al extraer "solo texto" de una lista
-                                 const rawMb = f.size > 0 ? (f.size / (1024 * 1024)) : 1.5;
-                                 const optimizedKb = Math.max(12, Math.round(rawMb * 25)); 
-                                 return { name: f.name, size: `${optimizedKb} KB (Datos puros)` };
-                               });
-                               setUploadedCatalogs(prev => [...prev, ...arr]);
-                             }
-                          }} />
-                          <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-corporate-purple shrink-0">
-                             <UploadCloud size={18} />
-                          </div>
-                          <div className="flex-1">
-                             <span className="text-xs font-bold text-slate-700 block">{lang === 'es' ? 'Subir Lista (Data)' : 'Upload List (Data)'}</span>
-                             <span className="text-[9px] text-slate-500 uppercase tracking-widest">Excel, CSV</span>
-                          </div>
-                       </label>
-                       
-                       {uploadedCatalogs.length > 0 && (
-                          <div className="mt-2 space-y-2">
-                             {uploadedCatalogs.map((cat, idx) => (
-                                <div key={idx} className="flex items-center justify-between bg-white border border-slate-200 p-2.5 rounded-xl shadow-sm">
-                                   <div className="flex items-center gap-2 overflow-hidden">
-                                      <div className="w-6 h-6 rounded bg-red-100 text-red-600 flex items-center justify-center shrink-0">
-                                         <span className="text-[8px] font-black">PDF</span>
-                                      </div>
-                                      <span className="text-[11px] font-bold text-slate-700 truncate">{cat.name}</span>
-                                   </div>
-                                   <span className="text-[9px] text-slate-400 font-bold bg-slate-100 px-1.5 py-0.5 rounded">{cat.size}</span>
-                                </div>
-                             ))}
-                          </div>
-                       )}
-                    </div>
-                 </div>
-
-
-                                   {/* ─── MI LISTA DE PRECIOS (RAG) ─────────────────── */}
+{/* ─── MI LISTA DE PRECIOS (RAG) ─────────────────── */}
                                    <div className="space-y-2 mt-4 pt-4 border-t border-slate-100">
                                       <div className="flex justify-between items-center ml-2 mb-2">
                                         <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
