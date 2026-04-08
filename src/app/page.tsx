@@ -2562,6 +2562,8 @@ export default function Home() {
                                        <div className="flex items-center gap-1 mt-2">
                                            <button 
                                               type="button"
+                                              onPointerDown={(e) => e.stopPropagation()}
+                                              onTouchEnd={(e) => e.stopPropagation()}
                                               onClick={(e) => {
                                                 e.preventDefault();
                                                 e.stopPropagation();
@@ -2576,6 +2578,8 @@ export default function Home() {
                                            </button>
                                            <button 
                                               type="button"
+                                              onPointerDown={(e) => e.stopPropagation()}
+                                              onTouchEnd={(e) => e.stopPropagation()}
                                               onClick={async (e) => {
                                                 e.preventDefault();
                                                 e.stopPropagation();
