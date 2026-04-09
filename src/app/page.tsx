@@ -2012,22 +2012,54 @@ export default function Home() {
                      </button>
                   </div>
 
-                  <motion.div 
+                  <motion.div
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => setShowPipelineModal(true)}
+                    onClick={() => setShowGoalModal(true)}
                     className="bg-corporate-purple rounded-2xl p-3.5 shadow-[0_8px_30px_rgb(124,58,237,0.3)] text-white w-full cursor-pointer overflow-hidden relative shrink-0"
                   >
-                    <div className="flex items-center w-full">
+                    {/* Fila superior: pipeline total + proyectos activos */}
+                    <div className="flex items-center w-full mb-3">
                       <div className="w-[75%] pr-3 text-left overflow-hidden">
-                        <p className="text-white/80 text-[9px] sm:text-[10px] font-medium uppercase tracking-wider mb-0.5 truncate">{activeTab === 'historial' ? getHistorialTitle() : t[lang].pipeline}</p>
-                        <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight flex items-baseline gap-1.5 truncate">{formatCurrency(totalPipeline)}</h2>
+                        <p className="text-white/70 text-[9px] font-bold uppercase tracking-widest mb-0.5 truncate">{activeTab === 'historial' ? getHistorialTitle() : t[lang].pipeline}</p>
+                        <h2 className="text-xl font-extrabold tracking-tight flex items-baseline gap-1.5 truncate">{formatCurrency(totalPipeline)}</h2>
                       </div>
-                      <div className="w-px h-10 bg-white/20 shrink-0"></div>
+                      <div className="w-px h-10 bg-white/20 shrink-0" />
                       <div className="w-[25%] text-center pl-2 flex flex-col justify-center items-center shrink-0">
-                        <p className="text-white/80 text-[7px] font-bold uppercase tracking-widest mb-0.5 leading-tight">{activeTab === 'historial' ? (lang === 'es' ? 'PROYECTOS GANADOS' : 'WON PROJECTS') : t[lang].activeProj.split(' ')[0] + '\n' + t[lang].activeProj.split(' ')[1]}</p>
-                        <h2 className="text-xl sm:text-2xl font-extrabold pb-0 leading-none">{activeProjects}</h2>
+                        <p className="text-white/70 text-[7px] font-bold uppercase tracking-widest mb-0.5 leading-tight">{activeTab === 'historial' ? (lang === 'es' ? 'GANADOS' : 'WON') : (lang === 'es' ? 'PROYECTOS\nACTIVOS' : 'ACTIVE\nPROJ.')}</p>
+                        <h2 className="text-xl font-extrabold leading-none">{activeProjects}</h2>
                       </div>
                     </div>
+
+                    {/* Separador */}
+                    <div className="h-px bg-white/15 mb-3" />
+
+                    {/* Mini KPI row: progreso mensual */}
+                    {(() => {
+                      const now = new Date();
+                      const wonMo = opportunities
+                        .filter((o: any) => {
+                          if (o.status !== 'GANADO') return false;
+                          const d = new Date(o.statusUpdatedAt || o.updatedAt || o.createdAt);
+                          return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+                        })
+                        .reduce((s: number, o: any) => s + (o.amountUsd || 0), 0);
+                      const pct = Math.min(Math.round((wonMo / (monthlyGoalUsd || 1)) * 100), 100);
+                      const barColor = pct >= 100 ? '#10b981' : pct >= 70 ? '#60a5fa' : pct >= 40 ? '#fbbf24' : '#f87171';
+                      return (
+                        <div className="flex flex-col gap-1.5">
+                          <div className="flex justify-between items-center">
+                            <span className="text-[9px] font-bold text-white/70 uppercase tracking-widest">🎯 {lang === 'es' ? 'Meta mensual' : 'Monthly goal'}</span>
+                            <span className="text-[10px] font-black text-white">{pct}% — {formatCurrency(wonMo)}</span>
+                          </div>
+                          <div className="relative h-1.5 bg-white/20 rounded-full overflow-hidden">
+                            <div className="absolute left-0 top-0 h-full rounded-full transition-all duration-1000" style={{ width: `${pct}%`, background: barColor }} />
+                          </div>
+                          <p className="text-[8px] text-white/50 font-medium text-right mt-0.5">
+                            👆 {lang === 'es' ? 'Toca para ver y actualizar metas' : 'Tap to view & update goals'}
+                          </p>
+                        </div>
+                      );
+                    })()}
                   </motion.div>
 
                   {/* KPI BAR — PROGRESO VS METAS */}
@@ -2511,20 +2543,85 @@ export default function Home() {
                   className="bg-white w-full h-[70%] rounded-t-3xl shadow-2xl flex flex-col items-start px-6 pt-6 pb-12 cursor-default"
                   onClick={e => e.stopPropagation()}
                >
-                  <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6 shrink-0" />
-                  <h2 className="text-xl font-bold text-slate-800 mb-2">Flujo Esperado (Fechas de Cierre)</h2>
-                  <p className="text-sm text-slate-500 mb-8">Proyección estimada de ingresos Q2 y Q3.</p>
-
-                  <div className="w-full flex-1 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-center relative overflow-hidden p-4">
-                     {/* <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-                       <path d="M 0 80 Q 25 20, 50 60 T 100 10" fill="none" stroke="#7C3AED" strokeWidth="3" strokeLinecap="round" />
-                       <path d="M 0 80 Q 25 20, 50 60 T 100 10 L 100 100 L 0 100 Z" fill="rgba(124,58,237,0.1)" />
-                     </svg> */}
-                     <span className="text-[11px] text-slate-400 font-medium italic tracking-wide text-center py-4">{lang === 'es' ? 'No hay flujo disponible' : 'No flow available'}</span>
-                     <div className="absolute w-full h-full flex justify-between items-end pb-2 px-6 top-0 left-0 pointer-events-none text-[10px] text-slate-400 font-medium">
-                        <span>MAY</span><span>JUN</span><span>JUL</span><span>AGO</span>
-                     </div>
+                  <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-5 shrink-0" />
+                  <div className="flex justify-between items-center mb-4 w-full">
+                    <div>
+                      <h2 className="text-lg font-black text-[#1E3A8A]">📊 {lang === 'es' ? 'KPIs de Ventas' : 'Sales KPIs'}</h2>
+                      <p className="text-[11px] text-slate-400 font-medium mt-0.5">{lang === 'es' ? 'Progreso real vs. tus metas' : 'Real progress vs. your goals'}</p>
+                    </div>
+                    <button onClick={() => setShowPipelineModal(false)} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-lg font-bold">✕</button>
                   </div>
+                  {(() => {
+                    const now = new Date();
+                    const yr = now.getFullYear(), mo = now.getMonth();
+                    const wonMo = opportunities.filter((o: any) => {
+                      if (o.status !== 'GANADO') return false;
+                      const d = new Date(o.statusUpdatedAt || o.updatedAt || o.createdAt);
+                      return d.getFullYear() === yr && d.getMonth() === mo;
+                    }).reduce((s: number, o: any) => s + (o.amountUsd || 0), 0);
+                    const wonYr = opportunities.filter((o: any) => {
+                      if (o.status !== 'GANADO') return false;
+                      const d = new Date(o.statusUpdatedAt || o.updatedAt || o.createdAt);
+                      return d.getFullYear() === yr;
+                    }).reduce((s: number, o: any) => s + (o.amountUsd || 0), 0);
+                    const mPct = Math.min(Math.round((wonMo / (monthlyGoalUsd || 1)) * 100), 100);
+                    const aPct = Math.min(Math.round((wonYr / (annualGoalUsd || 1)) * 100), 100);
+                    const getStyle = (p: number) => p >= 100
+                      ? { bar: '#10b981', badge: 'bg-emerald-500', label: lang === 'es' ? '🏆 META CUMPLIDA' : '🏆 GOAL MET' }
+                      : p >= 70 ? { bar: '#3b82f6', badge: 'bg-blue-500',  label: lang === 'es' ? '💪 EN CAMINO'   : '💪 ON TRACK' }
+                      : p >= 40 ? { bar: '#f59e0b', badge: 'bg-amber-500', label: lang === 'es' ? '⚡ ACELERAR'     : '⚡ SPEED UP'  }
+                      :           { bar: '#ef4444', badge: 'bg-red-500',   label: lang === 'es' ? '🚨 EN RIESGO'    : '🚨 AT RISK'   };
+                    const ms = getStyle(mPct), as2 = getStyle(aPct);
+                    return (
+                      <div className="w-full flex flex-col gap-4">
+                        <div className="flex gap-3">
+                          <div className="flex-1 bg-gradient-to-br from-[#1E3A8A]/5 to-[#1E3A8A]/10 border border-[#1E3A8A]/15 rounded-2xl p-3.5 flex flex-col items-center">
+                            <span className="text-[8px] font-bold text-[#1E3A8A]/50 uppercase tracking-widest mb-1">{lang === 'es' ? 'Logrado este mes' : 'Won this month'}</span>
+                            <span className="text-2xl font-black text-[#1E3A8A]">{mPct}%</span>
+                            <span className="text-[10px] font-bold text-[#1E3A8A]/70">{formatCurrency(wonMo)}</span>
+                          </div>
+                          <div className="flex-1 bg-gradient-to-br from-corporate-purple/5 to-corporate-purple/10 border border-corporate-purple/15 rounded-2xl p-3.5 flex flex-col items-center">
+                            <span className="text-[8px] font-bold text-corporate-purple/50 uppercase tracking-widest mb-1">{lang === 'es' ? 'Logrado este año' : 'Won this year'}</span>
+                            <span className="text-2xl font-black text-corporate-purple">{aPct}%</span>
+                            <span className="text-[10px] font-bold text-corporate-purple/70">{formatCurrency(wonYr)}</span>
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                          <div className="flex justify-between items-center">
+                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{lang === 'es' ? 'Meta Mensual' : 'Monthly Goal'}</span>
+                            <span className={`text-[8px] font-black text-white px-2 py-0.5 rounded-full ${ms.badge}`}>{ms.label}</span>
+                          </div>
+                          <div className="relative h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div className="absolute left-0 top-0 h-full rounded-full transition-all duration-1000" style={{ width: `${mPct}%`, background: ms.bar }} />
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-[10px] font-black" style={{ color: ms.bar }}>{formatCurrency(wonMo)}</span>
+                            <span className="text-[10px] text-slate-400">{lang === 'es' ? 'de' : 'of'} {formatCurrency(monthlyGoalUsd)}</span>
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                          <div className="flex justify-between items-center">
+                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{lang === 'es' ? 'Meta Anual' : 'Annual Goal'}</span>
+                            <span className={`text-[8px] font-black text-white px-2 py-0.5 rounded-full ${as2.badge}`}>{as2.label}</span>
+                          </div>
+                          <div className="relative h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div className="absolute left-0 top-0 h-full rounded-full transition-all duration-1000" style={{ width: `${aPct}%`, background: as2.bar }} />
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-[10px] font-black" style={{ color: as2.bar }}>{formatCurrency(wonYr)}</span>
+                            <span className="text-[10px] text-slate-400">{lang === 'es' ? 'de' : 'of'} {formatCurrency(annualGoalUsd)}</span>
+                          </div>
+                        </div>
+                        <motion.button
+                          whileTap={{ scale: 0.97 }}
+                          onClick={() => { setShowPipelineModal(false); setTimeout(() => setShowGoalModal(true), 200); }}
+                          className="w-full bg-gradient-to-r from-[#1E3A8A] to-corporate-purple text-white py-3.5 rounded-2xl font-black uppercase tracking-wider text-sm shadow-[0_8px_25px_rgb(124,58,237,0.25)] flex items-center justify-center gap-2"
+                        >
+                          ✏️ {lang === 'es' ? 'Actualizar mis metas' : 'Update my goals'}
+                        </motion.button>
+                      </div>
+                    );
+                  })()}
                </motion.div>
             </motion.div>
           )}
