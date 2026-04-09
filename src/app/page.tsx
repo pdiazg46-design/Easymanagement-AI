@@ -1577,11 +1577,33 @@ export default function Home() {
                             ? 'Sube tu catálogo en CSV. El motor sugiere productos al dictar bitácoras. Un nuevo archivo reemplaza al anterior.'
                             : 'Upload your CSV catalog. The engine suggests products while dictating logs. A new file replaces the previous one.'}
                         </p>
-                        <label className="border-2 border-dashed border-corporate-purple/30 bg-corporate-purple/5 rounded-2xl p-4 flex items-center justify-center gap-3 cursor-pointer hover:bg-corporate-purple/10 transition-colors">
+                        <label className={`border-2 border-dashed ${ragCatalog.length > 0 ? 'border-emerald-300 bg-emerald-50' : 'border-corporate-purple/30 bg-corporate-purple/5'} rounded-2xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-all ${isUploadingCatalog ? 'animate-pulse pointer-events-none' : ''}`}>
+                           <div className="flex items-center gap-3">
+                              {isUploadingCatalog ? (
+                                <RefreshCw className="animate-spin text-corporate-purple" size={24} />
+                              ) : (
+                                <CloudUpload className={ragCatalog.length > 0 ? 'text-emerald-500' : 'text-corporate-purple'} size={24} />
+                              )}
+                              <div className="flex flex-col">
+                                <span className={`text-sm font-bold ${ragCatalog.length > 0 ? 'text-emerald-600' : 'text-corporate-purple'}`}>
+                                  {isUploadingCatalog ? (lang === 'es' ? 'Sincronizando...' : 'Syncing...') : (lang === 'es' ? 'Subir lista de precios (.CSV)' : 'Upload price list (.CSV)')}
+                                </span>
+                                {ragCatalog.length > 0 && !isUploadingCatalog && (
+                                  <span className="text-[11px] font-black text-emerald-700 tracking-tight">
+                                    ✅ {ragCatalog.length} {lang === 'es' ? 'productos sincronizados' : 'products synced'}
+                                  </span>
+                                )}
+                                {ragCatalog.length === 0 && !isUploadingCatalog && (
+                                  <span className="text-[10px] text-slate-400 font-medium">{lang === 'es' ? 'Columnas: nombre, precio, stock' : 'Columns: name, price, stock'}</span>
+                                )}
+                              </div>
+                           </div>
+
                            <input
                              type="file"
                              accept=".csv"
                              className="hidden"
+                             disabled={isUploadingCatalog}
                              onChange={(e) => {
                                if (!e.target.files || e.target.files.length === 0) return;
                                const file = e.target.files[0];
@@ -1608,7 +1630,6 @@ export default function Home() {
                                    
                                    if (catalog.length === 0) { alert(lang === 'es' ? 'Sin productos válidos.' : 'No valid products.'); return; }
                                    
-                                   // Sincronización con NUBE (POST /api/user/catalog)
                                    setIsUploadingCatalog(true);
                                    fetch('/api/user/catalog', {
                                      method: 'POST',
@@ -1619,7 +1640,6 @@ export default function Home() {
                                    .then(data => {
                                      if (data.error) throw new Error(data.error);
                                      setRagCatalog(catalog);
-                                     alert('✅ ' + catalog.length + (lang === 'es' ? ' productos en la nube.' : ' products in the cloud.'));
                                    })
                                    .catch(err => {
                                       console.error(err);
@@ -1633,11 +1653,6 @@ export default function Home() {
                                reader.readAsText(file, 'UTF-8');
                              }}
                            />
-                           <UploadCloud size={22} className="text-corporate-purple shrink-0" />
-                           <div className="flex flex-col">
-                             <span className="text-sm font-bold text-corporate-purple">{lang === 'es' ? 'Subir lista de precios (.CSV)' : 'Upload price list (.CSV)'}</span>
-                             <span className="text-[10px] text-slate-400 font-medium">{lang === 'es' ? 'Columnas: nombre, precio, stock' : 'Columns: name, price, stock'}</span>
-                           </div>
                         </label>
                       </div>
                    </div>
