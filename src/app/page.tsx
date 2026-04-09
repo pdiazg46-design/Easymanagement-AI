@@ -333,6 +333,11 @@ export default function Home() {
   const [isSavingGoals, setIsSavingGoals] = useState(false);
   const [showGoalModal, setShowGoalModal] = useState(false);
 
+  // Estado del Catálogo RAG (Sincronizado con PG)
+  const [ragCatalog, setRagCatalog] = useState<{ name: string; price: number; stock: string }[]>([]);
+  const [isUploadingCatalog, setIsUploadingCatalog] = useState(false);
+
+
   // Function to format money globally
   const formatCurrency = (val: number | string) => {
      const n = typeof val === 'string' ? parseFloat(val.replace(/[^\d.-]/g, '')) : Number(val);
@@ -350,19 +355,37 @@ export default function Home() {
       setClients(cls);
   };
 
-  // Cargar metas del Tenant desde la Nube
   const loadGoals = async () => {
     try {
-      const res = await fetch('/api/user/goals', { cache: 'no-store' });
+      const res = await fetch('/api/user/goals');
       if (res.ok) {
         const data = await res.json();
         if (data.monthlyGoalUsd) setMonthlyGoalUsd(data.monthlyGoalUsd);
         if (data.annualGoalUsd) setAnnualGoalUsd(data.annualGoalUsd);
       }
     } catch (e) {
-      console.log('Sin conexión para metas:', e);
+      console.error("Error cargando metas:", e);
     }
   };
+
+  const loadCatalog = async () => {
+    try {
+      const res = await fetch('/api/user/catalog');
+      if (res.ok) {
+        const data = await res.json();
+        setRagCatalog(data.items || []);
+      }
+    } catch (e) {
+      console.error("Error cargando catálogo:", e);
+    }
+  };
+
+  useEffect(() => {
+    if (currentView === 'dashboard') {
+      loadGoals();
+      loadCatalog();
+    }
+  }, [currentView]);
 
   // 1. Cargar el Perfil del Usuario SIEMPRE al iniciar, para pre-llenar de ser posible si hay cookie
   useEffect(() => {
@@ -1582,9 +1605,28 @@ export default function Home() {
                                      const rawPrice = (cols[priceIdx] || '0').replace(/[^\d.,]/g, '').replace(',', '.');
                                      return { name: cols[nameIdx] || '', price: parseFloat(rawPrice) || 0, stock: stockIdx >= 0 ? (cols[stockIdx] || 'Disponible') : 'Disponible' };
                                    }).filter(item => item.name.length > 1 && item.price > 0);
+                                   
                                    if (catalog.length === 0) { alert(lang === 'es' ? 'Sin productos válidos.' : 'No valid products.'); return; }
-                                   localStorage.setItem('easy_ragCatalog_' + (email || 'user'), JSON.stringify(catalog));
-                                   alert('\u2705 ' + catalog.length + (lang === 'es' ? ' productos cargados.' : ' products loaded.'));
+                                   
+                                   // Sincronización con NUBE (POST /api/user/catalog)
+                                   setIsUploadingCatalog(true);
+                                   fetch('/api/user/catalog', {
+                                     method: 'POST',
+                                     headers: { 'Content-Type': 'application/json' },
+                                     body: JSON.stringify({ items: catalog })
+                                   })
+                                   .then(res => res.json())
+                                   .then(data => {
+                                     if (data.error) throw new Error(data.error);
+                                     setRagCatalog(catalog);
+                                     alert('✅ ' + catalog.length + (lang === 'es' ? ' productos en la nube.' : ' products in the cloud.'));
+                                   })
+                                   .catch(err => {
+                                      console.error(err);
+                                      alert(lang === 'es' ? 'Error al sincronizar con la nube.' : 'Cloud sync error.');
+                                   })
+                                   .finally(() => setIsUploadingCatalog(false));
+
                                    e.target.value = '';
                                  } catch (err) { console.error(err); alert(lang === 'es' ? 'Error al procesar CSV.' : 'Error processing CSV.'); }
                                };
@@ -2062,103 +2104,8 @@ export default function Home() {
                     })()}
                   </motion.div>
 
-                  {/* KPI BAR — PROGRESO VS METAS */}
-                  {activeTab !== 'historial' && (() => {
-                    const now = new Date();
-                    const currentYear = now.getFullYear();
-                    const currentMonth = now.getMonth();
-
-                    const wonThisMonth = opportunities
-                      .filter((o: any) => {
-                        if (o.status !== 'GANADO') return false;
-                        const d = new Date(o.statusUpdatedAt || o.updatedAt || o.createdAt);
-                        return d.getFullYear() === currentYear && d.getMonth() === currentMonth;
-                      })
-                      .reduce((sum: number, o: any) => sum + (o.amountUsd || 0), 0);
-
-                    const wonThisYear = opportunities
-                      .filter((o: any) => {
-                        if (o.status !== 'GANADO') return false;
-                        const d = new Date(o.statusUpdatedAt || o.updatedAt || o.createdAt);
-                        return d.getFullYear() === currentYear;
-                      })
-                      .reduce((sum: number, o: any) => sum + (o.amountUsd || 0), 0);
-
-                    const monthlyPct = Math.min((wonThisMonth / (monthlyGoalUsd || 1)) * 100, 100);
-                    const annualPct  = Math.min((wonThisYear  / (annualGoalUsd  || 1)) * 100, 100);
-
-                    const getBarStyle = (pct: number) => {
-                      if (pct >= 100) return { bar: '#10b981', text: 'text-emerald-600', badge: 'bg-emerald-500', label: lang === 'es' ? '🏆 META CUMPLIDA' : '🏆 GOAL MET' };
-                      if (pct >=  70) return { bar: '#3b82f6', text: 'text-blue-600',    badge: 'bg-blue-500',    label: lang === 'es' ? '💪 EN CAMINO'    : '💪 ON TRACK'  };
-                      if (pct >=  40) return { bar: '#F59E0B', text: 'text-amber-600',   badge: 'bg-amber-500',   label: lang === 'es' ? '⚡ ACELERAR'      : '⚡ SPEED UP'   };
-                      return                 { bar: '#ef4444', text: 'text-red-600',     badge: 'bg-red-500',     label: lang === 'es' ? '🚨 EN RIESGO'     : '🚨 AT RISK'    };
-                    };
-
-                    const mStyle = getBarStyle(monthlyPct);
-                    const aStyle = getBarStyle(annualPct);
-                    const isAtRisk = now.getDate() >= 15 && monthlyPct < 50;
-
-                    return (
-                      <div 
-                        className="bg-white rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.04)] p-4 flex flex-col gap-3 shrink-0 cursor-pointer hover:border-corporate-purple/30 transition-colors"
-                        onClick={() => setShowGoalModal(true)}
-                      >
-                        <div className="flex justify-between items-center">
-                          <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
-                            🎯 {lang === 'es' ? 'Progreso vs Metas' : 'Progress vs Goals'}
-                          </h3>
-                          <span className="text-[9px] font-bold text-corporate-purple bg-corporate-purple/10 px-2 py-0.5 rounded-full uppercase tracking-widest">
-                            {lang === 'es' ? 'Editar metas' : 'Edit goals'} ✏️
-                          </span>
-                        </div>
-
-                        {isAtRisk && (
-                          <div className="bg-red-50 border border-red-100 rounded-xl px-3 py-2 flex items-center gap-2">
-                            <span className="text-sm">🚨</span>
-                            <p className="text-[10px] font-bold text-red-600 uppercase tracking-widest leading-tight">
-                              {lang === 'es' ? 'Segunda quincena — Meta mensual en riesgo' : 'Mid-month — Monthly goal at risk'}
-                            </p>
-                          </div>
-                        )}
-
-                        <div className="flex flex-col gap-1.5">
-                          <div className="flex justify-between items-center">
-                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{lang === 'es' ? 'Meta Mensual' : 'Monthly Goal'}</span>
-                            <div className="flex items-center gap-2">
-                              <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full ${mStyle.badge} text-white`}>{mStyle.label}</span>
-                              <span className={`text-[11px] font-black ${mStyle.text}`}>{monthlyPct.toFixed(0)}%</span>
-                            </div>
-                          </div>
-                          <div className="relative h-2 bg-slate-100 rounded-full overflow-hidden">
-                            <div className="absolute left-0 top-0 h-full rounded-full transition-all duration-1000 ease-out" style={{ width: `${monthlyPct}%`, background: mStyle.bar }} />
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className={`text-[10px] font-black ${mStyle.text}`}>{formatCurrency(wonThisMonth)}</span>
-                            <span className="text-[10px] font-medium text-slate-400">{lang === 'es' ? 'de' : 'of'} {formatCurrency(monthlyGoalUsd)}</span>
-                          </div>
-                        </div>
-
-                        <div className="h-px bg-slate-100" />
-
-                        <div className="flex flex-col gap-1.5">
-                          <div className="flex justify-between items-center">
-                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{lang === 'es' ? 'Meta Anual' : 'Annual Goal'}</span>
-                            <div className="flex items-center gap-2">
-                              <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full ${aStyle.badge} text-white`}>{aStyle.label}</span>
-                              <span className={`text-[11px] font-black ${aStyle.text}`}>{annualPct.toFixed(0)}%</span>
-                            </div>
-                          </div>
-                          <div className="relative h-2 bg-slate-100 rounded-full overflow-hidden">
-                            <div className="absolute left-0 top-0 h-full rounded-full transition-all duration-1000 ease-out" style={{ width: `${annualPct}%`, background: aStyle.bar }} />
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className={`text-[10px] font-black ${aStyle.text}`}>{formatCurrency(wonThisYear)}</span>
-                            <span className="text-[10px] font-medium text-slate-400">{lang === 'es' ? 'de' : 'of'} {formatCurrency(annualGoalUsd)}</span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
+                  {/* Espacio para separación */}
+                  <div className="h-2" />
 
                   <div className="bg-slate-100 rounded-full p-1 flex items-center justify-between w-full shadow-inner border border-slate-200/60 shrink-0">
                     <button 
@@ -3387,17 +3334,13 @@ export default function Home() {
                   {(() => {
                      const draftLower = draftActivity.toLowerCase();
                      const ragMatches: { name: string; price: number; stock: string }[] = [];
-                     let userCatalog: { name: string; price: number; stock: string }[] = [];
-                     try {
-                        const stored = typeof window !== 'undefined' ? localStorage.getItem('easy_ragCatalog_' + (email || 'user')) : null;
-                        if (stored) userCatalog = JSON.parse(stored);
-                     } catch (_) {}
-                     userCatalog.forEach(item => {
+                     
+                     ragCatalog.forEach(item => {
                         const words = item.name.toLowerCase().split(/[\s,;\-\/]+/).filter((w: string) => w.length > 3);
                         if (words.some((word: string) => draftLower.includes(word))) ragMatches.push(item);
                      });
-                     if (userCatalog.length === 0 || ragMatches.length === 0) return null;
 
+                     if (ragCatalog.length === 0 || ragMatches.length === 0) return null;
 
                     return (
                        <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} className="bg-white rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-6 relative overflow-hidden group hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow">

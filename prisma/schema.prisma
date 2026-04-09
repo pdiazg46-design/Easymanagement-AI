@@ -23,7 +23,24 @@ model Tenant {
   users           User[]
   clients         Client[]
   opportunities   Opportunity[]
+  catalogItems    CatalogItem[]
   createdAt       DateTime @default(now())
+}
+
+// Model para el Catálogo RAG de productos
+model CatalogItem {
+  id        String   @id @default(cuid())
+  name      String
+  price     Float
+  stock     String   @default("Disponible")
+  
+  tenantId  String?
+  tenant    Tenant?   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  userId    String?   // Dueño del dato para aislamiento total
+  user      User?     @relation(fields: [userId], references: [id])
+  
+  createdAt DateTime @default(now())
 }
 
 // 2. Usuarios (Tú y tu equipo de ventas)
@@ -43,20 +60,31 @@ model User {
   tenantId     String?
   tenant       Tenant?   @relation(fields: [tenantId], references: [id])
   createdAt    DateTime  @default(now())
+
+  // Metas Personales (Para aislamiento total)
+  monthlyGoalUsd Float?   @default(80000)
+  annualGoalUsd  Float?   @default(1000000)
   
   activities   ActivityLog[]
+  clients      Client[]
+  opportunities Opportunity[]
+  catalogItems CatalogItem[]
   subscriptions PushSubscription[]
 }
 
-// 3. Clientes / Distribuidores (Lo que faltaba para emparejar a "Perú", etc.)
+// 3. Clientes / Distribuidores
 model Client {
   id           String   @id @default(cuid())
-  name         String   // Ej: "Telefónica del Perú" o "Distribuidor Local S.A."
-  country      String   // Ej: "Perú", "Brasil"
-  region       String?  // Ej: "Antofagasta", "Biobío"
-  tenantId     String
-  tenant       Tenant   @relation(fields: [tenantId], references: [id])
+  name         String   
+  country      String   
+  region       String?  
   
+  tenantId     String?
+  tenant       Tenant?   @relation(fields: [tenantId], references: [id])
+  
+  userId       String?   // Dueño del dato
+  user         User?     @relation(fields: [userId], references: [id])
+
   opportunities Opportunity[]
   activities    ActivityLog[]
 }
@@ -71,15 +99,19 @@ enum OpportunityStatus {
 
 model Opportunity {
   id           String   @id @default(cuid())
-  title        String   // Ej: "Venta de herramientas de telecomunicaciones"
-  amountUsd    Float    // Monto de la Oportunidad
+  title        String   
+  amountUsd    Float    
   status       OpportunityStatus @default(PROSPECTO)
   confidenceLevel String @default("MEDIA")
   
   clientId     String
   client       Client   @relation(fields: [clientId], references: [id])
-  tenantId     String
-  tenant       Tenant   @relation(fields: [tenantId], references: [id])
+  
+  tenantId     String?
+  tenant       Tenant?   @relation(fields: [tenantId], references: [id])
+  
+  userId       String?   // Dueño del dato
+  user         User?     @relation(fields: [userId], references: [id])
   
   activities   ActivityLog[]
   createdAt    DateTime @default(now())

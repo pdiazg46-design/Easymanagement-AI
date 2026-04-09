@@ -140,11 +140,11 @@ export async function deleteActivity(id: string) {
 // ============================================
 
 export async function getClients(country?: string) {
-  const { tenant } = await getSession();
+  const { user } = await getSession();
   
   return await prisma.client.findMany({
     where: { 
-      tenantId: tenant.id,
+      userId: user.id,
       ...(country ? { country } : {})
     },
     include: { opportunities: true },
@@ -153,13 +153,14 @@ export async function getClients(country?: string) {
 }
 
 export async function createClient(data: { name: string, country: string, region?: string }) {
-  const { tenant } = await getSession();
+  const { user, tenant } = await getSession();
   
   const client = await prisma.client.create({
     data: {
       name: data.name,
       country: data.country,
       region: data.region,
+      userId: user.id,
       tenantId: tenant.id
     }
   });
@@ -169,10 +170,10 @@ export async function createClient(data: { name: string, country: string, region
 }
 
 export async function updateClient(id: string, data: { name?: string, country?: string, region?: string }) {
-  const { tenant } = await getSession();
+  const { user } = await getSession();
   
   const client = await prisma.client.update({
-    where: { id, tenantId: tenant.id },
+    where: { id, userId: user.id },
     data
   });
   
@@ -185,17 +186,17 @@ export async function updateClient(id: string, data: { name?: string, country?: 
 // ============================================
 
 export async function getOpportunities() {
-  const { tenant } = await getSession();
+  const { user } = await getSession();
   
   return await prisma.opportunity.findMany({
-    where: { tenantId: tenant.id },
+    where: { userId: user.id },
     include: { client: true },
     orderBy: { createdAt: 'desc' }
   });
 }
 
 export async function createOpportunity(data: { title: string, amountUsd: number, clientId: string }) {
-  const { tenant } = await getSession();
+  const { user, tenant } = await getSession();
   
   const opp = await prisma.opportunity.create({
     data: {
@@ -203,6 +204,7 @@ export async function createOpportunity(data: { title: string, amountUsd: number
        amountUsd: data.amountUsd,
        status: 'PROSPECTO',
        clientId: data.clientId,
+       userId: user.id,
        tenantId: tenant.id
     },
     include: { client: true }
@@ -213,9 +215,9 @@ export async function createOpportunity(data: { title: string, amountUsd: number
 }
 
 export async function updateOpportunityStatus(id: string, status: any) {
-  const { tenant } = await getSession();
+  const { user } = await getSession();
   const opp = await prisma.opportunity.update({
-    where: { id, tenantId: tenant.id },
+    where: { id, userId: user.id },
     data: { 
       status,
       statusUpdatedAt: new Date()
@@ -224,7 +226,7 @@ export async function updateOpportunityStatus(id: string, status: any) {
 
   if (status === 'GANADO' || status === 'PERDIDO') {
       await prisma.activityLog.updateMany({
-         where: { opportunityId: id, completed: false },
+         where: { opportunityId: id, userId: user.id, completed: false },
          data: { completed: true }
       });
   }
@@ -234,10 +236,10 @@ export async function updateOpportunityStatus(id: string, status: any) {
 }
 
 export async function deleteOpportunity(id: string) {
-  const { tenant } = await getSession();
+  const { user } = await getSession();
   
   const oppCheck = await prisma.opportunity.findUnique({
-    where: { id, tenantId: tenant.id }
+    where: { id, userId: user.id }
   });
 
   if (oppCheck && oppCheck.status !== 'PROSPECTO') {
@@ -245,16 +247,16 @@ export async function deleteOpportunity(id: string) {
   }
 
   const opp = await prisma.opportunity.delete({
-    where: { id, tenantId: tenant.id }
+    where: { id, userId: user.id }
   });
   revalidatePath("/");
   return opp;
 }
 
 export async function updateOpportunityConfidence(id: string, confidenceLevel: string) {
-  const { tenant } = await getSession();
+  const { user } = await getSession();
   const opp = await prisma.opportunity.update({
-    where: { id, tenantId: tenant.id },
+    where: { id, userId: user.id },
     data: { confidenceLevel }
   });
   revalidatePath("/");
@@ -262,13 +264,13 @@ export async function updateOpportunityConfidence(id: string, confidenceLevel: s
 }
 
 export async function updateOpportunityDetails(id: string, title?: string, amountUsd?: number) {
-  const { tenant } = await getSession();
+  const { user } = await getSession();
   const data: any = {};
   if (title) data.title = title;
   if (amountUsd !== undefined) data.amountUsd = amountUsd;
   
   const opp = await prisma.opportunity.update({
-    where: { id, tenantId: tenant.id },
+    where: { id, userId: user.id },
     data
   });
   revalidatePath("/");

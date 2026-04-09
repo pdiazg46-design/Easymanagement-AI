@@ -22,20 +22,15 @@ async function getSessionUser(req: Request) {
   }
 }
 
-// GET - Obtener metas del Tenant
+// GET - Obtener metas del Usuario
 export async function GET(req: Request) {
   try {
     const user = await getSessionUser(req);
     if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
-    // Si no tiene tenant, devolvemos defaults
-    if (!user.tenant) {
-      return NextResponse.json({ monthlyGoalUsd: 80000, annualGoalUsd: 1000000 });
-    }
-
     return NextResponse.json({
-      monthlyGoalUsd: user.tenant.monthlyGoalUsd ?? 80000,
-      annualGoalUsd: user.tenant.annualGoalUsd ?? 1000000,
+      monthlyGoalUsd: user.monthlyGoalUsd ?? 80000,
+      annualGoalUsd: user.annualGoalUsd ?? 1000000,
     });
   } catch (error) {
     console.error('Error obteniendo metas:', error);
@@ -43,7 +38,7 @@ export async function GET(req: Request) {
   }
 }
 
-// PUT - Actualizar metas del Tenant
+// PUT - Actualizar metas del Usuario
 export async function PUT(req: Request) {
   try {
     const user = await getSessionUser(req);
@@ -56,21 +51,10 @@ export async function PUT(req: Request) {
     if (monthlyGoalUsd !== undefined) dataToUpdate.monthlyGoalUsd = Number(monthlyGoalUsd);
     if (annualGoalUsd !== undefined) dataToUpdate.annualGoalUsd = Number(annualGoalUsd);
 
-    // Upsert: actualizar o crear tenant
-    if (user.tenantId) {
-      await prisma.tenant.update({
-        where: { id: user.tenantId },
-        data: dataToUpdate
-      });
-    } else {
-      const newTenant = await prisma.tenant.create({
-        data: { name: 'Mi Empresa', ...dataToUpdate }
-      });
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { tenantId: newTenant.id }
-      });
-    }
+    await prisma.user.update({
+      where: { id: user.id },
+      data: dataToUpdate
+    });
 
     return NextResponse.json({ success: true, ...dataToUpdate });
   } catch (error) {
