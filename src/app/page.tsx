@@ -2844,7 +2844,10 @@ export default function Home() {
                      
                      const formatCompact = (num: number) => {
                         if (num >= 1000000) return `$${(num/1000000).toFixed(1)}M`;
-                        if (num >= 1000) return `$${(num/1000).toFixed(0)}K`;
+                        if (num >= 1000) {
+                           const val = num/1000;
+                           return `$${val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)}K`;
+                        }
                         return `$${num}`;
                      };
 
