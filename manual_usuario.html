@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Manual de Usuario - Easy Management AI</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        @page { size: letter; margin: 2cm; }
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; color: #1f2937; line-height: 1.6; -webkit-print-color-adjust: exact; background: #f3f4f6; }
+        .page { max-width: 8.5in; margin: 0 auto; background: white; padding: 1.5in; box-shadow: 0 0 10px rgba(0,0,0,0.1); min-height: 11in; box-sizing: border-box; }
+        @media print {
+            .page { padding: 0; box-shadow: none; max-width: 100%; margin: 0; }
+            body { background: white; }
+        }
+        h1 { color: #111827; font-size: 24pt; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; margin-bottom: 30px; margin-top: 0; }
+        h2 { color: #2563eb; font-size: 16pt; margin-top: 30px; }
+        p, li { font-size: 11pt; color: #374151; }
+        ul, ol { margin-top: 10px; margin-bottom: 20px; padding-left: 25px; }
+        li { margin-bottom: 8px; }
+        .step-container { margin-bottom: 35px; border-left: 4px solid #bfdbfe; padding-left: 20px; page-break-inside: avoid; }
+        .image-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-top: 15px; }
+        .image-row img { width: 100%; height: 260px; object-fit: contain; background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .alert { background: #fef2f2; border-left: 4px solid #ef4444; padding: 15px; border-radius: 0 8px 8px 0; font-size: 10pt; margin-top: 20px; }
+        .header-logo { font-size: 12pt; font-weight: bold; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <div class="header-logo">Easy Management AI</div>
+        <h1>Manual Rápido de Usuario 📱</h1>
+        <p>Bienvenido. Este documento te explicará paso a paso cómo instalar tu herramienta en tu celular y cómo iniciar tu flujo de trabajo habilitando tu micrófono.</p>
+
+        <div class="step-container">
+            <h2>1. Instalación Rápida de la App</h2>
+            <p>El sistema se ancla directamente desde tu navegador del teléfono, sin pedir descargas desde tiendas oficiales. Funciona de manera ultraliviana.</p>
+            <ul>
+                <li><b>En iPhone (Safari):</b> Ingresa al enlace proporcionado, pulsa el botón central inferior de "Compartir" (cuadradito con flecha) y selecciona <b>"Agregar a Inicio"</b>. Confirma con Agregar.</li>
+                <li><b>En Android (Chrome):</b> Ingresa al enlace, toca los tres puntos (arriba a la derecha) y elige <b>"Instalar aplicación"</b> o <b>"Agregar a inicio"</b>.</li>
+            </ul>
+            <div class="image-row">
+                <img src="public/imagenes/easy%20management%207.jpg" alt="Pantalla iOS Instalación">
+                <img src="public/imagenes/easy%20management%208.jpg" alt="Pantalla Android Instalación">
+            </div>
+        </div>
+
+        <div class="step-container">
+            <h2>2. Iniciar Sesión</h2>
+            <p>Abre el nuevo ícono que apareció junto a tus otras aplicaciones en el teléfono.</p>
+            <ol>
+                <li>Ingresa tu correo electrónico asignado.</li>
+                <li>Ingresa tu contraseña oficial temporal.</li>
+                <li>Visualiza tu Dashboard personalizado de Oportunidades y Tareas.</li>
+            </ol>
+            <div class="image-row">
+                <img src="public/imagenes/easy%20management%209.jpg" alt="Login Screenshot">
+                <img src="public/imagenes/easy%20management%2010.jpg" alt="Dashboard Interno">
+            </div>
+        </div>
+
+        <div class="step-container">
+            <h2>3. Habilitando la Voz y la Inteligencia Artificial 🎙️</h2>
+            <p>Nuestra mayor ventaja es el dictado veloz. El sistema debe acceder a tu micrófono en su primer uso.</p>
+            <ol>
+                <li>En la barra inferior del celular, presiona el botón morado de <b>Micrófono</b>.</li>
+                <li>Tu dispositivo te solicitará autorización. <b>Elige "Permitir siempre"</b>.</li>
+                <li>Haz una prueba de voz y confirma que la IA extrae los datos correctamente en pocos segundos.</li>
+            </ol>
+            <div class="image-row">
+                <img src="public/imagenes/easy%20management%2011.jpg" alt="Presionar micrófono">
+                <img src="public/imagenes/easy%20management%2012.jpg" alt="Aceptar alertas">
+                <img src="public/imagenes/easy%20management%2013.jpg" alt="Bitácora agregada">
+            </div>
+
+            <div class="alert">
+                <b>💡 Tip Anti-bloqueos:</b> Si un día te avisan de una actualización y aún ves la versión antigua, ve a los ajustes de Safari en tu iPhone y <i>"Borra el historial"</i>, o elimina el caché de la navegación en Android para purgar el sistema PWA.
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -324,6 +324,14 @@ export default function Home() {
   const [reportMonthFilter, setReportMonthFilter] = useState<string>((new Date()).toISOString().slice(0, 7));
   const [generatedBlobUrl, setGeneratedBlobUrl] = useState<string | null>(null);
 
+  // Estados de Metas KPI
+  const [monthlyGoalUsd, setMonthlyGoalUsd] = useState<number>(80000);
+  const [annualGoalUsd, setAnnualGoalUsd] = useState<number>(1000000);
+  const [draftMonthlyGoal, setDraftMonthlyGoal] = useState<string>('');
+  const [draftAnnualGoal, setDraftAnnualGoal] = useState<string>('');
+  const [showGoalEditor, setShowGoalEditor] = useState(false);
+  const [isSavingGoals, setIsSavingGoals] = useState(false);
+
   // Function to format money globally
   const formatCurrency = (val: number | string) => {
      const n = typeof val === 'string' ? parseFloat(val.replace(/[^\d.-]/g, '')) : Number(val);
@@ -341,6 +349,20 @@ export default function Home() {
       setClients(cls);
   };
 
+  // Cargar metas del Tenant desde la Nube
+  const loadGoals = async () => {
+    try {
+      const res = await fetch('/api/user/goals', { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.monthlyGoalUsd) setMonthlyGoalUsd(data.monthlyGoalUsd);
+        if (data.annualGoalUsd) setAnnualGoalUsd(data.annualGoalUsd);
+      }
+    } catch (e) {
+      console.log('Sin conexión para metas:', e);
+    }
+  };
+
   // 1. Cargar el Perfil del Usuario SIEMPRE al iniciar, para pre-llenar de ser posible si hay cookie
   useEffect(() => {
      loadUserProfile();
@@ -352,6 +374,8 @@ export default function Home() {
          getAllUsers().then(u => setAdminUsers(u)).catch(console.error);
      }
      if (currentView === 'dashboard') {
+        // Cargar metas guardadas en la nube
+        loadGoals();
         // Cargar Tareas, Clientes y Oportunidades
         getActivities().then(activities => {
            const mapped = activities.map((a: any) => ({
@@ -1574,7 +1598,102 @@ export default function Home() {
                         </label>
                       </div>
                    </div>
-  
+
+                    {/* SECCIÓN METAS KPI */}
+                    <div className="space-y-2 mt-5 pt-4 border-t border-slate-100">
+                      <div className="flex justify-between items-center ml-1 mb-2">
+                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                          🎯 {lang === 'es' ? 'Metas de Ventas' : 'Sales Goals'}
+                        </label>
+                        <button
+                          onClick={() => setShowGoalEditor(!showGoalEditor)}
+                          className="text-[10px] font-bold text-corporate-purple bg-corporate-purple/10 border border-corporate-purple/20 px-2.5 py-1 rounded-full hover:bg-corporate-purple/20 transition-colors"
+                        >
+                          {showGoalEditor ? (lang === 'es' ? 'Cerrar' : 'Close') : (lang === 'es' ? '✏️ Editar' : '✏️ Edit')}
+                        </button>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <div className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 flex flex-col items-center">
+                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">{lang === 'es' ? 'Meta Mensual' : 'Monthly Goal'}</span>
+                          <span className="text-sm font-black text-[#1E3A8A]">{new Intl.NumberFormat('es-CL', { maximumFractionDigits: 0 }).format(monthlyGoalUsd)} <span className="text-[9px] font-bold text-slate-400">USD</span></span>
+                        </div>
+                        <div className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 flex flex-col items-center">
+                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">{lang === 'es' ? 'Meta Anual' : 'Annual Goal'}</span>
+                          <span className="text-sm font-black text-[#1E3A8A]">{new Intl.NumberFormat('es-CL', { maximumFractionDigits: 0 }).format(annualGoalUsd)} <span className="text-[9px] font-bold text-slate-400">USD</span></span>
+                        </div>
+                      </div>
+
+                      {showGoalEditor && (
+                        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col gap-3">
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5 ml-1">{lang === 'es' ? 'Meta Mensual (USD)' : 'Monthly Goal (USD)'}</label>
+                            <div className="relative">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">USD</span>
+                              <input
+                                type="text"
+                                placeholder={monthlyGoalUsd.toLocaleString('en-US')}
+                                value={draftMonthlyGoal}
+                                onFocus={e => e.target.select()}
+                                onChange={e => {
+                                  const raw = e.target.value.replace(/\D/g, '');
+                                  setDraftMonthlyGoal(raw ? parseInt(raw).toLocaleString('en-US') : '');
+                                }}
+                                className="w-full bg-white border border-slate-200 text-sm pl-10 pr-3 py-2.5 rounded-xl font-bold text-[#1E3A8A] outline-none focus:border-corporate-purple"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5 ml-1">{lang === 'es' ? 'Meta Anual (USD)' : 'Annual Goal (USD)'}</label>
+                            <div className="relative">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">USD</span>
+                              <input
+                                type="text"
+                                placeholder={annualGoalUsd.toLocaleString('en-US')}
+                                value={draftAnnualGoal}
+                                onFocus={e => e.target.select()}
+                                onChange={e => {
+                                  const raw = e.target.value.replace(/\D/g, '');
+                                  setDraftAnnualGoal(raw ? parseInt(raw).toLocaleString('en-US') : '');
+                                }}
+                                className="w-full bg-white border border-slate-200 text-sm pl-10 pr-3 py-2.5 rounded-xl font-bold text-[#1E3A8A] outline-none focus:border-corporate-purple"
+                              />
+                            </div>
+                          </div>
+                          <button
+                            disabled={isSavingGoals}
+                            onClick={async () => {
+                              const monthly = parseInt((draftMonthlyGoal || '').replace(/\D/g, ''));
+                              const annual = parseInt((draftAnnualGoal || '').replace(/\D/g, ''));
+                              if (!monthly && !annual) return;
+                              setIsSavingGoals(true);
+                              try {
+                                const res = await fetch('/api/user/goals', {
+                                  method: 'PUT',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    monthlyGoalUsd: monthly || monthlyGoalUsd,
+                                    annualGoalUsd: annual || annualGoalUsd
+                                  })
+                                });
+                                if (res.ok) {
+                                  if (monthly) setMonthlyGoalUsd(monthly);
+                                  if (annual) setAnnualGoalUsd(annual);
+                                  setDraftMonthlyGoal('');
+                                  setDraftAnnualGoal('');
+                                  setShowGoalEditor(false);
+                                }
+                              } catch(e) { console.error(e); }
+                              setIsSavingGoals(false);
+                            }}
+                            className="w-full bg-[#1E3A8A] text-white py-2.5 rounded-xl font-bold uppercase tracking-wider text-[11px] flex items-center justify-center gap-2 disabled:opacity-50 shadow-sm"
+                          >
+                            {isSavingGoals ? '...' : (lang === 'es' ? '✓ Guardar Metas' : '✓ Save Goals')}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
                    <div className="mt-8 shrink-0">
                     <motion.button 
                       whileTap={{ scale: 0.95 }}
@@ -1909,6 +2028,104 @@ export default function Home() {
                       </div>
                     </div>
                   </motion.div>
+
+                  {/* KPI BAR — PROGRESO VS METAS */}
+                  {activeTab !== 'historial' && (() => {
+                    const now = new Date();
+                    const currentYear = now.getFullYear();
+                    const currentMonth = now.getMonth();
+
+                    const wonThisMonth = opportunities
+                      .filter((o: any) => {
+                        if (o.status !== 'GANADO') return false;
+                        const d = new Date(o.statusUpdatedAt || o.updatedAt || o.createdAt);
+                        return d.getFullYear() === currentYear && d.getMonth() === currentMonth;
+                      })
+                      .reduce((sum: number, o: any) => sum + (o.amountUsd || 0), 0);
+
+                    const wonThisYear = opportunities
+                      .filter((o: any) => {
+                        if (o.status !== 'GANADO') return false;
+                        const d = new Date(o.statusUpdatedAt || o.updatedAt || o.createdAt);
+                        return d.getFullYear() === currentYear;
+                      })
+                      .reduce((sum: number, o: any) => sum + (o.amountUsd || 0), 0);
+
+                    const monthlyPct = Math.min((wonThisMonth / (monthlyGoalUsd || 1)) * 100, 100);
+                    const annualPct  = Math.min((wonThisYear  / (annualGoalUsd  || 1)) * 100, 100);
+
+                    const getBarStyle = (pct: number) => {
+                      if (pct >= 100) return { bar: '#10b981', text: 'text-emerald-600', badge: 'bg-emerald-500', label: lang === 'es' ? '🏆 META CUMPLIDA' : '🏆 GOAL MET' };
+                      if (pct >=  70) return { bar: '#3b82f6', text: 'text-blue-600',    badge: 'bg-blue-500',    label: lang === 'es' ? '💪 EN CAMINO'    : '💪 ON TRACK'  };
+                      if (pct >=  40) return { bar: '#F59E0B', text: 'text-amber-600',   badge: 'bg-amber-500',   label: lang === 'es' ? '⚡ ACELERAR'      : '⚡ SPEED UP'   };
+                      return                 { bar: '#ef4444', text: 'text-red-600',     badge: 'bg-red-500',     label: lang === 'es' ? '🚨 EN RIESGO'     : '🚨 AT RISK'    };
+                    };
+
+                    const mStyle = getBarStyle(monthlyPct);
+                    const aStyle = getBarStyle(annualPct);
+                    const isAtRisk = now.getDate() >= 15 && monthlyPct < 50;
+
+                    return (
+                      <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.04)] p-4 flex flex-col gap-3 shrink-0">
+                        <div className="flex justify-between items-center">
+                          <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                            🎯 {lang === 'es' ? 'Progreso vs Metas' : 'Progress vs Goals'}
+                          </h3>
+                          <button
+                            onClick={() => { setCurrentView('onboarding'); setTimeout(() => setShowGoalEditor(true), 350); }}
+                            className="text-[9px] font-bold text-slate-400 hover:text-corporate-purple transition-colors uppercase tracking-widest"
+                          >
+                            {lang === 'es' ? 'Editar' : 'Edit'} ✏️
+                          </button>
+                        </div>
+
+                        {isAtRisk && (
+                          <div className="bg-red-50 border border-red-100 rounded-xl px-3 py-2 flex items-center gap-2">
+                            <span className="text-sm">🚨</span>
+                            <p className="text-[10px] font-bold text-red-600 uppercase tracking-widest leading-tight">
+                              {lang === 'es' ? 'Segunda quincena — Meta mensual en riesgo' : 'Mid-month — Monthly goal at risk'}
+                            </p>
+                          </div>
+                        )}
+
+                        <div className="flex flex-col gap-1.5">
+                          <div className="flex justify-between items-center">
+                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{lang === 'es' ? 'Meta Mensual' : 'Monthly Goal'}</span>
+                            <div className="flex items-center gap-2">
+                              <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full ${mStyle.badge} text-white`}>{mStyle.label}</span>
+                              <span className={`text-[11px] font-black ${mStyle.text}`}>{monthlyPct.toFixed(0)}%</span>
+                            </div>
+                          </div>
+                          <div className="relative h-2 bg-slate-100 rounded-full overflow-hidden">
+                            <div className="absolute left-0 top-0 h-full rounded-full transition-all duration-1000 ease-out" style={{ width: `${monthlyPct}%`, background: mStyle.bar }} />
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className={`text-[10px] font-black ${mStyle.text}`}>{formatCurrency(wonThisMonth)}</span>
+                            <span className="text-[10px] font-medium text-slate-400">{lang === 'es' ? 'de' : 'of'} {formatCurrency(monthlyGoalUsd)}</span>
+                          </div>
+                        </div>
+
+                        <div className="h-px bg-slate-100" />
+
+                        <div className="flex flex-col gap-1.5">
+                          <div className="flex justify-between items-center">
+                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{lang === 'es' ? 'Meta Anual' : 'Annual Goal'}</span>
+                            <div className="flex items-center gap-2">
+                              <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full ${aStyle.badge} text-white`}>{aStyle.label}</span>
+                              <span className={`text-[11px] font-black ${aStyle.text}`}>{annualPct.toFixed(0)}%</span>
+                            </div>
+                          </div>
+                          <div className="relative h-2 bg-slate-100 rounded-full overflow-hidden">
+                            <div className="absolute left-0 top-0 h-full rounded-full transition-all duration-1000 ease-out" style={{ width: `${annualPct}%`, background: aStyle.bar }} />
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className={`text-[10px] font-black ${aStyle.text}`}>{formatCurrency(wonThisYear)}</span>
+                            <span className="text-[10px] font-medium text-slate-400">{lang === 'es' ? 'de' : 'of'} {formatCurrency(annualGoalUsd)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   <div className="bg-slate-100 rounded-full p-1 flex items-center justify-between w-full shadow-inner border border-slate-200/60 shrink-0">
                     <button 

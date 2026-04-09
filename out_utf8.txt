@@ -1,0 +1,56 @@
+321:const [userCurrency, setUserCurrency] = useState<'USD' | 'LOCAL'>('USD');
+327:const formatCurrency = (val: number | string) => {
+329:if (isNaN(n)) return userCurrency === 'USD' ? 'USD 0' : '$ 0';
+331:return userCurrency === 'USD' ? `USD ${formattedNumber}` : `$ ${formattedNumber}`;
+436:const totalPipeline = pipelineOpps.reduce((acc, curr) => acc + curr.amountUsd, 0);
+448:const totalValueUsd = opps.reduce((acc, curr) => acc + curr.amountUsd, 0);
+452:totalValueUsd,
+454:value: totalValueUsd > 0 ? `$${(totalValueUsd/1000).toFixed(0)}K` : '0',
+455:isActive: totalValueUsd > 0
+457:}).filter(m => m.isActive).sort((a,b) => b.totalValueUsd - a.totalValueUsd);
+460:const globalTotalUsd = globalActiveOpps.reduce((acc, curr) => acc + curr.amountUsd, 0);
+1116:<span className={`absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-xs ${userCurrency === 'USD' ? 'text-[9px]' : ''}`}>{userCurrency === 'USD' ? 'USD' : '$'}</span>
+1120:className={`w-full bg-white border border-slate-200 text-xs py-2 rounded-lg font-medium outline-none text-[#1E3A8A] ${userCurrency === 'USD' ? 'pl-9 pr-3' : 'px-6'}`}
+1136:amountUsd: parseFloat(draftOppAmount.replace(/\D/g, "")),
+1161:<span className="font-bold text-corporate-purple text-[11px]">{formatCurrency(opp.amountUsd)}</span>
+1484:setUserCurrency(e.target.value as 'USD'|'LOCAL');
+1489:<option value="USD">USD ($ Dólares)</option>
+1900:<h2 className="text-xl sm:text-2xl font-extrabold tracking-tight flex items-baseline gap-1.5 truncate">{formatCurrency(totalPipeline)}</h2>
+1975:<span className="text-[13px] font-black text-emerald-600">{formatCurrency(c.totalValueUsd)}</span>
+1982:style={{ width: `${(c.totalValueUsd / (globalTotalUsd || 1)) * 100}%` }}
+1985:<span className="text-[10px] font-bold text-slate-500">{((c.totalValueUsd / (globalTotalUsd || 1)) * 100).toFixed(0)}%</span>
+2206:<span className="text-[13px] font-black text-[#1E3A8A] border border-[#1E3A8A]/20 bg-[#1E3A8A]/5 px-2 py-0.5 rounded-lg">{formatCurrency(c.totalValueUsd)}</span>
+2213:style={{ width: `${(c.totalValueUsd / (totalPipeline || 1)) * 100}%` }}
+2216:<span className="text-[10px] font-bold text-slate-500">{((c.totalValueUsd / (totalPipeline || 1)) * 100).toFixed(0)}%</span>
+2416:const clientTotalUsd = clientOpps.reduce((sum, opp) => sum + opp.amountUsd, 0);
+2431:<span className="text-xl sm:text-2xl font-black text-white relative z-10">{formatCompact(clientTotalUsd)}</span>
+2460:setSelectedOpportunity({id: opp.id, title: opp.title, amount: opp.amountUsd.toString()});
+2483:<span className={`absolute left-3 top-1/2 -translate-y-1/2 font-black text-[#1E3A8A] opacity-50 ${userCurrency === 'USD' ? 'text-[9px]' : ''}`}>{userCurrency === 'USD' ? 'USD' : '$'}</span>
+2506:setOpportunities(prev => prev.map(o => o.id === opp.id ? { ...o, title: inlineEditTitle, amountUsd: newAmt } : o));
+2553:<span className="text-[17px] font-black text-emerald-600 leading-none">{formatCurrency(opp.amountUsd)}</span>
+2560:setInlineEditAmount(opp.amountUsd.toLocaleString("en-US"));
+2622:setSelectedOpportunity({id: oppDetails.id, title: oppDetails.title, amount: oppDetails.amountUsd.toString()});
+2672:<span className="text-[18px] sm:text-[20px] font-black text-emerald-600 leading-none">{formatCurrency(oppDetails.amountUsd || 0)}</span>
+2673:<div className="text-[10px] uppercase font-bold text-slate-400 mt-1">USD</div>
+2987:<span className="text-[11px] font-black text-emerald-600 border-l border-slate-200 pl-2 opacity-80">{formatCurrency(item.price)}</span>
+3116:{formatCurrency(29)} <span className="text-lg text-slate-400 font-bold uppercase">USD / {lang === 'es' ? 'Mes' : 'Month'}</span>
+3136:alert("Redirigiendo a pasarela de Mercado Pago (Simulada)...\nMonto: $29 USD (Convertidos a Peso Chileno)");
+3145:alert("Redirigiendo a Lemon Squeezy Checkout (Internacional)...\nMonto: $29 USD");
+3217:<h3 className="text-4xl font-extrabold tracking-tight mb-4">{formatCurrency(globalTotalUsd)}</h3>
+3263:<div className="text-sm font-black text-emerald-600">{formatCurrency(c.totalValueUsd)}</div>
+3288:{formatCurrency(opp.amountUsd)}
+3303:<span className="text-lg font-black text-slate-800">{formatCurrency(globalTotalUsd)}</span>
+3363:const wonMonth = monthOpps.filter(o => o.status === 'GANADO').reduce((a,c)=>a+c.amountUsd,0);
+3364:const lostMonth = monthOpps.filter(o => o.status === 'PERDIDO').reduce((a,c)=>a+c.amountUsd,0);
+3365:const prospectMonth = monthOpps.filter(o => o.status === 'PROSPECTO').reduce((a,c)=>a+c.amountUsd,0);
+3366:const quoteMonth = monthOpps.filter(o => o.status === 'COTIZADO').reduce((a,c)=>a+c.amountUsd,0);
+3374:const pdfCountriesMap = new Map<string, { opps: any[], totalValueUsd: number, name: string }>();
+3380:metrics = { opps: [], totalValueUsd: 0, name: cName };
+3385:metrics.totalValueUsd += opp.amountUsd;
+3388:const pdfCountriesMetrics = Array.from(pdfCountriesMap.values()).sort((a,b) => b.totalValueUsd - a.totalValueUsd);
+3448:<p class="synth-val1">${formatCurrency(prospectMonth)}</p>
+3452:<p class="synth-val3">${formatCurrency(quoteMonth)}</p>
+3456:<p class="synth-val2">${formatCurrency(wonMonth)}</p>
+3460:<p class="synth-val4">${formatCurrency(lostMonth)}</p>
+3482:<p class="country-total">${formatCurrency(c.totalValueUsd)}</p>
+3505:<p class="opp-amount" style="color: ${oppColor};">${formatCurrency(opp.amountUsd)}</p>

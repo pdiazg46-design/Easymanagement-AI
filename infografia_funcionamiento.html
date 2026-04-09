@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Infografía - Easy Management AI</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        @page { size: letter; margin: 0; }
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; background-color: #f8fafc; -webkit-print-color-adjust: exact; }
+        /* "A4/Letter" simulation width for browsers before print. Height is just bounded by content but 11in fits nicely on letter */
+        .page { width: 8.5in; min-height: 11in; margin: 0 auto; padding: 0.8in; box-sizing: border-box; background: white; position: relative; page-break-after: always; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        @media print {
+            .page { width: 100%; height: 100%; padding: 0.8in; margin: 0; border: none; box-shadow: none; }
+            body { background: white; }
+        }
+        h1 { font-size: 28pt; color: #0f172a; margin-bottom: 5px; font-weight: 900; line-height: 1.1; }
+        .subtitle { font-size: 14pt; color: #3b82f6; font-weight: 700; margin-bottom: 30px; }
+        .section { display: flex; align-items: flex-start; margin-bottom: 25px; gap: 20px; }
+        .icon-box { background: #eff6ff; color: #3b82f6; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-size: 24pt; font-weight: bold; flex-shrink: 0; }
+        .content { flex-grow: 1; }
+        .content h2 { margin: 0 0 8px 0; font-size: 16pt; color: #1e293b; }
+        .content p { margin: 0; font-size: 11pt; color: #475569; line-height: 1.5; }
+        .images-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 30px; }
+        .card-img { width: 100%; height: 180px; object-fit: cover; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        .footer { font-size: 10pt; color: #94a3b8; text-align: center; margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 10px; }
+        .highlight { color: #3b82f6; }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <h1>Easy Management <span class="highlight">AI</span></h1>
+        <div class="subtitle">La Nueva Generación de CRM Mobile-First</div>
+        
+        <div class="section">
+            <div class="icon-box">🎙️</div>
+            <div class="content">
+                <h2>El Motor Core: Voice-To-Action</h2>
+                <p>Olvida el teclado. Nuestra Inteligencia Artificial analiza el contexto, transcribe tus comandos de voz, extrae la tarea solicitada y calcula la fecha de compromiso de forma autónoma. La fricción administrativa desaparece.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="icon-box">🏢</div>
+            <div class="content">
+                <h2>Jerarquía Estructural Pura</h2>
+                <p>Todo el ecosistema comercial centralizado: <b>Mandante</b> ➡️ <b>Mercado/Clientes</b> ➡️ <b>Proyectos</b>. La navegación "Drill-Down" previene el extravío del embudo para gerentes y agentes, guiándolos jerárquicamente a la información.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="icon-box">⚡</div>
+            <div class="content">
+                <h2>PWA y Carga de Alta Velocidad</h2>
+                <p>Se ancla al inicio de tu móvil como App (Web Nativa) sin usar tiendas. Garantiza la persistencia rápida del caché y un diseño <i>"Split-Screen"</i> que reacciona inteligentemente según tu dispositivo.</p>
+            </div>
+        </div>
+
+        <div class="images-grid">
+            <img class="card-img" src="public/imagenes/easy%20management%201.jpg" alt="Pantalla de inicio 1">
+            <img class="card-img" src="public/imagenes/easy%20management%202.jpg" alt="Ingreso 2">
+            <img class="card-img" src="public/imagenes/easy%20management%203.jpg" alt="Oportunidades 3">
+            <img class="card-img" src="public/imagenes/easy%20management%204.jpg" alt="Filtros 4">
+            <img class="card-img" src="public/imagenes/easy%20management%205.jpg" alt="Modales 5">
+            <img class="card-img" src="public/imagenes/easy%20management%206.jpg" alt="Admin 6">
+        </div>
+
+        <div class="footer">Infografía Oficial - Arquitectura e Interfaces del Sistema Easy Management AI</div>
+    </div>
+</body>
+</html>
