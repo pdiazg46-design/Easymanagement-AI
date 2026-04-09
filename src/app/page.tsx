@@ -2075,28 +2075,57 @@ export default function Home() {
                     {/* Separador */}
                     <div className="h-px bg-white/15 mb-3" />
 
-                    {/* Mini KPI row: progreso mensual */}
+                    {/* Mini KPI rows: progreso mensual y anual */}
                     {(() => {
                       const now = new Date();
+                      const curYr = now.getFullYear();
+                      
                       const wonMo = opportunities
                         .filter((o: any) => {
                           if (o.status !== 'GANADO') return false;
                           const d = new Date(o.statusUpdatedAt || o.updatedAt || o.createdAt);
-                          return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+                          return d.getFullYear() === curYr && d.getMonth() === now.getMonth();
                         })
                         .reduce((s: number, o: any) => s + (o.amountUsd || 0), 0);
-                      const pct = Math.min(Math.round((wonMo / (monthlyGoalUsd || 1)) * 100), 100);
-                      const barColor = pct >= 100 ? '#10b981' : pct >= 70 ? '#60a5fa' : pct >= 40 ? '#fbbf24' : '#f87171';
+                      
+                      const wonYr = opportunities
+                        .filter((o: any) => {
+                          if (o.status !== 'GANADO') return false;
+                          const d = new Date(o.statusUpdatedAt || o.updatedAt || o.createdAt);
+                          return d.getFullYear() === curYr;
+                        })
+                        .reduce((s: number, o: any) => s + (o.amountUsd || 0), 0);
+
+                      const mPct = Math.min(Math.round((wonMo / (monthlyGoalUsd || 1)) * 100), 100);
+                      const aPct = Math.min(Math.round((wonYr / (annualGoalUsd || 1)) * 100), 100);
+                      
+                      const getBarCol = (p: number) => p >= 100 ? '#10b981' : p >= 70 ? '#60a5fa' : p >= 40 ? '#fbbf24' : '#f87171';
+                      
                       return (
-                        <div className="flex flex-col gap-1.5">
-                          <div className="flex justify-between items-center">
-                            <span className="text-[9px] font-bold text-white/70 uppercase tracking-widest">🎯 {lang === 'es' ? 'Meta mensual' : 'Monthly goal'}</span>
-                            <span className="text-[10px] font-black text-white">{pct}% — {formatCurrency(wonMo)}</span>
+                        <div className="flex flex-col gap-3">
+                          {/* Fila Mensual */}
+                          <div className="flex flex-col gap-1.5">
+                            <div className="flex justify-between items-center">
+                              <span className="text-[9px] font-bold text-white/70 uppercase tracking-widest">🎯 {lang === 'es' ? 'Meta mensual' : 'Monthly goal'}</span>
+                              <span className="text-[10px] font-black text-white">{mPct}% — {formatCurrency(wonMo)}</span>
+                            </div>
+                            <div className="relative h-1.5 bg-white/20 rounded-full overflow-hidden">
+                              <div className="absolute left-0 top-0 h-full rounded-full transition-all duration-1000" style={{ width: `${mPct}%`, background: getBarCol(mPct) }} />
+                            </div>
                           </div>
-                          <div className="relative h-1.5 bg-white/20 rounded-full overflow-hidden">
-                            <div className="absolute left-0 top-0 h-full rounded-full transition-all duration-1000" style={{ width: `${pct}%`, background: barColor }} />
+
+                          {/* Fila Anual */}
+                          <div className="flex flex-col gap-1.5">
+                            <div className="flex justify-between items-center">
+                              <span className="text-[9px] font-bold text-white/70 uppercase tracking-widest">📅 {lang === 'es' ? 'Meta anual' : 'Annual goal'}</span>
+                              <span className="text-[10px] font-black text-white">{aPct}% — {formatCurrency(wonYr)}</span>
+                            </div>
+                            <div className="relative h-1.5 bg-white/20 rounded-full overflow-hidden">
+                              <div className="absolute left-0 top-0 h-full rounded-full transition-all duration-1000" style={{ width: `${aPct}%`, background: getBarCol(aPct) }} />
+                            </div>
                           </div>
-                          <p className="text-[8px] text-white/50 font-medium text-right mt-0.5">
+
+                          <p className="text-[8px] text-white/50 font-medium text-right">
                             👆 {lang === 'es' ? 'Toca para ver y actualizar metas' : 'Tap to view & update goals'}
                           </p>
                         </div>
