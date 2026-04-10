@@ -2119,7 +2119,7 @@ export default function Home() {
                           {/* Fila Mensual */}
                           <div className="flex flex-col gap-1.5">
                             <div className="flex justify-between items-center">
-                              <span className="text-[9px] font-bold text-white/70 uppercase tracking-widest">🎯 {lang === 'es' ? 'Meta mensual' : 'Monthly goal'}</span>
+                              <span className="text-[9px] font-bold text-white/70 uppercase tracking-widest">🎯 {lang === 'es' ? 'Meta mensual' : 'Monthly goal'} <span className="opacity-75 tracking-normal">({formatCurrency(monthlyGoalUsd)})</span></span>
                               <span className="text-[10px] font-black text-white">{mPct}% — {formatCurrency(wonMo)}</span>
                             </div>
                             <div className="relative h-1.5 bg-white/20 rounded-full overflow-hidden">
@@ -2130,7 +2130,7 @@ export default function Home() {
                           {/* Fila Anual */}
                           <div className="flex flex-col gap-1.5">
                             <div className="flex justify-between items-center">
-                              <span className="text-[9px] font-bold text-white/70 uppercase tracking-widest">📅 {lang === 'es' ? 'Meta anual' : 'Annual goal'}</span>
+                              <span className="text-[9px] font-bold text-white/70 uppercase tracking-widest">📅 {lang === 'es' ? 'Meta anual' : 'Annual goal'} <span className="opacity-75 tracking-normal">({formatCurrency(annualGoalUsd)})</span></span>
                               <span className="text-[10px] font-black text-white">{aPct}% — {formatCurrency(wonYr)}</span>
                             </div>
                             <div className="relative h-1.5 bg-white/20 rounded-full overflow-hidden">
