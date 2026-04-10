@@ -2070,9 +2070,7 @@ export default function Home() {
                   </div>
 
                   <motion.div
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setShowGoalModal(true)}
-                    className="bg-corporate-purple rounded-2xl p-3.5 shadow-[0_8px_30px_rgb(124,58,237,0.3)] text-white w-full cursor-pointer overflow-hidden relative shrink-0"
+                    className="bg-corporate-purple rounded-2xl p-3.5 shadow-[0_8px_30px_rgb(124,58,237,0.3)] text-white w-full overflow-hidden relative shrink-0"
                   >
                     {/* Fila superior: pipeline total + proyectos activos */}
                     <div className="flex items-center w-full mb-3">
@@ -2139,10 +2137,6 @@ export default function Home() {
                               <div className="absolute left-0 top-0 h-full rounded-full transition-all duration-1000" style={{ width: `${aPct}%`, background: getBarCol(aPct) }} />
                             </div>
                           </div>
-
-                          <p className="text-[8px] text-white/50 font-medium text-right">
-                            👆 {lang === 'es' ? 'Toca para ver y actualizar metas' : 'Tap to view & update goals'}
-                          </p>
                         </div>
                       );
                     })()}
